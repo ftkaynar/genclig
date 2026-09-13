@@ -174,6 +174,8 @@ export default async function TaskDetailPage({
                 taskId={task.id}
                 userId={viewer.id}
                 verification={task.verification}
+                xp={task.xp}
+                coin={task.coin}
               />
             )
           ) : (

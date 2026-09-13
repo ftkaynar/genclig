@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { signOutAction } from "@/lib/auth/actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserBottomNav } from "@/components/user-bottom-nav";
+import { BalanceSummary } from "@/components/points/balance-summary";
+import { getUserPoints } from "@/lib/points/queries";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -43,6 +45,8 @@ export default async function UserHomePage() {
     redirect("/onboarding");
   }
 
+  const points = viewer ? await getUserPoints(viewer.user.id) : null;
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <div className="flex justify-end px-4 pt-4">
@@ -72,6 +76,8 @@ export default async function UserHomePage() {
               <p className="mt-2 text-sm text-white/80">
                 Şehrinde görev yap, puan kazan.
               </p>
+
+              {points ? <BalanceSummary points={points} /> : null}
 
               <Link
                 href="/gorevler"

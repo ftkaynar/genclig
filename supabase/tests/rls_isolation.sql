@@ -265,6 +265,134 @@ select
 
 \echo ''
 \echo '=========================================================='
+\echo 'SENARYO 12: gorev tamamlaninca XP ve Coin yaziliyor'
+\echo '=========================================================='
+
+\set TGPS '0000f1a5-0000-4000-8000-000000000002'
+\set TDAILY '0000f1a5-0000-4000-8000-000000000004'
+
+select title, xp, coin from public.tasks where id in (:'TGPS', :'TDAILY') order by title;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select status from public.submit_task(:'TGPS', 41.013400, 28.981200);
+commit;
+
+select reason, amount from public.xp_transactions where user_id = :'C';
+select reason, amount from public.coin_transactions where user_id = :'C';
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select total_xp from public.user_xp_balance where user_id = :'C';
+select total_coin from public.user_coin_balance where user_id = :'C';
+rollback;
+\echo '(ilk gorev: 80 XP / 80 Coin)'
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select status from public.submit_task(:'TDAILY', 41.013400, 28.981200);
+commit;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select total_xp as toplam_xp from public.user_xp_balance where user_id = :'C';
+select total_coin as toplam_coin from public.user_coin_balance where user_id = :'C';
+rollback;
+\echo '(iki gorev toplandi: 130 XP / 130 Coin)'
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 13: idempotans - ayni teslim ikinci kez odul uretmez'
+\echo '=========================================================='
+
+select count(*) as xp_satiri_once from public.xp_transactions where user_id = :'C';
+
+select public.award_task_points(s.id)
+from public.task_submissions s
+where s.user_id = :'C' and s.status = 'approved';
+
+select count(*) as xp_satiri_sonra from public.xp_transactions where user_id = :'C';
+select sum(amount) as toplam_xp_degismedi from public.xp_transactions where user_id = :'C';
+\echo '(satir sayisi ve toplam ayni kalmali)'
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 14: level_from_xp esik tablosundan okuyor'
+\echo '=========================================================='
+
+select 0 as xp, * from public.level_from_xp(0);
+select 130 as xp, * from public.level_from_xp(130);
+select 1000 as xp, * from public.level_from_xp(1000);
+select 122500 as xp, * from public.level_from_xp(122500);
+\echo '(son seviyede next_level_xp bos, progress 1)'
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 15: esik degistirince hesap degisiyor (super_admin)'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+update public.levels set min_xp = 150 where level = 2;
+\echo '(normal kullanici UPDATE: 0 satir olmali)'
+rollback;
+
+select min_xp as esik_degismedi from public.levels where level = 2;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+update public.levels set min_xp = 150 where level = 2;
+\echo '(super_admin UPDATE: 1 satir olmali)'
+commit;
+
+select level, min_xp as yeni_esik from public.levels where level = 2;
+select 120 as xp, level as yeni_hesap from public.level_from_xp(120);
+\echo '(120 XP artik Lv.1)'
+
+update public.levels set min_xp = 100 where level = 2;
+select 120 as xp, level as geri_alindi from public.level_from_xp(120);
+\echo '(esik geri alindi, 120 XP tekrar Lv.2)'
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 16: puan islemleri RLS'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as b_nin_gordugu_xp_satiri from public.xp_transactions;
+select count(*) as b_nin_gordugu_bakiye_satiri from public.user_xp_balance;
+rollback;
+\echo '(B baskasinin puanini gormemeli: 0)'
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as c_nin_gordugu_xp_satiri from public.xp_transactions;
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as super_adminin_gordugu_xp_satiri from public.xp_transactions;
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.xp_transactions (user_id, amount, reason) values (:'C', 99999, 'adjustment');
+\echo '(yukarida yetki hatasi bekleniyor: client puan yazamaz)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
 \echo 'SON DURUM: provinces sayisi degismemis olmali (81)'
 \echo '=========================================================='
 select count(*) as provinces_toplam from public.provinces;

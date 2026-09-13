@@ -44,10 +44,14 @@ export function SubmitTask({
   taskId,
   userId,
   verification,
+  xp,
+  coin,
 }: {
   taskId: string;
   userId: string;
   verification: string;
+  xp: number;
+  coin: number;
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -122,9 +126,15 @@ export function SubmitTask({
         return;
       }
 
+      /*
+        Ödül metni görevin tanımındaki değerlerden yazılıyor. Onaylanan teslimde
+        award_task_points tam bu değerleri işliyor; ayrıca bakiyeyi sorgulayıp
+        farkı hesaplamak, aynı sayıyı ikinci bir yoldan üretmek olurdu.
+        Beklemedeki teslimde ödül henüz yazılmadığı için sayı gösterilmiyor.
+      */
       setSuccess(
         result.status === "approved"
-          ? "Görev tamamlandı 🎉"
+          ? `Görev tamamlandı 🎉  +${xp} XP • +${coin} Coin`
           : "Görevin incelemeye alındı.",
       );
       setFile(null);
