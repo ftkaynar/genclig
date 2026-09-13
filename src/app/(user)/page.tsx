@@ -4,19 +4,12 @@ import { redirect } from "next/navigation";
 
 import { signOutAction } from "@/lib/auth/actions";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserBottomNav } from "@/components/user-bottom-nav";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 // Kullanıcı PWA ana ekranı. Route group "(user)" URL'e yansımaz, "/" olarak servis edilir.
-// Görev feed'i bu dilimde yok; burada yalnızca oturum durumuna göre karşılama var.
-
-const BOTTOM_NAV = [
-  "Ana Sayfa",
-  "Görevler",
-  "Keşfet",
-  "Sıralama",
-  "Profil",
-] as const;
+// Görev listesi /gorevler altında; burada yalnızca karşılama ve kısayol var.
 
 async function loadViewer() {
   // Env tanımlı değilse (örneğin ilk kurulum) sayfa yine de açılsın.
@@ -77,10 +70,17 @@ export default async function UserHomePage() {
                 Merhaba, {viewer.username}
               </h1>
               <p className="mt-2 text-sm text-white/80">
-                Görevler yakında burada olacak.
+                Şehrinde görev yap, puan kazan.
               </p>
 
-              <form action={signOutAction} className="mt-7">
+              <Link
+                href="/gorevler"
+                className="mt-7 block w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand transition-opacity hover:opacity-90"
+              >
+                Görevler
+              </Link>
+
+              <form action={signOutAction} className="mt-3">
                 <button
                   type="submit"
                   className="w-full rounded-full border border-white/40 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
@@ -115,27 +115,7 @@ export default async function UserHomePage() {
         </section>
       </main>
 
-      <nav
-        aria-label="Ana gezinme"
-        className="sticky bottom-0 border-t border-edge bg-card"
-      >
-        <ul className="flex items-stretch justify-between px-2 py-2">
-          {BOTTOM_NAV.map((label, index) => (
-            <li key={label} className="flex-1">
-              <span
-                aria-current={index === 0 ? "page" : undefined}
-                className={
-                  index === 0
-                    ? "block rounded-lg px-1 py-2 text-center text-[11px] font-semibold text-primary"
-                    : "block rounded-lg px-1 py-2 text-center text-[11px] font-medium text-ink-muted"
-                }
-              >
-                {label}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <UserBottomNav active="home" />
     </div>
   );
 }
