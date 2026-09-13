@@ -1,10 +1,14 @@
 import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { signOutAction } from "@/lib/auth/actions";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { createClient } from "@/lib/supabase/server";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 // Kullanıcı PWA ana ekranı. Route group "(user)" URL'e yansımaz, "/" olarak servis edilir.
-// Neden route group: /panel ve /admin'den ayrı bir layout'a geçebilmek için.
-// Bu dilimde içerik placeholder; görev, puan ve coin akışları sonraki dilimlerde.
+// Görev feed'i bu dilimde yok; burada yalnızca oturum durumuna göre karşılama var.
 
 const BOTTOM_NAV = [
   "Ana Sayfa",
@@ -14,7 +18,38 @@ const BOTTOM_NAV = [
   "Profil",
 ] as const;
 
-export default function UserHomePage() {
+async function loadViewer() {
+  // Env tanımlı değilse (örneğin ilk kurulum) sayfa yine de açılsın.
+  if (!hasSupabaseEnv()) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return { user, username: profile?.username ?? null };
+}
+
+export default async function UserHomePage() {
+  const viewer = await loadViewer();
+
+  // Oturum var ama profil eksikse onboarding zorunlu.
+  if (viewer && !viewer.username) {
+    redirect("/onboarding");
+  }
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <div className="flex justify-end px-4 pt-4">
@@ -35,21 +70,48 @@ export default function UserHomePage() {
             className="mx-auto h-24 w-24"
             priority
           />
-          <h1 className="mt-5 text-4xl font-bold tracking-tight text-white">
-            GençLİG
-          </h1>
-          <p className="mt-2 text-sm text-white/80">
-            Şehrinde görev yap, puan kazan.
-          </p>
 
-          {/* href yok: akış henüz bağlanmadı, buton bilerek devre dışı. */}
-          <button
-            type="button"
-            disabled
-            className="mt-7 w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Hemen başla
-          </button>
+          {viewer ? (
+            <>
+              <h1 className="mt-5 text-3xl font-bold tracking-tight text-white">
+                Merhaba, {viewer.username}
+              </h1>
+              <p className="mt-2 text-sm text-white/80">
+                Görevler yakında burada olacak.
+              </p>
+
+              <form action={signOutAction} className="mt-7">
+                <button
+                  type="submit"
+                  className="w-full rounded-full border border-white/40 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  Çıkış yap
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h1 className="mt-5 text-4xl font-bold tracking-tight text-white">
+                GençLİG
+              </h1>
+              <p className="mt-2 text-sm text-white/80">
+                Şehrinde görev yap, puan kazan.
+              </p>
+
+              <Link
+                href="/kayit"
+                className="mt-7 block w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand transition-opacity hover:opacity-90"
+              >
+                Hemen başla
+              </Link>
+              <Link
+                href="/giris"
+                className="mt-3 block w-full rounded-full border border-white/40 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                Giriş yap
+              </Link>
+            </>
+          )}
         </section>
       </main>
 

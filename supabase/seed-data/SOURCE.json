@@ -1,0 +1,13 @@
+{
+  "source": "https://api.turkiyeapi.dev/v1",
+  "sourceProject": "https://github.com/ubeydeozdmr/turkiye-api",
+  "license": "MIT",
+  "fetchedAt": "2026-09-13",
+  "counts": {
+    "provinces": 81,
+    "districts": 973,
+    "istanbulDistricts": 39,
+    "istanbulNeighborhoods": 961
+  },
+  "note": "id alanları kaynaktaki kimliklerdir ve veritabanında birebir korunur."
+}
