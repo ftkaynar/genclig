@@ -7,9 +7,12 @@
     "build": "next build",
     "start": "next start",
     "check:types": "tsc --noEmit",
-    "check:lint": "eslint src \"*.ts\" \"*.mjs\"",
+    "check:lint": "eslint .",
     "check:boot": "next build",
-    "check:all": "pnpm check:types && pnpm check:lint && pnpm check:boot"
+    "check:all": "pnpm check:types && pnpm check:lint && pnpm check:boot",
+    "db:start": "pnpm dlx supabase start",
+    "db:reset": "pnpm dlx supabase db reset",
+    "db:stop": "pnpm dlx supabase stop"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
