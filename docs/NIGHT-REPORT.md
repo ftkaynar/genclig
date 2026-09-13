@@ -203,3 +203,33 @@ profiller ve puanı sıfır olanlar listede yok.
 yakında"), Bu Hafta/Bu Ay/Tümü dönem seçici, ilk üç madalyalı, "Benim sıram"
 kartı (sıra + üstündeki kullanıcı ile XP farkı), konum eksikse
 "Konumunu ayarla" yönlendirmesi. Alt gezinmede Sıralama bağlandı.
+
+## FAZ 7 — Belediye paneli (M14b)
+
+**Durum: TAMAM (çekirdek akışlar) — görev oluşturma/düzenleme formu BORÇ**
+
+Migration `20260915060000_panel_kpis.sql`:
+- `panel_kpis(municipality_id)` — yetki kontrolü içeride, yalnızca sayı döndürür
+- `my_municipalities()` — panel layout'u hangi belediyeyi göstereceğini buradan öğrenir
+- `admin_kpis()` — global sayımlar (FAZ 8 için)
+- `profiles`'a `profiles_select_super` politikası (yalnızca SELECT; yazma değişmedi)
+
+**Sayfalar:** `/panel` (KPI kartları), `/panel/incelemeler` (imzalı URL ile foto,
+onayla/reddet+sebep), `/panel/sorunlar` (durum+tür filtresi, durum değiştirme,
+OpenStreetMap bağlantısı), `/panel/gorevler` (durum değiştirme),
+`/panel/oduller` (liste + son kuponlar), `/panel/kupon` (kod kullanma).
+
+**Tasarım kararı:** Yetkisiz kullanıcı yönlendirilmiyor, açıklayıcı bir ekran
+görüyor. Sessizce başka yere atmak ne olduğunu anlatmıyordu.
+
+**Kanıtlar (iki belediye, iki personel, bir genç):**
+- Kadıköy personeli KPI: 1 aktif görev, 1 bekleyen inceleme, 1 yeni bildirim
+- Üsküdar personeli Kadıköy KPI'sini isteyince → "Bu panele erişim yetkin yok."
+- Üsküdar personeli Kadıköy teslimini (0) ve raporunu (0) görmüyor
+- Kadıköy personeli ikisini de görüyor (1/1), panel bağlamı dolu
+- Onay akışı: `approved` + 120 XP task + 20 XP rozet bonusu + 2 bildirim
+- Genç kullanıcının panel bağlamı yok (0) → NoAccess ekranı
+
+**BORÇ:** `/panel/gorevler/yeni` ve `/duzenle` formları yazılmadı. Görev durumu
+değiştirilebiliyor ama yeni görev tanımlama süper admin/SQL üzerinden.
+Sabah listesine alındı.
