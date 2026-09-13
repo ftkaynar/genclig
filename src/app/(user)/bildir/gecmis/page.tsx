@@ -1,0 +1,128 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { UserBottomNav } from "@/components/user-bottom-nav";
+import { UserHeader } from "@/components/user-header";
+import { relativeTime } from "@/lib/notifications/queries";
+import {
+  KIND_LABEL,
+  PROBLEM_STATUS_LABEL,
+  PROBLEM_STATUS_TONE,
+  getReportHistory,
+  listMyReports,
+} from "@/lib/problems/queries";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata = {
+  title: "Bildirimlerim — GençLİG",
+};
+
+export default async function MyReportsPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/giris?next=/bildir/gecmis");
+  }
+
+  const reports = await listMyReports();
+
+  // Geçmişler tek seferde çekiliyor: rapor sayısı kullanıcı başına küçük.
+  const histories = await Promise.all(
+    reports.map((report) => getReportHistory(report.id)),
+  );
+
+  return (
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
+      <UserHeader title="Bildirimlerim" signedIn />
+
+      <main className="flex-1 px-4 py-4">
+        {reports.length === 0 ? (
+          <div className="rounded-2xl border border-edge bg-card px-4 py-8 text-center">
+            <p className="text-sm text-ink-muted">Henüz bildirim göndermedin.</p>
+            <Link
+              href="/bildir"
+              className="mt-3 inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+            >
+              İlk bildirimini gönder
+            </Link>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {reports.map((report, index) => (
+              <li
+                key={report.id}
+                className="rounded-2xl border border-edge bg-card p-3.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-medium text-ink-muted">
+                    {KIND_LABEL[report.kind] ?? report.kind}
+                    {report.problem_categories
+                      ? ` · ${report.problem_categories.name}`
+                      : null}
+                  </span>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                      PROBLEM_STATUS_TONE[report.status] ??
+                      "bg-surface text-ink-muted"
+                    }`}
+                  >
+                    {PROBLEM_STATUS_LABEL[report.status] ?? report.status}
+                  </span>
+                </div>
+
+                <p className="mt-1.5 text-sm font-semibold text-ink">
+                  {report.title}
+                </p>
+                <p className="mt-0.5 text-sm text-ink-muted">
+                  {report.description}
+                </p>
+
+                {report.address_text ? (
+                  <p className="mt-1.5 text-xs text-ink-muted">
+                    📍 {report.address_text}
+                  </p>
+                ) : null}
+
+                {report.lat !== null && report.lng !== null ? (
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=${report.lat}&mlon=${report.lng}#map=18/${report.lat}/${report.lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1.5 inline-block text-xs font-medium text-primary hover:underline"
+                  >
+                    Haritada gör
+                  </a>
+                ) : null}
+
+                {histories[index].length > 0 ? (
+                  <ol className="mt-3 border-t border-edge pt-2.5">
+                    {histories[index].map((entry) => (
+                      <li
+                        key={entry.id}
+                        className="flex items-start justify-between gap-3 py-1 text-[11px]"
+                      >
+                        <span className="text-ink-muted">
+                          {PROBLEM_STATUS_LABEL[entry.new_status] ??
+                            entry.new_status}
+                          {entry.note ? ` — ${entry.note}` : null}
+                        </span>
+                        <span className="shrink-0 text-ink-muted">
+                          {relativeTime(entry.created_at)}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+
+      <UserBottomNav active="home" />
+    </div>
+  );
+}

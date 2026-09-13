@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { signOutAction } from "@/lib/auth/actions";
 import { UserHeader } from "@/components/user-header";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { BalanceSummary } from "@/components/points/balance-summary";
@@ -84,14 +83,12 @@ export default async function UserHomePage() {
                 Görevler
               </Link>
 
-              <form action={signOutAction} className="mt-3">
-                <button
-                  type="submit"
-                  className="w-full rounded-full border border-white/40 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
-                >
-                  Çıkış yap
-                </button>
-              </form>
+              <Link
+                href="/bildir"
+                className="mt-3 block w-full rounded-full border border-white/40 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                Şehrin için bildir
+              </Link>
             </>
           ) : (
             <>

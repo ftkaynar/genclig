@@ -102,3 +102,42 @@ knowledge-seeker, city-voice, city-maker (7 rozet).
 **Not:** Avatar bucket'ı bilerek public. Avatarlar profil ve sıralama
 ekranlarında başkalarına da görünüyor; her görüntü için imzalı URL üretmek
 gereksiz tur demek olurdu.
+
+## FAZ 4 — Sorun/öneri/proje bildirimi (M12)
+
+**Durum: TAMAM — BORÇ #6 kapandı**
+
+Migration `20260915030000_problem_reports.sql`:
+- `problem_categories` (9 kategori seed), `problem_reports`, `problem_status_history`
+- `xp_/coin_transactions`'a `problem_id` + `reason` check'ine `problem_report`
+  ve `problem_resolved` eklendi; kısmi tekil indeksler ödülü tek sefere bağlıyor
+- `problem-photos` private bucket + kendi klasörü / personel okuma politikaları
+- `report_problem(...)` — doğrulama, belediye türetme, +25 XP / +10 Coin
+- `set_problem_status(...)` — yetki, geçmiş kaydı, `resolved`'a ilk geçişte
+  +75 XP / +40 Coin, bildirim
+
+**Tasarım kararı:** Belediye gönderim anında kullanıcının profil ilçesinden
+türetilip rapora kopyalanıyor. Kullanıcı taşınıp profilini güncellediğinde eski
+raporu yeni belediyenin kuyruğuna düşmemeli. Eşleşen belediye yoksa `null`
+kalıyor ve rapor yalnızca süper adminin kuyruğunda görünüyor — bildirimi
+reddetmektense kaydetmek tercih edildi.
+
+**SAPMA:** `report_problem`'ın `p_category_id` parametresi önce `smallint`
+yazılmıştı; PostgreSQL implicit cast vermediği için hem psql hem PostgREST
+çağrıları "function does not exist" hatası verdi. `integer`'a çevrildi,
+tabloda sütun `smallint` kaldı.
+
+**Kanıtlar:**
+- Bildirim gönderildi → belediyeye düştü, `problem_report` +25 XP, geçmişe `new`
+- Kısa başlık → "Başlık en az 5 karakter olmalı."
+- Yetkisiz durum değiştirme → "Bu bildirimi yönetme yetkin yok."
+- Personel `resolved` yaptı → +75 XP, `resolved_at` doldu, bildirim gitti
+- `in_progress` → `resolved` tekrar → `problem_resolved` hâlâ 1 satır (katlanmadı)
+- 5 bildirim sonrası `city-voice` rozeti düştü
+- Personel 5 raporu görüyor, ilgisiz kullanıcı 0
+- Client doğrudan insert → `permission denied for table problem_reports`
+
+**UI:** `/bildir` (tür seçimi, kategori, başlık, açıklama, sıkıştırmalı foto,
+"Konumumu kullan" + doğruluk metresi, elle adres), `/bildir/gecmis` (durum
+rozetleri, durum geçmişi, OpenStreetMap bağlantısı). Ana sayfaya
+"Şehrin için bildir" CTA'sı eklendi.
