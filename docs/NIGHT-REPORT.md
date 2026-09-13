@@ -262,3 +262,37 @@ sarmalayan closure o ayrıcalığı kaybediyor.
 - Normal kullanıcının seviye eşiği UPDATE'i 0 satır
 - Süper admin Lv.3 eşiğini 300→250 yaptı, 260 XP anında Lv.3 oldu, geri alındı
 - Süper admin rozet ve ödül ekledi; normal kullanıcı → RLS reddi
+
+## FAZ 9 — Ana sayfa, Keşfet (harita), navigasyon
+
+**Durum: TAMAM — harita çalışıyor, fallback gerekmedi**
+
+**Yeni bağımlılık:** `leaflet` 1.9.4, `react-leaflet` 5.0.0, `@types/leaflet`
+(izin verilen liste dışına çıkılmadı).
+
+- Alt gezinme final: Ana Sayfa / Görevler / Keşfet / Sıralama / Profil —
+  beşinin de sayfası var, tıklanamaz span dalı ölü koda dönüştüğü için kaldırıldı.
+- Ana sayfa (oturumlu): selamlama + seviye/XP/Coin kartı, "Şehrin için bildir"
+  ve "Keşfet" kısayolları, "Bugün için önerilen" 3 görev (önce anlık, sonra en
+  yeni; zaten teslim edilenler elenir), "Bu haftaki sıram" kartı, son 3 bildirim.
+- `/kesfet`: OpenStreetMap tile, kategori renkli pinler, popup → göreve git,
+  "Konumum" butonu, altta mesafe sıralı "Yakınındaki görevler" listesi
+  (haversine, istemcide).
+
+**SAPMA / çözülen blokaj:** İlk sürümde `/kesfet` 500 verdi —
+`ReferenceError: window is not defined`. Sebep: harita yer tutucusu (`MapSkeleton`)
+leaflet'i modül düzeyinde içe aktaran dosyadan import ediliyordu, bu da
+`dynamic(ssr:false)` sarmalaması devreye girmeden leaflet'i sunucuda
+değerlendiriyordu. Yer tutucu leaflet'siz ayrı dosyaya alındı, sorun kalktı.
+
+**Pin ikonları:** Leaflet'in varsayılan işaretçi görselleri bundler altında
+bozuk yol üretiyor. `divIcon` ile kategori rengini taşıyan daireler çizildi —
+hem sorun kalktı hem marka renkleri korundu.
+
+**Yerel kanıt (tüm rotalar):**
+```
+/ 200 · /gorevler 200 · /kesfet 200 · /panel 200 · /admin 200
+/panel/incelemeler 200 · /admin/seviyeler 200
+/siralama /profil /bildir /oduller /bildirimler → 307 /giris?next=...
+/kesfet içeriği: harita yer tutucusu + "Konumum" + 2 konumlu görev
+```
