@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { signOutAction } from "@/lib/auth/actions";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { UserHeader } from "@/components/user-header";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { BalanceSummary } from "@/components/points/balance-summary";
 import { getUserPoints } from "@/lib/points/queries";
@@ -49,9 +49,7 @@ export default async function UserHomePage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <div className="flex justify-end px-4 pt-4">
-        <ThemeToggle />
-      </div>
+      <UserHeader signedIn={Boolean(viewer)} />
 
       {/*
         Marka gradyanı tek bir imza alanında kullanılıyor. Tüm sayfayı

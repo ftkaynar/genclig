@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Countdown } from "@/components/tasks/countdown";
 import { RewardBadges } from "@/components/tasks/task-card";
+import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import {
@@ -71,7 +72,10 @@ export default async function TaskDetailPage({
         >
           ← Görevler
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          {viewer ? <NotificationBell /> : null}
+          <ThemeToggle />
+        </div>
       </header>
 
       <main className="flex-1 px-4 py-4">

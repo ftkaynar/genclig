@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { TaskCard } from "@/components/tasks/task-card";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { UserHeader } from "@/components/user-header";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
+import { getSubmissionMap, getViewer, listFeedTasks } from "@/lib/tasks/queries";
 
 export const metadata = {
   title: "Görevler — GençLİG",
@@ -29,15 +29,13 @@ export default async function TasksPage({
   const { tip } = await searchParams;
   const activeTab = TABS.some((tab) => tab.key === tip) ? (tip ?? "") : "";
 
+  const viewer = await getViewer();
   const tasks = await listFeedTasks(activeTab || undefined);
   const submissions = await getSubmissionMap(tasks.map((task) => task.id));
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <header className="flex items-center justify-between px-4 pt-4">
-        <h1 className="text-xl font-bold tracking-tight text-ink">Görevler</h1>
-        <ThemeToggle />
-      </header>
+      <UserHeader title="Görevler" signedIn={Boolean(viewer)} />
 
       <nav aria-label="Görev türü" className="px-4 pt-4">
         <ul className="flex gap-2">
