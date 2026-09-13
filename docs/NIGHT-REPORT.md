@@ -51,3 +51,33 @@ düzenleyebilirdi.
 teslim id'si RLS yüzünden subquery'de görünmediği için. Yetki kontrolü id açıkça
 verilerek ayrıca doğrulandı. Fonksiyonun bu davranışı aslında doğru: yetkisiz
 kişiye teslimin varlığını bile sızdırmıyor.
+
+## FAZ 2 — Rozet motoru (M10)
+
+**Durum: TAMAM**
+
+Migration `20260915010000_badges.sql`:
+- `badges` (kriter `jsonb`, `xp_bonus`/`coin_bonus`), `user_badges`
+- `xp_transactions` / `coin_transactions` tablolarına `badge_id` + kısmi tekil
+  indeks `(user_id, badge_id) where reason='badge'` → bonus tek sefer
+- `check_and_award_badges(user)` — tüm aktif rozetleri değerlendirir
+- `award_task_points` sonuna rozet değerlendirmesi eklendi
+
+**Tasarım kararı:** Her çağrıda tüm aktif rozetler yeniden değerlendiriliyor.
+Yalnızca tetikleyen olaya bağlı rozetlere bakmak elendi: kriter tipleri tabloda
+değişebiliyor, hangi olayın hangi rozeti etkilediğini kodda tutmak kriter
+düzenlendiğinde sessizce yanlış olurdu.
+
+**İleriye hazırlık:** `problem_reports` kriteri FAZ 4 öncesinde tablo yokken de
+çalışsın diye `to_regclass` ile korunuyor; tablo yoksa sayı 0.
+
+**Seed:** first-step, green-hero, culture-explorer, social-starter,
+knowledge-seeker, city-voice, city-maker (7 rozet).
+
+**Kanıtlar:**
+- İlk görev onayında `first-step` düştü; diğer 6 rozet kazanılmadı (kriter dolmadı)
+- Bonus işlemi `badge` 20 XP, `badge_id` dolu
+- `badge_earned` bildirimi üretildi
+- İkinci çağrı: XP satırı 2 → 2, rozet 1, bildirim 1 (katlanmadı)
+- Client `user_badges` insert → `permission denied for table`
+- Client `check_and_award_badges` çağrısı → `permission denied for function`
