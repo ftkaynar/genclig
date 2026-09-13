@@ -5,6 +5,7 @@ import { useRef, useState, useTransition } from "react";
 
 import { submitTaskAction } from "@/lib/tasks/actions";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/upload";
 
 /** Kanıt fotoğrafı üst sınırı. Telefon kamerası tek karede bunu aşmıyor. */
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
@@ -85,15 +86,19 @@ export function SubmitTask({
           return;
         }
 
+        // Sıkıştırma yüklemeden önce: büyük kareyi ağdan geçirmenin anlamı yok.
+        setStep("Fotoğraf hazırlanıyor...");
+        const prepared = await compressImage(file);
+
         setStep("Fotoğraf yükleniyor...");
         // Yol düzeni <user_id>/... olmak zorunda: storage politikası ilk
         // klasör adının kullanıcının kimliğiyle eşleşmesine bakıyor.
-        const extension = file.name.split(".").pop() || "jpg";
+        const extension = prepared.name.split(".").pop() || "jpg";
         const path = `${userId}/${taskId}-${Date.now()}.${extension}`;
 
         const { error: uploadError } = await createClient()
           .storage.from("task-proofs")
-          .upload(path, file, { upsert: false });
+          .upload(path, prepared, { upsert: false });
 
         if (uploadError) {
           setError("Fotoğraf yüklenemedi. Bağlantını kontrol edip tekrar dene.");

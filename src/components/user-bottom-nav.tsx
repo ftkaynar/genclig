@@ -12,7 +12,7 @@ const ITEMS = [
   { key: "tasks", label: "Görevler", href: "/gorevler" },
   { key: "discover", label: "Keşfet", href: null },
   { key: "ranking", label: "Sıralama", href: null },
-  { key: "profile", label: "Profil", href: null },
+  { key: "profile", label: "Profil", href: "/profil" },
 ] as const;
 
 export type BottomNavKey = (typeof ITEMS)[number]["key"];

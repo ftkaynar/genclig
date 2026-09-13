@@ -81,3 +81,24 @@ knowledge-seeker, city-voice, city-maker (7 rozet).
 - İkinci çağrı: XP satırı 2 → 2, rozet 1, bildirim 1 (katlanmadı)
 - Client `user_badges` insert → `permission denied for table`
 - Client `check_and_award_badges` çağrısı → `permission denied for function`
+
+## FAZ 3 — Foto sıkıştırma + profil + ayarlar (M11)
+
+**Durum: TAMAM**
+
+- `src/lib/upload.ts` — `compressImage(file, maxDim, quality)` canvas ile JPEG'e
+  küçültüyor. Görev foto yükleme akışı buna bağlandı (**BORÇ #7 kapandı**).
+  Sıkıştırma başarısız olursa özgün dosya döner: akışı kırmaktansa büyük dosya.
+  Sonuç özgünden büyükse (zaten sıkıştırılmış küçük PNG) özgün korunur.
+- Migration `20260915020000_avatars.sql` — `avatars` bucket'ı (public read),
+  yazma/silme/güncelleme yalnızca `<user_id>/` klasöründe.
+- `/profil` — avatar, kullanıcı adı, seviye ilerleme çubuğu, XP/Coin/görev
+  sayısı, rozet ızgarası (kazanılan renkli, kazanılmayan soluk + kriter metni),
+  kategori dağılımı, son 10 XP hareketi.
+- `/ayarlar` — avatar yükleme (sıkıştırmalı, önce/sonra boyut gösterir),
+  görünen ad, il/ilçe/mahalle, tema anahtarı, çıkış.
+- Alt gezinmede Profil artık gerçek sayfaya gidiyor.
+
+**Not:** Avatar bucket'ı bilerek public. Avatarlar profil ve sıralama
+ekranlarında başkalarına da görünüyor; her görüntü için imzalı URL üretmek
+gereksiz tur demek olurdu.
