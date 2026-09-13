@@ -1,1 +1,94 @@
 @import "tailwindcss";
+
+/*
+  Marka tokenları.
+
+  İki katman var:
+  1. Ham CSS değişkenleri (aşağıda) — tema bağımlı olanlar html[data-theme]
+     üzerinden değer değiştirir.
+  2. @theme inline bloğu — bu değişkenleri Tailwind renklerine bağlar, böylece
+     bg-surface / text-ink / bg-cta gibi utility'ler üretilir.
+
+  Neden "inline": @theme (inline olmadan) değeri sabitleyip kopyalar ve var()
+  zinciri kopar; tema değişince utility'ler eski rengi göstermeye devam eder.
+  inline ile utility doğrudan var() referansı kullanır, tema anında geçer.
+*/
+
+/* Açık tema varsayılan değerleri. data-theme="light" da buraya düşer. */
+:root {
+  color-scheme: light;
+
+  --surface-bg: #e8eef5;
+  --surface-card: #ffffff;
+  --surface-border: #c8d6e5;
+
+  --text-strong: #0e2a47;
+  --text-muted: #4a6280;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-bg: #0a1626;
+  --surface-card: #12233b;
+  --surface-border: #1e3550;
+
+  --text-strong: #f2f6fb;
+  --text-muted: #9db2cc;
+}
+
+@theme inline {
+  /* Tema bağımsız marka renkleri. */
+  --color-brand: #0e2a47;
+  --color-teal: #0f6e7e;
+  --color-primary: #17b890;
+  --color-cta: #3ddc97;
+  --color-coin: #f5b301;
+  --color-xp: #7c5cfc;
+
+  /*
+    Tema bağımlı yüzeyler ve metin.
+    Tailwind adları kısa tutuldu: --text-strong değişkeni Tailwind'de "ink"
+    olarak bağlandı, çünkü --color-text-strong "text-text-strong" gibi
+    okunması zor bir utility üretiyordu.
+  */
+  --color-surface: var(--surface-bg);
+  --color-card: var(--surface-card);
+  --color-edge: var(--surface-border);
+  --color-ink: var(--text-strong);
+  --color-ink-muted: var(--text-muted);
+
+  /* Durum renkleri. Başarı, ana yeşille bilerek aynı. */
+  --color-status-success: #17b890;
+  --color-status-warning: #f5a524;
+  --color-status-danger: #e5484d;
+}
+
+/*
+  Marka gradyanı: lacivert -> teal -> parlak yeşil.
+  İmza öğesi; her yüzeyde değil, tek bir vurgu alanında kullanılır.
+*/
+@utility brand-gradient {
+  background-image: linear-gradient(
+    135deg,
+    #0e2a47 0%,
+    #0f6e7e 55%,
+    #3ddc97 100%
+  );
+}
+
+/*
+  Tema duyarlı görünürlük yardımcıları.
+
+  Neden CSS ile: tema butonunun etiketi React state'inden gelseydi, sunucuda
+  üretilen HTML ile client'ın ilk render'ı ayrışır ve hydration uyarısı
+  çıkardı. Etiketin hangisinin görüneceğine CSS karar verdiği için JavaScript
+  yüklenmeden de doğru metin görünüyor.
+*/
+:root[data-theme="dark"] .when-light {
+  display: none;
+}
+
+:root[data-theme="light"] .when-dark {
+  display: none;
+}

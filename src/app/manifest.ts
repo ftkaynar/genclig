@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 
 // PWA manifest'i. Service worker bu dilimde YOK; yükleme (install) için
 // manifest + ikonlar yeterli, offline davranışı sonraki dilimde eklenecek.
-// Renkler geçicidir, marka kimliği belirlenince güncellenecek.
+// Renkler marka paletinden: koyu zemin #0A1626. Kullanıcı PWA'sı koyu tema
+// varsayılanıyla açıldığı için yükleme ekranı ve sistem çubuğu da koyu.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "GençLİG",
@@ -13,8 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    theme_color: "#16A34A",
-    background_color: "#FFFFFF",
+    theme_color: "#0A1626",
+    background_color: "#0A1626",
     icons: [
       {
         src: "/icons/icon-192.png",

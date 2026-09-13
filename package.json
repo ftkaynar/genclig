@@ -12,7 +12,8 @@
     "check:all": "pnpm check:types && pnpm check:lint && pnpm check:boot",
     "db:start": "pnpm dlx supabase start",
     "db:reset": "pnpm dlx supabase db reset",
-    "db:stop": "pnpm dlx supabase stop"
+    "db:stop": "pnpm dlx supabase stop",
+    "brand:icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -28,6 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

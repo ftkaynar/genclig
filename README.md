@@ -60,6 +60,7 @@ SQL ile değil.
 - `pnpm check:boot` — `next build`, Vercel ile aynı derleme kontrolü
 - `pnpm check:all` — üçünü sırayla koşar (CI de bunu koşar)
 - `pnpm db:start` / `pnpm db:reset` / `pnpm db:stop` — yerel Supabase yığını
+- `pnpm brand:icons` — logodan PWA ikonlarını üretir (bkz. Marka)
 
 ### `check:lint` kapsamı hakkında bir not
 
@@ -73,6 +74,30 @@ Klasör `genclig` olarak yeniden adlandırıldıktan sonra ölçüldü: `eslint 
 dosya lintliyor, `.next` altından hiçbir dosyaya dokunmuyor. Bu yüzden betik
 `eslint .` haline döndürüldü ve yeni bir üst düzey klasör eklendiğinde betiği
 güncelleme zorunluluğu ortadan kalktı.
+
+## Marka
+
+Ana renkler: lacivert `#0E2A47`, teal `#0F6E7E`, ana yeşil `#17B890`, parlak
+yeşil `#3DDC97` (imza rengi, yalnızca CTA'da). Yan renkler: coin sarısı
+`#F5B301`, XP moru `#7C5CFC`. Durum renkleri: başarı `#17B890`, uyarı
+`#F5A524`, hata `#E5484D`. Marka gradyanı lacivertten parlak yeşile gider ve
+sayfada tek bir imza alanında kullanılır, yüzeylerin geneline yayılmaz.
+
+Renkler `src/app/globals.css` içinde CSS değişkeni olarak duruyor ve Tailwind
+`@theme inline` ile utility'lere bağlanıyor: `bg-surface`, `bg-card`,
+`border-edge`, `text-ink`, `text-ink-muted`, `bg-cta`, `text-coin` gibi. Renk
+değerini doğrudan sınıfa yazmak yerine bu token'lar kullanılır; aksi halde tema
+değişiminde o öğe eski renginde kalır.
+
+Tema varsayılanları segmente göre: kullanıcı PWA'sı (`/`) koyu, `/panel` ve
+`/admin` açık. Kullanıcı tema butonuyla seçim yaparsa tercihi `localStorage`'a
+yazılır ve her yerde varsayılanı ezer.
+
+Logo küçük boyutlarda tek renk kullanılır; gradyanlı hali 24 pikselin altında
+lekeye dönüşüyor. `public/brand/logo.png` kaynak dosyadır, opak zeminlidir.
+`pnpm brand:icons` bundan zemini şeffaflaştırılmış `logo-mark.png` ile 192 ve
+512 piksellik PWA ikonlarını üretir. Logo değişirse bu betik elle koşulur,
+çıktılar repoda tutulur.
 
 ## Ortam değişkenleri
 

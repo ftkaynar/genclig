@@ -1,4 +1,8 @@
 import type { Metadata, Viewport } from "next";
+
+import { ThemeProvider } from "@/components/theme-provider";
+import { themeInitScript } from "@/components/theme-script";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,16 +12,18 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "GençLİG",
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
   },
 };
 
 // Mobile-first PWA: viewport meta'sı Next'in viewport export'u ile veriliyor.
 // maximumScale sınırlanmadı; erişilebilirlik için kullanıcı zoom'u engellenmiyor.
+// themeColor koyu marka zemini: PWA olarak açıldığında sistem çubuğu uygulamanın
+// varsayılan yüzü olan kullanıcı PWA'sı ile aynı renkte olsun diye.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#16A34A",
+  themeColor: "#0A1626",
 };
 
 // Neden LayoutProps<"/"> kullanılmıyor: o global tip .next/types altında build
@@ -31,9 +37,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
-      <body className="min-h-dvh bg-white text-neutral-900 antialiased">
-        {children}
+    // suppressHydrationWarning: aşağıdaki script data-theme'i sunucu HTML'ine
+    // eklenmemiş halde yazıyor; uyarı beklenen farkı bildiriyor, hata değil.
+    <html lang="tr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-dvh bg-surface text-ink antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
