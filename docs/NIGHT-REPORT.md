@@ -233,3 +233,32 @@ görüyor. Sessizce başka yere atmak ne olduğunu anlatmıyordu.
 **BORÇ:** `/panel/gorevler/yeni` ve `/duzenle` formları yazılmadı. Görev durumu
 değiştirilebiliyor ama yeni görev tanımlama süper admin/SQL üzerinden.
 Sabah listesine alındı.
+
+## FAZ 8 — Süper admin paneli
+
+**Durum: TAMAM (çekirdek akışlar)**
+
+`profiles`'a `profiles_select_super` politikası FAZ 7 migration'ında eklendi
+(yalnızca SELECT; kullanıcının kendi satırını düzenleme kuralı değişmedi).
+
+**Sayfalar:** `/admin` (7 KPI), `/admin/incelemeler` (global görevlerin kuyruğu),
+`/admin/sorunlar` (tüm bildirimler), `/admin/belediyeler` (liste + ekleme
+formu, il→ilçe kademeli), `/admin/kullanicilar` (arama + rol ver/al),
+`/admin/seviyeler` (eşik düzenleme, sıralı olma kuralı sunucuda),
+`/admin/rozetler` (liste + JSON kriterli ekleme), `/admin/kategoriler`
+(görev + bildirim kategorileri), `/admin/gorevler`, `/admin/oduller`.
+
+**Tasarım kararı:** Admin ekleme formları tek bir `InlineEditor` üzerinden alan
+tanımlarıyla çalışıyor. Altı ayrı form bileşeni yazmak yerine: hepsi aynı
+kalıpta (birkaç alan + kaydet) ve tekrar bakım yükü demekti. Sunucu eylemleri
+sarmalayıcı client bileşenlerinden import ediliyor — server component'ten
+client'a fonksiyon geçirmek yalnızca server action'lar için çalışıyor ve
+sarmalayan closure o ayrıcalığı kaybediyor.
+
+**Kanıtlar:**
+- Süper admin KPI: 5 kullanıcı, 2 belediye, 6 görev
+- Normal kullanıcı KPI isteyince → "Bu panele erişim yetkin yok."
+- Süper admin 5 profil görüyor, normal kullanıcı 1 (kendisi)
+- Normal kullanıcının seviye eşiği UPDATE'i 0 satır
+- Süper admin Lv.3 eşiğini 300→250 yaptı, 260 XP anında Lv.3 oldu, geri alındı
+- Süper admin rozet ve ödül ekledi; normal kullanıcı → RLS reddi
