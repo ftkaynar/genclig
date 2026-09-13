@@ -13,7 +13,13 @@ import {
   TASK_TYPE_LABEL,
   VERIFICATION_LABEL,
 } from "@/lib/tasks/labels";
-import { getSubmissionMap, getTask, getViewer } from "@/lib/tasks/queries";
+import { SubmitTask } from "@/components/tasks/submit-task";
+import {
+  getParticipantCount,
+  getSubmissionMap,
+  getTask,
+  getViewer,
+} from "@/lib/tasks/queries";
 
 /** Detay satırı: solda etiket, sağda değer. */
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -40,6 +46,17 @@ export default async function TaskDetailPage({
   const viewer = await getViewer();
   const submissions = await getSubmissionMap([task.id]);
   const submission = submissions.get(task.id);
+
+  const participantCount =
+    task.capacity !== null ? await getParticipantCount(task.id) : null;
+
+  /*
+    Buton yalnızca açık bir teslim yokken görünür. Reddedilen teslim tekrar
+    denemeyi engellemiyor; kısıt da (task_submissions_open_unique) yalnızca
+    beklemedeki ve onaylanmış satırları kapsıyor.
+  */
+  const hasOpenSubmission =
+    submission?.status === "pending" || submission?.status === "approved";
 
   const tone = task.task_categories
     ? (CATEGORY_TONE[task.task_categories.slug] ?? CATEGORY_TONE_FALLBACK)
@@ -130,7 +147,10 @@ export default async function TaskDetailPage({
             />
           ) : null}
           {task.capacity !== null ? (
-            <DetailRow label="Kontenjan" value={`${task.capacity} kişi`} />
+            <DetailRow
+              label="Katılım"
+              value={`${participantCount ?? 0}/${task.capacity}`}
+            />
           ) : null}
         </section>
 
@@ -143,17 +163,19 @@ export default async function TaskDetailPage({
 
         <div className="mt-6">
           {viewer ? (
-            // Tamamlama akışı sonraki dilimde; buton bilerek devre dışı.
-            <>
-              <button
-                type="button"
-                disabled
-                className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Görevi tamamla
-              </button>
-              <p className="mt-2 text-center text-xs text-ink-muted">Çok yakında</p>
-            </>
+            hasOpenSubmission ? (
+              <p className="rounded-xl border border-edge bg-card px-3.5 py-3 text-center text-sm text-ink-muted">
+                {submission?.status === "approved"
+                  ? "Bu görevi tamamladın."
+                  : "Teslimin incelemeye alındı."}
+              </p>
+            ) : (
+              <SubmitTask
+                taskId={task.id}
+                userId={viewer.id}
+                verification={task.verification}
+              />
+            )
           ) : (
             <Link
               href={`/giris?next=/gorevler/${task.id}`}

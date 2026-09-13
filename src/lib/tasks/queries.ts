@@ -145,18 +145,27 @@ export async function getSubmissionMap(
   return result;
 }
 
-/*
-  Katılım sayacı (X/Y) bilerek yok.
+/**
+ * Kaç kişi katıldı: beklemede + onaylanmış teslimler.
+ *
+ * Doğrudan sayım yapılamıyor: RLS kullanıcıya yalnızca kendi teslimlerini
+ * gösterdiği için task_submissions üzerinde alınan her sayım en fazla 1
+ * döner (ölçüldü: gerçek 2 iken görünen 1). Sayıyı security definer
+ * task_participant_count fonksiyonu veriyor; o yalnızca bir tam sayı
+ * döndürüyor, kimlerin katıldığını sızdırmıyor.
+ */
+export async function getParticipantCount(taskId: string): Promise<number> {
+  const supabase = await createClient();
 
-  RLS, kullanıcıya yalnızca kendi teslimlerini gösteriyor; task_submissions
-  üzerinde alınan her sayım en fazla 1 döner. Ölçüldü: aynı göreve iki kişi
-  teslim açtığında gerçek sayı 2 iken kullanıcının sayabildiği 1.
+  const { data, error } = await supabase.rpc("task_participant_count", {
+    p_task_id: taskId,
+  });
 
-  Doğru sayı security definer bir sayım fonksiyonu ya da tasks üzerinde
-  denormalize bir sayaç ister; ikisi de migration demek ve bu dilimin
-  kapsamı dışında. Yanlış bir sayı göstermektense kontenjan tek başına
-  gösteriliyor.
-*/
+  if (error) {
+    return 0;
+  }
+  return typeof data === "number" ? data : 0;
+}
 
 export async function getViewer() {
   const supabase = await createClient();
