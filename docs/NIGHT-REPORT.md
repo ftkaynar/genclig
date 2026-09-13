@@ -296,3 +296,98 @@ hem sorun kalktı hem marka renkleri korundu.
 /siralama /profil /bildir /oduller /bildirimler → 307 /giris?next=...
 /kesfet içeriği: harita yer tutucusu + "Konumum" + 2 konumlu görev
 ```
+
+## FAZ 10 — Bulut ve kapanış
+
+**Durum: TAMAM**
+
+### Bulut push
+
+Dry-run ve push, yedi migration sırayla:
+```
+20260915000000_notifications_review.sql
+20260915010000_badges.sql
+20260915020000_avatars.sql
+20260915030000_problem_reports.sql
+20260915040000_rewards.sql
+20260915050000_leaderboard.sql
+20260915060000_panel_kpis.sql
+```
+Hepsi uygulandı (exit 0). Toplam 12 migration bulutta.
+
+### Bulut doğrulaması (REST, anon)
+
+```
+badges 7 · levels 50 · rewards 3 · problem_categories 9
+task_categories 6 · provinces 81
+
+anon POST → notifications 401 · problem_reports 401 · reward_redemptions 401
+            user_badges 401 · xp_transactions 401
+
+anon rpc → notify / check_and_award_badges / review_submission
+           PostgREST şemasında görünmüyor (execute yetkisi yok)
+```
+
+### rls_isolation tam koşu
+
+22 senaryo (0–21), psql exit 0. Yeni eklenenler:
+- 17: bildirimler yalnızca sahibine; `notify` client'tan çağrılamıyor
+- 18: rozetler herkese açık (7), kazanım elle yazılamıyor
+- 19: `problem_reports` doğrudan insert reddi; `report_problem` +25 XP yazıyor
+- 20: ödüller anon'a açık (3), kupon elle yazılamıyor
+- 21: sıralama definer ile çalışıyor, başkasının ham XP satırı görünmüyor
+
+### docs/OPERATIONS.md
+
+İlk süper admin atama SQL'i, belediye + personel atama, SMTP sınırı ve
+yönlendirme adresi notu, yerel sıfırlama ve bulut migration akışı yazıldı.
+
+---
+
+# SABAH YAPILACAKLAR
+
+## Önce bunlar (bloke edici)
+
+1. **Bulut Auth yapılandırması** — Studio > Authentication > URL Configuration:
+   Site URL `https://genclig.vercel.app`, Redirect URLs `https://genclig.vercel.app/**`.
+   Şu an `localhost` yazıyor, canlı kayıt akışı bu yüzden tamamlanamaz.
+2. **İlk süper admin** — `docs/OPERATIONS.md` §1'deki SQL. Bu yapılmadan
+   `/admin` hiç açılmaz ve rol ataması mümkün değil.
+3. **SMTP** — yerleşik gönderim saatlik kotaya takılıyor. Kendi sağlayıcın
+   bağlanmadan canlıda kullanıcı testi yapılamıyor.
+
+## Görsel doğrulama listesi (yerelde `pnpm dev`, oturum açarak)
+
+| Sayfa | Bakılacak |
+|---|---|
+| `/` | selamlama, seviye çubuğu, önerilen 3 görev, sıralama kartı, son bildirimler |
+| `/gorevler` | sekmeler, kart rozetleri, geri sayım |
+| `/gorevler/<id>` | GPS görevinde "Konumumu doğrula", foto görevinde dosya alanı |
+| `/kesfet` | harita pinleri, "Konumum", mesafe listesi |
+| `/siralama` | kapsam+dönem sekmeleri, "Benim sıram" |
+| `/profil` | avatar, rozet ızgarası (kilitli olanlar kriter metniyle), istatistikler |
+| `/ayarlar` | avatar yükleme (önce/sonra boyut yazısı), il/ilçe/mahalle |
+| `/bildir` | tür seçimi, "Konumumu kullan", gönderim sonrası puan mesajı |
+| `/bildir/gecmis` | durum rozetleri, durum geçmişi |
+| `/oduller` | kilitli kartlar, onay diyalogu, kod ekranı |
+| `/bildirimler` | okunmamış vurgusu, "tümünü okundu işaretle" |
+| `/panel` | personel hesabıyla KPI'lar; yetkisiz hesapta NoAccess |
+| `/panel/incelemeler` | foto önizleme, onayla/reddet |
+| `/admin` | süper admin hesabıyla KPI'lar |
+
+## Borçlar (sonraki dilimlere)
+
+- **`/panel/gorevler/yeni` ve `/duzenle` formları yok.** Görev durumu
+  değiştirilebiliyor, yeni görev tanımlama SQL/süper admin üzerinden.
+- **Ödül/rozet düzenleme** yalnızca ekleme var; var olanı düzenleme ve silme yok.
+- **Tarayıcı testi yapılmadı.** Tüm doğrulamalar psql, curl ve HTML çıktısı
+  üzerinden. Gerçek tıklama akışları (harita etkileşimi, kamera, konum izni
+  diyalogları) elle gezilmeli.
+- **Kupon "kullan" akışı** panelde var ama kupon üretimi yalnızca kullanıcı
+  tarafında; personel kupon iptali (cancelled) arayüzü yok.
+- **Bildirim sayacı gerçek zamanlı değil** — sayfa yenilendikçe güncelleniyor.
+
+## Bilinçli kapsam dışı (bu gece yapılmadı, sonraki dilimler)
+
+arkadaşlık/squad · etkinlik domaini · streak · anket · mahalle değerlendirme ·
+QR/Health/NFC doğrulama · push notification · e-posta şablonları · i18n

@@ -393,6 +393,100 @@ rollback;
 
 \echo ''
 \echo '=========================================================='
+\echo 'SENARYO 17: bildirimler yalnizca sahibine gorunur'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as b_nin_gordugu_bildirim from public.notifications;
+rollback;
+\echo '(B baskasinin bildirimini gormemeli)'
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select public.notify(:'C', 'system', 'sahte bildirim', null, null);
+\echo '(yukarida yetki hatasi bekleniyor: client bildirim uretemez)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 18: rozetler herkese acik, kazanim yazilamaz'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '', true);
+set local role anon;
+select count(*) as anon_gordugu_rozet from public.badges;
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.user_badges (user_id, badge_id)
+select :'C', id from public.badges limit 1;
+\echo '(yukarida yetki hatasi bekleniyor: rozet kazanimi elle yazilamaz)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 19: bildirim (problem) yazimi yalnizca fonksiyondan'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.problem_reports (user_id, category_id, kind, title, description)
+values (:'C', 1, 'problem', 'elle yazma', 'dogrudan insert denemesi uzun aciklama');
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select kind, status from public.report_problem('oneri', 1, 'Test önerisi',
+  'Bu bir test önerisidir ve yeterince uzundur.');
+commit;
+
+select reason, amount from public.xp_transactions
+where user_id = :'C' and reason = 'problem_report';
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 20: odul havuzu ve kupon'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '', true);
+set local role anon;
+select count(*) as anon_gordugu_odul from public.rewards;
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.reward_redemptions (reward_id, user_id, code)
+select id, :'C', 'ELLEYAZ' from public.rewards limit 1;
+\echo '(yukarida yetki hatasi bekleniyor: kupon elle yazilamaz)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 21: siralama definer ile calisiyor'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as siralamada_gorunur_kullanici from public.leaderboard_top('turkiye','all',10);
+select count(*) as ham_xp_satiri_baskasinin from public.xp_transactions
+  where user_id <> '00000000-0000-0000-0000-00000000000c';
+rollback;
+\echo '(siralama dolu olabilir ama baskasinin ham islemi 0 gorunmeli)'
+
+\echo ''
+\echo '=========================================================='
 \echo 'SON DURUM: provinces sayisi degismemis olmali (81)'
 \echo '=========================================================='
 select count(*) as provinces_toplam from public.provinces;
