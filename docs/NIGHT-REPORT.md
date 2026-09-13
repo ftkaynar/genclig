@@ -141,3 +141,36 @@ tabloda sütun `smallint` kaldı.
 "Konumumu kullan" + doğruluk metresi, elle adres), `/bildir/gecmis` (durum
 rozetleri, durum geçmişi, OpenStreetMap bağlantısı). Ana sayfaya
 "Şehrin için bildir" CTA'sı eklendi.
+
+## FAZ 5 — Ödül havuzu (M13)
+
+**Durum: TAMAM**
+
+Migration `20260915040000_rewards.sql`:
+- `rewards` (coin bedeli, min seviye, rozet şartı, stok), `reward_redemptions`
+- `coin_transactions`'a `redemption_id` + kısmi tekil indeks
+- `generate_redemption_code()` — 8 hane, karışan karakterler (0/O, 1/I/L) çıkarıldı
+- `redeem_reward(id)` — stok, seviye, rozet, bakiye kontrolü; negatif harcama satırı
+- `use_redemption_code(code)` — personel/süper admin, tek kullanım
+
+**Tasarım kararı:** Coin bakiyesi için tablo check kısıtı yok; korunması gereken
+şey satırların toplamı, tek satır değil. Kontrol `redeem_reward` içinde.
+
+**Seed:** Rozet Paketi (200 coin, Lv.2), Kahve Kuponu (500, Lv.3, stok 50),
+Etkinlik Kontenjanı (800, Lv.4, first-step rozeti, stok 20).
+
+**Kanıtlar:**
+- Seviye yetersiz → "Bu ödül için en az 2. seviyeye ulaşmalısın."
+- Şartlar karşılanınca → 8 haneli kod, `active`, bildirim gitti
+- Bakiye 300 → 100 düştü (`reward_spend` -200)
+- İkinci alım → "Yeterli coin'in yok. Gereken: 200, bakiyen: 100."
+- Kod kullanıldı → `used` + `used_at`; ikinci kullanım → "daha önce kullanılmış"
+- Bakiye hiç negatife düşmedi (100 kaldı)
+- Client doğrudan kupon insert → `permission denied for table`
+
+**SAPMA:** Hata mesajında biçim dizgisi hatası vardı ("en az 2 . seviye"),
+düzeltildi.
+
+**UI:** `/oduller` (bakiye başlığı, kart ızgarası, karşılanmayan şartlar kilit
+etiketiyle soluk, onay diyalogu, kod ekranı), `/oduller/kuponlarim`. Profile
+ödüller ve bildirimlerim kısayolları eklendi.

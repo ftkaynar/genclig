@@ -128,6 +128,21 @@ export default async function ProfilePage() {
             </div>
           </div>
 
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Link
+              href="/oduller"
+              className="rounded-full border border-edge px-4 py-2 text-center text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+            >
+              Ödüller
+            </Link>
+            <Link
+              href="/bildir/gecmis"
+              className="rounded-full border border-edge px-4 py-2 text-center text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+            >
+              Bildirimlerim
+            </Link>
+          </div>
+
           <Link
             href="/ayarlar"
             className="mt-4 block rounded-full border border-edge px-4 py-2 text-center text-sm font-medium text-ink-muted transition-colors hover:text-ink"
