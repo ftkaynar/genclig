@@ -11,7 +11,7 @@ const ITEMS = [
   { key: "home", label: "Ana Sayfa", href: "/" },
   { key: "tasks", label: "Görevler", href: "/gorevler" },
   { key: "discover", label: "Keşfet", href: null },
-  { key: "ranking", label: "Sıralama", href: null },
+  { key: "ranking", label: "Sıralama", href: "/siralama" },
   { key: "profile", label: "Profil", href: "/profil" },
 ] as const;
 

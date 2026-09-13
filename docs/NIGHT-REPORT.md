@@ -174,3 +174,32 @@ düzeltildi.
 **UI:** `/oduller` (bakiye başlığı, kart ızgarası, karşılanmayan şartlar kilit
 etiketiyle soluk, onay diyalogu, kod ekranı), `/oduller/kuponlarim`. Profile
 ödüller ve bildirimlerim kısayolları eklendi.
+
+## FAZ 6 — Sıralama (M14)
+
+**Durum: TAMAM**
+
+Migration `20260915050000_leaderboard.sql`:
+- `period_start(period)` — Europe/Istanbul'a göre hafta/ay başı
+- `leaderboard_top(scope, period, limit)` — security definer
+- `leaderboard_my_rank(scope, period)` — kendi sırası + kapsam büyüklüğü
+
+**Tasarım kararı:** `security definer` zorunlu — RLS kullanıcıya yalnızca kendi
+XP satırlarını gösteriyor, sıralama tanımı gereği başkalarını da içeriyor.
+Sızdırılan alanlar bilerek dar: kullanıcı adı, seviye, dönem XP'si. E-posta,
+konum ve işlem dökümü dönmüyor. Kullanıcı adı olmayan (onboarding'i bitirmemiş)
+profiller ve puanı sıfır olanlar listede yok.
+
+**Kanıtlar (3 test kullanıcısı, farklı XP ve konum):**
+- Türkiye/tümü → bora 5300 (Lv.10), cem 900, ayse 500
+- Türkiye/bu hafta → cem 900, ayse 500, bora 300 (60 gün önceki 5000 sayılmadı)
+- İl kapsamı (İstanbul) → yalnızca ayse + bora
+- Kendi sıram: Türkiye 2./3, İl 1./2
+- Konumu olmayan kullanıcı il kapsamında boş liste
+- Sıralamayı gören kullanıcı başkasının ham XP satırını göremiyor (0)
+- Geçersiz kapsam → "Geçersiz kapsam."
+
+**UI:** `/siralama` — Türkiye/İl/İlçe/Mahalle sekmeleri (+pasif "Arkadaşlar —
+yakında"), Bu Hafta/Bu Ay/Tümü dönem seçici, ilk üç madalyalı, "Benim sıram"
+kartı (sıra + üstündeki kullanıcı ile XP farkı), konum eksikse
+"Konumunu ayarla" yönlendirmesi. Alt gezinmede Sıralama bağlandı.
