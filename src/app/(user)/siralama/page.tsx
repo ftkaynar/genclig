@@ -79,7 +79,11 @@ export default async function LeaderboardPage({
 
       <ScopeTabs scope={scope} period={period} />
 
-      <main className="flex-1 px-4 py-4">
+      {/*
+        pb-8: "benim sıram" kartı akıştaki yerinden ~28px yukarı kayıyor;
+        bu pay olmadan listenin son satırı kartın altında kalıyordu.
+      */}
+      <main className="flex-1 px-4 pb-8 pt-4">
         {isTeams ? (
           teamRows.length === 0 ? (
             <EmptyState
@@ -184,10 +188,21 @@ export default async function LeaderboardPage({
 
       {/*
         Kendi sıram yapışkan: kullanıcı listeyi kaydırırken kendi konumunu
-        kaybetmemeli. Alt gezinmenin hemen üstünde duruyor.
+        kaybetmemeli.
+
+        ÖNCEKİ SORUN: bant alt gezinmeye yapışıktı (bottom-[57px], tam
+        gezinme yüksekliği). Gezinmenin ortasındaki Görevler sekmesi
+        yükseltilmiş bir daire (-mt-6 + ring-4) ve gezinmenin üst
+        kenarından 22px yukarı taşıyor; bandın ikinci satırını tam
+        ortadan kesiyordu.
+
+        Şimdi 85px yukarıda duruyor (57 gezinme + 22 daire taşması + 6
+        nefes payı) ve kenar boşluklu yuvarlak bir kart: daire artık
+        bandın altındaki boşluktan yükseliyor, iki çubuk birbirine
+        değmiyor.
       */}
       {myRank ? (
-        <div className="sticky bottom-[57px] border-t border-edge bg-card px-4 py-2.5">
+        <div className="sticky bottom-[85px] z-20 mx-4 rounded-2xl border border-edge bg-card px-3.5 py-2.5 shadow-lg">
           <div className="flex items-center gap-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
               {myRank.rank}
