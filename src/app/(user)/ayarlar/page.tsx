@@ -6,29 +6,24 @@ import { ProfileForm } from "@/components/profile/profile-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
-import { createClient } from "@/lib/supabase/server";
+import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
+import { getProvinces } from "@/lib/reference/queries";
 
 export const metadata = {
   title: "Ayarlar — GençLİG",
 };
 
 export default async function SettingsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/ayarlar");
   }
 
-  const [{ data: profile }, { data: provinces }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("username,display_name,avatar_url,province_id,district_id,neighborhood_id")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase.from("provinces").select("id,name").order("name"),
+  // Profil istek başına önbellekli, iller saatlik referans önbelleğinde.
+  const [profile, provinces] = await Promise.all([
+    getViewerProfile(),
+    getProvinces(),
   ]);
 
   return (

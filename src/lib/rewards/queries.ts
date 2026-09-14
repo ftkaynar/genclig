@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
+import { getBadgeNames as getCachedBadgeNames } from "@/lib/reference/queries";
 
 export type RewardRow = {
   id: string;
@@ -47,9 +49,7 @@ export async function listRewards(): Promise<RewardRow[]> {
  */
 export async function listMyRedemptions(): Promise<RedemptionRow[]> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return [];
 
   const { data } = await supabase
@@ -63,9 +63,7 @@ export async function listMyRedemptions(): Promise<RedemptionRow[]> {
 
 export async function getMyBadgeIds(): Promise<Set<string>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return new Set();
 
   const { data } = await supabase
@@ -77,7 +75,7 @@ export async function getMyBadgeIds(): Promise<Set<string>> {
 }
 
 export async function getBadgeNames(): Promise<Map<string, string>> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("badges").select("id,name");
-  return new Map((data ?? []).map((row) => [row.id, row.name]));
+  // Rozet adları kullanıcıya göre değişmiyor; referans önbelleğinden.
+  const rows = await getCachedBadgeNames();
+  return new Map(rows.map((row) => [row.id, row.name]));
 }

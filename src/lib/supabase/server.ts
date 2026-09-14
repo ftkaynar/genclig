@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { getSupabaseEnv } from "./env";
@@ -27,5 +28,24 @@ export async function createClient() {
         }
       },
     },
+  });
+}
+
+/**
+ * Oturumsuz, çerezsiz Supabase client'ı.
+ *
+ * Neden ayrı: `createClient()` `cookies()` çağırıyor ve Next.js
+ * `unstable_cache` içinde çerez okumaya izin vermiyor ("Route used cookies
+ * inside unstable_cache"). Referans verisi (iller, kategoriler, seviyeler,
+ * rozetler, SSS) zaten anon'a açık ve kullanıcıya göre değişmiyor, bu
+ * yüzden oturumsuz okunabiliyor.
+ *
+ * Buraya kullanıcıya özel sorgu YAZILMAZ: oturum taşınmadığı için RLS
+ * çağıranı anon sayar ve kişisel satırlar zaten görünmez.
+ */
+export function createPublicClient() {
+  const { url, anonKey } = getSupabaseEnv();
+  return createSupabaseClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
   });
 }

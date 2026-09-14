@@ -4,17 +4,14 @@ import { FriendsView } from "@/components/social/friends-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
 import { listFriendRequests, listFriends } from "@/lib/social/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Arkadaşlar — GençLİG",
 };
 
 export default async function FriendsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/arkadaslar");

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatRemaining } from "@/lib/tasks/labels";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 /*
   Görev sorguları. Tamamı sunucuda çalışır.
@@ -140,9 +141,7 @@ export async function getSubmissionMap(
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     return result;
@@ -184,9 +183,5 @@ export async function getParticipantCount(taskId: string): Promise<number> {
 }
 
 export async function getViewer() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  return getViewerUser();
 }

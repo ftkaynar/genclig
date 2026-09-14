@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
+import { REFERENCE_TAGS } from "@/lib/reference/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export type AdminActionState = { error?: string; notice?: string };
@@ -141,6 +142,10 @@ export async function updateLevelAction(
   }
 
   revalidatePath("/admin/seviyeler");
+  // Referans önbelleği saatlik; yönetici düzenlemesi anında görünsün.
+  // Next 16 revalidateTag ikinci argüman istiyor; "max" = etiketi tamamen
+  // geçersiz kıl.
+  revalidateTag(REFERENCE_TAGS.levels, "max");
   return { notice: `Seviye ${level} eşiği ${minXp} XP oldu.` };
 }
 
@@ -182,6 +187,7 @@ export async function upsertBadgeAction(input: {
   }
 
   revalidatePath("/admin/rozetler");
+  revalidateTag(REFERENCE_TAGS.badges, "max");
   return { notice: "Rozet kaydedildi." };
 }
 
@@ -250,6 +256,7 @@ export async function upsertTaskCategoryAction(input: {
   }
 
   revalidatePath("/admin/kategoriler");
+  revalidateTag(REFERENCE_TAGS.taskCategories, "max");
   return { notice: "Kategori kaydedildi." };
 }
 
@@ -280,5 +287,6 @@ export async function upsertProblemCategoryAction(input: {
   }
 
   revalidatePath("/admin/kategoriler");
+  revalidateTag(REFERENCE_TAGS.problemCategories, "max");
   return { notice: "Kategori kaydedildi." };
 }

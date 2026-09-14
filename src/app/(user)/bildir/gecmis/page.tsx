@@ -13,17 +13,14 @@ import {
   getReportHistory,
   listMyReports,
 } from "@/lib/problems/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Bildirimlerim — GençLİG",
 };
 
 export default async function MyReportsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/bildir/gecmis");

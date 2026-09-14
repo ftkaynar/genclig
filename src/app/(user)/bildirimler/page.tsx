@@ -11,17 +11,14 @@ import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
-import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Bildirimler — GençLİG",
 };
 
 export default async function NotificationsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/bildirimler");

@@ -1,16 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import type { TaskFormValues } from "@/components/panel/task-form";
+import { getTaskCategories } from "@/lib/reference/queries";
 
 /** Form için kategori listesi. */
 export async function listTaskCategories(): Promise<
   { id: number; name: string }[]
 > {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("task_categories")
-    .select("id,name")
-    .order("sort");
-  return (data ?? []) as { id: number; name: string }[];
+  // Kategoriler referans önbelleğinden; her form açılışında sorgu yok.
+  return (await getTaskCategories()).map((row) => ({
+    id: row.id,
+    name: row.name,
+  }));
 }
 
 /** datetime-local alanının beklediği "YYYY-MM-DDTHH:mm" biçimi. */

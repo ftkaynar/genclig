@@ -166,6 +166,33 @@
   50% {
     box-shadow: 0 0 28px 6px rgb(34 211 238 / 0.35);
   }
+
+/*
+  Yükleme iskeleti.
+
+  Gradyan bir parıltı soldan sağa geçiyor. Sabit gri blok yerine hareket:
+  kullanıcı "donmuş" ile "yükleniyor" arasındaki farkı görebilmeli.
+*/
+@keyframes genclig-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    color-mix(in oklab, var(--color-primary) 14%, var(--color-surface)) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: genclig-shimmer 1.4s linear infinite;
+}
+
 }
 
 @utility anim-pop {
@@ -187,7 +214,8 @@
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,
-  .anim-glow {
+  .anim-glow,
+  .skeleton {
     animation: none;
   }
 }

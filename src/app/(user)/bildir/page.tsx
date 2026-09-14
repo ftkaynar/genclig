@@ -5,17 +5,14 @@ import { ReportForm } from "@/components/problems/report-form";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
 import { listProblemCategories } from "@/lib/problems/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Şehrin için bildir — GençLİG",
 };
 
 export default async function ReportPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/bildir");

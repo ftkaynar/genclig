@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export type PanelContext = {
   userId: string;
@@ -20,9 +21,7 @@ export type PanelContext = {
 export async function getPanelContext(): Promise<PanelContext | null> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return null;
 
   const { data } = await supabase.rpc("my_municipalities");
@@ -44,9 +43,7 @@ export async function getPanelContext(): Promise<PanelContext | null> {
 
 export async function isSuperAdmin(): Promise<boolean> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return false;
 
   const { data } = await supabase

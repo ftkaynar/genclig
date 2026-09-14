@@ -13,9 +13,9 @@ import { UserHeader } from "@/components/user-header";
 import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import { formatPoints, getTodayEarnings, getUserPoints } from "@/lib/points/queries";
-import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
+import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
 
 // Kullanıcı PWA ana ekranı. Route group "(user)" URL'e yansımaz, "/" olarak servis edilir.
 
@@ -25,20 +25,16 @@ async function loadViewer() {
     return null;
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Kullanıcı ve profil istek başına önbellekli; aynı istekte başka
+  // sorgular da bunları istediğinde ağa tekrar çıkılmıyor.
+  const [user, profile] = await Promise.all([
+    getViewerUser(),
+    getViewerProfile(),
+  ]);
 
   if (!user) {
     return null;
   }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username,display_name,avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
 
   return {
     user,

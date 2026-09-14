@@ -11,10 +11,12 @@ import {
   SCOPES,
   getLeaderboard,
   getMyRank,
+  type LeaderboardRow,
+  type MyRank,
 } from "@/lib/leaderboard/queries";
 import { formatPoints } from "@/lib/points/queries";
-import { createClient } from "@/lib/supabase/server";
 import { getTeamLeaderboard } from "@/lib/teams/queries";
+import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Sıralama — GençLİG",
@@ -25,10 +27,7 @@ export default async function LeaderboardPage({
 }: {
   searchParams: Promise<{ kapsam?: string; donem?: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/siralama");
@@ -52,16 +51,13 @@ export default async function LeaderboardPage({
 
   const teamRows = isTeams ? await getTeamLeaderboard(period) : [];
 
-  const [rows, myRank, { data: profile }] = isTeams
-    ? [[], null, { data: null }]
+  const [rows, myRank, profile] = isTeams
+    ? [[] as LeaderboardRow[], null as MyRank, null]
     : await Promise.all([
         getLeaderboard(scope, period),
         getMyRank(scope, period),
-        supabase
-          .from("profiles")
-          .select("province_id,district_id,neighborhood_id")
-          .eq("id", user.id)
-          .maybeSingle(),
+        // Profil istek başına önbellekli; bu sayfa için ayrı sorgu açmıyor.
+        getViewerProfile(),
       ]);
 
   // Kapsam için gereken konum bilgisi eksikse liste boş döner; kullanıcıya

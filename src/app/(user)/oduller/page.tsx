@@ -8,17 +8,14 @@ import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { formatPoints, getUserPoints } from "@/lib/points/queries";
 import { getBadgeNames, getMyBadgeIds, listRewards } from "@/lib/rewards/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Ödül Havuzu — GençLİG",
 };
 
 export default async function RewardsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/oduller");

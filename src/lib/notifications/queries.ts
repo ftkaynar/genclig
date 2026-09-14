@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export type NotificationRow = {
   id: string;
@@ -33,9 +34,7 @@ export const NOTIFICATION_ICON: Record<string, string> = {
 export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return 0;
 
   const { count } = await supabase
@@ -52,9 +51,7 @@ export async function listNotifications(
 ): Promise<NotificationRow[]> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return [];
 
   // RLS zaten kendi satırlarıyla sınırlıyor; user_id filtresi indeksi

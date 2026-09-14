@@ -3,18 +3,15 @@ import { redirect } from "next/navigation";
 import { TeamView } from "@/components/teams/team-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
-import { createClient } from "@/lib/supabase/server";
 import { getMyTeam, getMyTeamMembers } from "@/lib/teams/queries";
+import { getViewerUser } from "@/lib/auth/viewer";
 
 export const metadata = {
   title: "Takımım — GençLİG",
 };
 
 export default async function TeamPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
 
   if (!user) {
     redirect("/giris?next=/takim");

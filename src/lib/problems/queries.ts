@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { getViewerUser } from "@/lib/auth/viewer";
+import { getProblemCategories } from "@/lib/reference/queries";
 
 export const KIND_LABEL: Record<string, string> = {
   problem: "Sorun",
@@ -40,19 +42,13 @@ export type ProblemReportRow = {
 };
 
 export async function listProblemCategories(): Promise<ProblemCategory[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("problem_categories")
-    .select("id,name,slug")
-    .order("sort");
-  return (data ?? []) as ProblemCategory[];
+  // Kategoriler herkes için aynı; referans önbelleğinden geliyor.
+  return (await getProblemCategories()) as ProblemCategory[];
 }
 
 export async function listMyReports(): Promise<ProblemReportRow[]> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getViewerUser();
   if (!user) return [];
 
   const { data } = await supabase
