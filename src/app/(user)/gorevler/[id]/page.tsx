@@ -5,6 +5,7 @@ import { Countdown } from "@/components/tasks/countdown";
 import { RewardBadges } from "@/components/tasks/task-card";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Icon } from "@/components/ui/icon";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import {
   CATEGORY_TONE,
@@ -109,6 +110,20 @@ export default async function TaskDetailPage({
         <div className="mt-4">
           <RewardBadges xp={task.xp} coin={task.coin} />
         </div>
+
+        {task.scope === "team" ? (
+          <div className="mt-4 rounded-2xl border border-magenta/40 bg-magenta/10 p-3.5">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-magenta">
+              <Icon name="users" className="h-4 w-4" />
+              Takım görevi
+            </p>
+            <p className="mt-1 text-xs text-ink-muted">
+              Takımından en az {task.min_team_size ?? 2} kişi tamamladığında
+              eşiği sağlayan herkese +{task.team_bonus_xp} XP ve
+              +{task.team_bonus_coin} coin bonus yazılır.
+            </p>
+          </div>
+        ) : null}
 
         {task.ends_at ? (
           <p className="mt-3 text-sm font-semibold text-status-warning">

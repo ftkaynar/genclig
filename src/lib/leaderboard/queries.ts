@@ -20,6 +20,9 @@ export const SCOPES = [
   { key: "ilce", label: "İlçe" },
   { key: "mahalle", label: "Mahalle" },
   { key: "arkadaslar", label: "Arkadaşlar" },
+  // Takım kapsamı farklı bir satır şekli döndürüyor (kullanıcı değil takım);
+  // sayfa bu anahtarda ayrı bir dala giriyor, leaderboard_top çağrılmıyor.
+  { key: "takimlar", label: "Takımlar" },
 ] as const;
 
 export const PERIODS = [

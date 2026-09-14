@@ -67,6 +67,12 @@ export function TaskCard({
             <span aria-hidden>·</span>
             <span>{TASK_TYPE_LABEL[task.type] ?? task.type}</span>
             <DifficultyDots difficulty={task.difficulty} className="ml-0.5" />
+            {task.scope === "team" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-magenta/15 px-2 py-0.5 text-[10px] font-semibold text-magenta">
+                <Icon name="users" className="h-3 w-3" />
+                Takım
+              </span>
+            ) : null}
           </span>
 
           <span className="truncate text-sm font-semibold text-ink">

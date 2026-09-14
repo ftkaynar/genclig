@@ -102,3 +102,72 @@ döndürüp listeyi tarama aracına çevirirdi.
 
 **UI:** `/arkadaslar` — Arkadaşlarım / İstekler / Ara sekmeleri, profil kartı
 modalı, arkadaş kartında haftalık XP.
+
+---
+
+## FAZ D — Takımlar + takım görevleri (M18)
+
+**Migration:** `20260916020000_teams.sql`
+
+`teams` (ad, ikon, 6 haneli davet kodu, kaptan, 2–10 üye) ve `team_members`
+(PK `(team_id, user_id)`, ayrıca `unique (user_id)`).
+
+**Neden kullanıcı başına tek takım:** iki takımda birden olmak, takım
+görevinde "aynı takımdan kaç kişi tamamladı" sayımını hangi takıma yazacağını
+belirsiz bırakıyordu.
+
+**Davet kodu alfabesi:** `ABCDEFGHJKMNPQRSTUVWXYZ23456789` — I/O/0/1 yok.
+Kod telefondan okunup elle giriliyor; karışan karakterler dışarıda.
+
+**Takım bonusu:** `award_task_points` genişledi. Görev `scope='team'` ise
+kullanıcının takımından aynı `period_key` içinde onaylanmış üye sayısı
+`min_team_size` eşiğini geçtiği anda, eşiği sağlayan **tüm** üyelere bonus
+yazılıyor — her üyenin kendi `submission_id`'siyle, `reason='team_bonus'`.
+Kısmi tekil indeks `(submission_id) where reason='team_bonus'` ikinci yazımı
+engelliyor; eşiğe sonradan bir üye daha eklenip fonksiyon yeniden koşsa bile
+önceki üyelere tekrar bonus düşmüyor.
+
+**Takımsız kullanıcı:** `submit_task` takım görevinde takımı olmayanı
+"Bu görev takım görevi — önce bir takıma katıl." ile durduruyor. Kontrol
+konum/fotoğraf doğrulamasından **önce**: kullanıcı fotoğraf çekip konum
+verdikten sonra "takımın yok" demek boşa emek olurdu.
+
+**Kaptan ayrılması:** başka üye varsa kaptanlık devri zorunlu — takımı
+kaptansız bırakmak, kimsenin üye çıkaramadığı ve kod paylaşamadığı bir takım
+demekti. Tek kişiyse takım tamamen siliniyor.
+
+**Hata ve düzeltmesi (ölçülerek bulundu):** `team_members` politikasını
+`exists (select 1 from team_members ...)` ile yazmak çalışma anında
+`infinite recursion detected in policy` verdi. `security definer`
+`my_team_id()` yardımcısı döngüyü kırdı; politika artık
+`team_id = public.my_team_id()`.
+
+**Kanıtlar (yerel psql):**
+- Takım kuruldu → kod `ESQUCF`, 6 hane, alfabe uyumlu, kaptan doğru
+- İkinci takım kurma → "Zaten bir takımdasın."
+- Yanlış kod → "Bu koda ait takım bulunamadı."
+- Doğru kodla katılım → üye 2, kaptana `team_invite` bildirimi
+- Üyeliyken kaptan ayrılma → "Önce kaptanlığı bir üyeye devretmelisin."
+- Takımsız C takım görevine teslim → "Bu görev takım görevi — önce bir takıma
+  katıl."
+- A tek başına teslim → `task` 90 XP, **bonus yok** (1 < 2)
+- B teslim → eşik doldu, **iki üyeye de** `team_bonus` 80 XP / 40 coin
+- `award_task_points` tekrar çağrıldı → toplam bonus satırı hâlâ 2 (kopya yok)
+- Takım sıralaması: 1. Sahil Kartalları, 2 üye, 380 XP
+- C başka takımın satırlarını göremiyor (0/0), doğrudan insert →
+  `permission denied for table team_members`
+- Kaptan devri + üye çıkarma + son üyenin ayrılması (takım silindi) çalışıyor
+- anon: `create_team`, `join_team`, `leaderboard_teams`, `teams` select → hepsi
+  `false`; authenticated `teams` insert → `false`
+
+**UI:** `/takim` (takımsız görünüm: kur / kodla katıl; takım görünümü: gradyan
+başlık, davet kodu + kopyala, üye listesi, kaptan eylemleri, ayrıl),
+`/gorevler`'e Hepsi/Bireysel/Takım filtre satırı, görev kartında "Takım"
+rozeti, görev detayında bonus açıklaması, `/siralama`'ya "Takımlar" sekmesi.
+`/profil` üzerinden Arkadaşlar ve Takımım bağlantıları eklendi.
+
+**Kapsam dışı bırakıldı (bildirim):** Panel/admin görev formunda `scope`,
+`min_team_size`, `team_bonus_xp`, `team_bonus_coin` alanları yok. Takım
+görevleri şimdilik yalnızca migration seed'iyle geliyor. Dilim metninde
+istenmediği için eklenmedi; sahada takım görevi açılabilmesi için ayrı bir
+dilim gerekiyor.

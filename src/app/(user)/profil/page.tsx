@@ -136,6 +136,8 @@ export default async function ProfilePage() {
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
+            <ProfileLink href="/arkadaslar" icon="users" label="Arkadaşlar" />
+            <ProfileLink href="/takim" icon="shield" label="Takımım" />
             <ProfileLink href="/oduller" icon="gift" label="Ödüller" />
             <ProfileLink href="/bildir/gecmis" icon="megaphone" label="Bildirimlerim" />
             <ProfileLink href="/ayarlar" icon="settings" label="Ayarlar" />

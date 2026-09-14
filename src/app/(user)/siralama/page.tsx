@@ -14,6 +14,7 @@ import {
 } from "@/lib/leaderboard/queries";
 import { formatPoints } from "@/lib/points/queries";
 import { createClient } from "@/lib/supabase/server";
+import { getTeamLeaderboard } from "@/lib/teams/queries";
 
 export const metadata = {
   title: "Sıralama — GençLİG",
@@ -41,15 +42,27 @@ export default async function LeaderboardPage({
     ? (donem as string)
     : "week";
 
-  const [rows, myRank, { data: profile }] = await Promise.all([
-    getLeaderboard(scope, period),
-    getMyRank(scope, period),
-    supabase
-      .from("profiles")
-      .select("province_id,district_id,neighborhood_id")
-      .eq("id", user.id)
-      .maybeSingle(),
-  ]);
+  /*
+    Takım kapsamı ayrı dal: leaderboard_teams farklı bir satır şekli
+    döndürüyor ve "benim sıram" bandı kişisel XP'ye dayandığı için takım
+    listesinde anlamsız. Aynı bileşene zorlamak yerine iki liste ayrı
+    render ediliyor.
+  */
+  const isTeams = scope === "takimlar";
+
+  const teamRows = isTeams ? await getTeamLeaderboard(period) : [];
+
+  const [rows, myRank, { data: profile }] = isTeams
+    ? [[], null, { data: null }]
+    : await Promise.all([
+        getLeaderboard(scope, period),
+        getMyRank(scope, period),
+        supabase
+          .from("profiles")
+          .select("province_id,district_id,neighborhood_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ]);
 
   // Kapsam için gereken konum bilgisi eksikse liste boş döner; kullanıcıya
   // sebebini söylemek gerekiyor.
@@ -111,13 +124,58 @@ export default async function LeaderboardPage({
       </nav>
 
       <main className="flex-1 px-4 py-4">
-        {!missingLocation && rows.length > 0 ? (
+        {isTeams ? (
+          teamRows.length === 0 ? (
+            <EmptyState
+              icon="users"
+              title="Bu dönemde takım puanı yok"
+              description="Bir takım kur ya da kodla katıl, takım görevlerinde puan toplayın."
+              action={
+                <Link
+                  href="/takim"
+                  className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  Takımıma git
+                </Link>
+              }
+            />
+          ) : (
+            <ol className="flex flex-col gap-2">
+              {teamRows.map((row) => (
+                <li
+                  key={row.team_id}
+                  className="flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
+                >
+                  <span className="w-8 shrink-0 text-center text-sm font-bold text-ink-muted">
+                    {row.rank}
+                  </span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-magenta/15 text-magenta">
+                    <Icon name={row.icon} className="h-4.5 w-4.5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-ink">
+                      {row.team_name}
+                    </span>
+                    <span className="block text-[11px] text-ink-muted">
+                      {row.member_count} üye
+                    </span>
+                  </span>
+                  <span className="shrink-0 rounded-full bg-xp/15 px-2.5 py-1 text-xs font-semibold text-xp">
+                    {formatPoints(row.total_xp)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )
+        ) : null}
+
+        {!isTeams && !missingLocation && rows.length > 0 ? (
           <div className="mb-3">
             <Podium rows={rows} currentUserId={user.id} />
           </div>
         ) : null}
 
-        {missingLocation ? (
+        {isTeams ? null : missingLocation ? (
           <EmptyState
             icon="map-pin"
             title="Konumun eksik"

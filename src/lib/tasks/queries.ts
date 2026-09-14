@@ -31,6 +31,10 @@ export type TaskRow = {
   coin: number;
   difficulty: string;
   verification: string;
+  scope: string;
+  min_team_size: number | null;
+  team_bonus_xp: number;
+  team_bonus_coin: number;
   lat: number | null;
   lng: number | null;
   radius_m: number | null;
@@ -50,7 +54,7 @@ export type TaskRow = {
 };
 
 const TASK_FIELDS =
-  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,lat,lng,radius_m,ends_at,capacity,task_categories(slug,name,icon)";
+  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,ends_at,capacity,task_categories(slug,name,icon)";
 
 function withRemainingLabel(rows: unknown[]): TaskRow[] {
   const now = Date.now();
@@ -68,7 +72,12 @@ function withRemainingLabel(rows: unknown[]): TaskRow[] {
  * yapılıyor, çünkü sayfalama eklendiğinde istemcide elemek sayfa başına
  * düşen kayıt sayısını öngörülemez hale getirir.
  */
-export async function listFeedTasks(type?: string): Promise<TaskRow[]> {
+export const FEED_TASK_SCOPES = ["individual", "team"] as const;
+
+export async function listFeedTasks(
+  type?: string,
+  scope?: string,
+): Promise<TaskRow[]> {
   const supabase = await createClient();
 
   let query = supabase
@@ -81,6 +90,11 @@ export async function listFeedTasks(type?: string): Promise<TaskRow[]> {
 
   if (type && (FEED_TASK_TYPES as readonly string[]).includes(type)) {
     query = query.eq("type", type);
+  }
+
+  // Bireysel/Takım ayrımı da veritabanında: tip filtresiyle aynı gerekçe.
+  if (scope && (FEED_TASK_SCOPES as readonly string[]).includes(scope)) {
+    query = query.eq("scope", scope);
   }
 
   const { data, error } = await query;

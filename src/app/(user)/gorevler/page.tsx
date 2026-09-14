@@ -11,10 +11,10 @@ export const metadata = {
 };
 
 /*
-  Sekmeler URL üzerinden (?tip=). Neden client state değil: sayfa sunucuda
-  render ediliyor ve filtre sorguya giriyor; state'te tutulsaydı ya tüm
-  görevleri çekip istemcide elemek ya da sayfayı client'a taşımak gerekirdi.
-  URL ayrıca paylaşılabilir ve geri tuşuyla çalışıyor.
+  Sekmeler URL üzerinden (?tip=, ?kapsam=). Neden client state değil: sayfa
+  sunucuda render ediliyor ve filtre sorguya giriyor; state'te tutulsaydı ya
+  tüm görevleri çekip istemcide elemek ya da sayfayı client'a taşımak
+  gerekirdi. URL ayrıca paylaşılabilir ve geri tuşuyla çalışıyor.
 */
 const TABS = [
   { key: "", label: "Tümü" },
@@ -22,16 +22,37 @@ const TABS = [
   { key: "instant", label: "Anlık" },
 ] as const;
 
+const SCOPES = [
+  { key: "", label: "Hepsi" },
+  { key: "individual", label: "Bireysel" },
+  { key: "team", label: "Takım" },
+] as const;
+
+/** İki filtre birbirini sıfırlamasın diye bağlantılar mevcut seçimi taşıyor. */
+function buildHref(tip: string, kapsam: string): string {
+  const params = new URLSearchParams();
+  if (tip) params.set("tip", tip);
+  if (kapsam) params.set("kapsam", kapsam);
+  const query = params.toString();
+  return query ? `/gorevler?${query}` : "/gorevler";
+}
+
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tip?: string }>;
+  searchParams: Promise<{ tip?: string; kapsam?: string }>;
 }) {
-  const { tip } = await searchParams;
+  const { tip, kapsam } = await searchParams;
   const activeTab = TABS.some((tab) => tab.key === tip) ? (tip ?? "") : "";
+  const activeScope = SCOPES.some((item) => item.key === kapsam)
+    ? (kapsam ?? "")
+    : "";
 
   const viewer = await getViewer();
-  const tasks = await listFeedTasks(activeTab || undefined);
+  const tasks = await listFeedTasks(
+    activeTab || undefined,
+    activeScope || undefined,
+  );
   const submissions = await getSubmissionMap(tasks.map((task) => task.id));
 
   return (
@@ -45,7 +66,7 @@ export default async function TasksPage({
             return (
               <li key={tab.key || "all"}>
                 <Link
-                  href={tab.key ? `/gorevler?tip=${tab.key}` : "/gorevler"}
+                  href={buildHref(tab.key, activeScope)}
                   aria-current={isActive ? "page" : undefined}
                   className={
                     isActive
@@ -54,6 +75,29 @@ export default async function TasksPage({
                   }
                 >
                   {tab.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <nav aria-label="Görev kapsamı" className="px-4 pt-2">
+        <ul className="flex gap-2">
+          {SCOPES.map((item) => {
+            const isActive = item.key === activeScope;
+            return (
+              <li key={item.key || "all"}>
+                <Link
+                  href={buildHref(activeTab, item.key)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={
+                    isActive
+                      ? "block rounded-full bg-magenta/20 px-3.5 py-1.5 text-xs font-semibold text-magenta"
+                      : "block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
+                  }
+                >
+                  {item.label}
                 </Link>
               </li>
             );
