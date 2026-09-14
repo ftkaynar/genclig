@@ -6,6 +6,11 @@ import L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
+import {
+  CATEGORY_PIN,
+  CATEGORY_PIN_FALLBACK,
+  pinMarkup,
+} from "./pin-icons";
 import type { DiscoverTask } from "@/lib/discover/queries";
 
 /*
@@ -15,24 +20,22 @@ import type { DiscoverTask } from "@/lib/discover/queries";
   (paket içindeki görselleri CSS'ten göreli çözüyor). Bu yüzden işaretçiler
   divIcon ile, kategori rengini taşıyan küçük bir daire olarak çiziliyor;
   hem sorun ortadan kalkıyor hem marka renkleri korunuyor.
+
+  v2'de işaretçi düz daireden kategori çipine yükseltildi: renk tek başına
+  altı kategoriyi ayırt ettirmiyordu, özellikle renk körlüğünde. Çip artık
+  kategorinin ikonunu da taşıyor.
 */
 
-/** Kategori slug'ına göre pin rengi; D04 token değerleri. */
-const CATEGORY_COLOR: Record<string, string> = {
-  environment: "#22C55E",
-  social: "#7C3AED",
-  sports: "#EC4899",
-  culture: "#6366F1",
-  education: "#F59E0B",
-  civic: "#22D3EE",
-};
-
-function pinIcon(color: string) {
+/** Kategori çipi; markup pin-icons.ts'te. */
+function pinIcon(slug: string | null) {
+  const pin = CATEGORY_PIN[slug ?? ""] ?? CATEGORY_PIN_FALLBACK;
   return L.divIcon({
     className: "",
-    html: `<span style="display:block;width:18px;height:18px;border-radius:9999px;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></span>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    html: pinMarkup(pin),
+    iconSize: [32, 38],
+    // Sivri uç görevin tam konumunu göstersin diye çapa altta.
+    iconAnchor: [16, 38],
+    popupAnchor: [0, -34],
   });
 }
 
@@ -99,7 +102,7 @@ export function TaskMap({
         <Marker
           key={task.id}
           position={[task.lat, task.lng]}
-          icon={pinIcon(CATEGORY_COLOR[task.categorySlug ?? ""] ?? "#6366F1")}
+          icon={pinIcon(task.categorySlug)}
         >
           <Popup>
             <span className="block text-sm font-semibold">{task.title}</span>

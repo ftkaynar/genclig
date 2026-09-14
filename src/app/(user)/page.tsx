@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { FeaturedTask } from "@/components/home/featured-task";
+import { QuickAccess } from "@/components/home/quick-access";
 import { BalanceSummary } from "@/components/points/balance-summary";
 import { TaskCardCompact } from "@/components/tasks/task-card-compact";
 import { Icon } from "@/components/ui/icon";
@@ -96,23 +98,43 @@ export default async function UserHomePage() {
     );
   }
 
-  const [points, today, allTasks, notifications, myRank] = await Promise.all([
-    getUserPoints(viewer.user.id),
-    getTodayEarnings(viewer.user.id),
-    listFeedTasks(),
-    listNotifications(3),
-    getMyRank("ilce", "week"),
-  ]);
+  const [points, today, allTasks, notifications, myRank, friendRank] =
+    await Promise.all([
+      getUserPoints(viewer.user.id),
+      getTodayEarnings(viewer.user.id),
+      listFeedTasks(),
+      listNotifications(3),
+      getMyRank("ilce", "week"),
+      getMyRank("arkadaslar", "week"),
+    ]);
 
   const submissions = await getSubmissionMap(allTasks.map((task) => task.id));
+
+  const open = allTasks.filter((task) => !submissions.has(task.id));
+
+  /*
+    Öne çıkan görev: bitişi en yakın, henüz gönderilmemiş anlık görev.
+    Aciliyeti olan tek görev bu; öneriler şeridinde kaybolmasın diye ayrı
+    bir bantta duruyor. Bitiş tarihi olmayan görevler aday değil — "öne
+    çıkan"ın anlamı burada "yakında kapanıyor".
+  */
+  const featured =
+    open
+      .filter((task) => task.type === "instant" && task.ends_at)
+      .sort(
+        (a, b) =>
+          new Date(a.ends_at as string).getTime() -
+          new Date(b.ends_at as string).getTime(),
+      )[0] ?? null;
 
   /*
     Öneri sırası: önce anlık görevler (süresi dolmadan yapılmalı), sonra en
     yeniler. Kullanıcının zaten teslim ettiği görevler öneriden çıkarılıyor;
     "bugün ne yapsam" sorusuna zaten yaptığı işi göstermek işe yaramıyor.
+    Öne çıkan görev de eleniyor: aynı kartı iki kez göstermek yer israfı.
   */
-  const suggested = allTasks
-    .filter((task) => !submissions.has(task.id))
+  const suggested = open
+    .filter((task) => task.id !== featured?.id)
     .sort((a, b) => {
       if (a.type === b.type) return 0;
       return a.type === "instant" ? -1 : 1;
@@ -159,24 +181,9 @@ export default async function UserHomePage() {
           />
         </section>
 
-        {/* Şehrin için bildir — gradyan kenarlı vurgu kartı. */}
-        <Link
-          href="/bildir"
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/50 bg-card p-4 transition-colors hover:border-primary active:scale-[0.99]"
-        >
-          <span className="brand-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white">
-            <Icon name="megaphone" className="h-5 w-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-ink">
-              Şehrin için bildir
-            </span>
-            <span className="block text-[11px] text-ink-muted">
-              Sorun, öneri ya da proje · +25 XP • +10 Coin
-            </span>
-          </span>
-          <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />
-        </Link>
+        <QuickAccess />
+
+        {featured ? <FeaturedTask task={featured} /> : null}
 
         <section className="mt-5">
           <div className="flex items-center justify-between gap-3">
@@ -211,25 +218,86 @@ export default async function UserHomePage() {
           )}
         </section>
 
-        {myRank ? (
-          <Link
-            href="/siralama?kapsam=ilce&donem=week"
-            className="mt-5 flex items-center gap-3 rounded-2xl border border-edge bg-card p-4 transition-colors hover:border-primary/60"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-xp/15 text-xp">
-              <Icon name="trophy" className="h-5 w-5" />
+        {/* Şehrin için bildir — gradyan kenarlı vurgu kartı. */}
+        <Link
+          href="/bildir"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/50 bg-card p-4 transition-colors hover:border-primary active:scale-[0.99]"
+        >
+          <span className="brand-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white">
+            <Icon name="megaphone" className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-ink">
+              Şehrin için bildir
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-ink">
-                İlçende #{myRank.rank}
-              </span>
-              <span className="block text-[11px] text-ink-muted">
-                {formatPoints(myRank.total_xp)} XP · {myRank.scope_size} kişi
-                arasında
-              </span>
+            <span className="block text-[11px] text-ink-muted">
+              Sorun, öneri ya da proje · +25 XP • +10 Coin
             </span>
-            <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />
-          </Link>
+          </span>
+          <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />
+        </Link>
+
+        {/*
+          Sıralama mini: ilçe ve arkadaşlar yan yana. Tek kapsam göstermek
+          kullanıcıya "iyi miyim" sorusunun yalnız yarısını yanıtlıyordu;
+          arkadaş sırası daha küçük ve motive edici bir ölçek.
+
+          Arkadaş kapsamı çağıranın kendisini de içerdiği için arkadaşı
+          olmayan kullanıcı "#1 · 1 kişi" görüyordu; scope_size 1 iken kart
+          yerine arkadaş ekleme daveti gösteriliyor.
+        */}
+        {myRank || friendRank ? (
+          <section className="mt-5 grid grid-cols-2 gap-2">
+            {myRank ? (
+              <Link
+                href="/siralama?kapsam=ilce&donem=week"
+                className="rounded-2xl border border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-xp/15 text-xp">
+                  <Icon name="trophy" className="h-4.5 w-4.5" />
+                </span>
+                <span className="mt-2 block text-sm font-semibold text-ink">
+                  İlçende #{myRank.rank}
+                </span>
+                <span className="block text-[11px] text-ink-muted">
+                  {formatPoints(myRank.total_xp)} XP · {myRank.scope_size} kişi
+                </span>
+              </Link>
+            ) : null}
+
+            {friendRank && friendRank.scope_size > 1 ? (
+              <Link
+                href="/siralama?kapsam=arkadaslar&donem=week"
+                className="rounded-2xl border border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                  <Icon name="users" className="h-4.5 w-4.5" />
+                </span>
+                <span className="mt-2 block text-sm font-semibold text-ink">
+                  Arkadaşlarında #{friendRank.rank}
+                </span>
+                <span className="block text-[11px] text-ink-muted">
+                  {formatPoints(friendRank.total_xp)} XP ·{" "}
+                  {friendRank.scope_size} kişi
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/arkadaslar"
+                className="rounded-2xl border border-dashed border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                  <Icon name="users" className="h-4.5 w-4.5" />
+                </span>
+                <span className="mt-2 block text-sm font-semibold text-ink">
+                  Arkadaş ekle
+                </span>
+                <span className="block text-[11px] text-ink-muted">
+                  Aranızda sıralama açılsın
+                </span>
+              </Link>
+            )}
+          </section>
         ) : null}
 
         {notifications.length > 0 ? (

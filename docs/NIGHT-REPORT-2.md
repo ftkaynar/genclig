@@ -224,3 +224,56 @@ bağımlı `createClient`'ı bundle'a çekti; derleme
 görünümü + yeni talep formu), `/admin/destek` (durum filtreli kuyruk, açılır
 konuşma, yanıtla/kapat). Admin gezinmesine "Destek", profil ekranına Destek
 bağlantısı eklendi.
+
+---
+
+## FAZ F — Ana sayfa v2 + navigasyon + keşfet
+
+**Ana sayfa sırası** (yeni): hero → 4'lü hızlı erişim → "Öne çıkan görev"
+bandı → önerilen görevler şeridi → "Şehrin için bildir" → sıralama mini
+(ilçe + arkadaşlar) → son bildirimler.
+
+**Hızlı erişim (`src/components/home/quick-access.tsx`):** Arkadaşlar,
+Takımım, Ödüller, Destek. Alt gezinme beş sekmede bırakıldı; mobilde altıncı
+sekme dokunma hedeflerini parmak genişliğinin altına indiriyordu. Bu dört
+ekran profil altında gömülüydü ve kullanıcı varlıklarını fark etmiyordu.
+
+**Öne çıkan görev (`src/components/home/featured-task.tsx`):** bitişi en
+yakın, henüz gönderilmemiş anlık görev. Bitiş tarihi olmayan görevler aday
+değil — "öne çıkan"ın anlamı burada "yakında kapanıyor". Gradyan kenar dıştaki
+gradyan katman + içteki kart yüzeyiyle çiziliyor. Aynı görev öneriler
+şeridinden eleniyor.
+
+**Sıralama mini:** ilçe ve arkadaşlar yan yana.
+
+**Ölçülerek bulunan sorun:** arkadaş kapsamı çağıranın kendisini de içerdiği
+için arkadaşı olmayan kullanıcı "Arkadaşlarında #1 · 1 kişi" görüyordu.
+`scope_size > 1` koşulu eklendi; altında kalan durumda kart yerine
+"Arkadaş ekle · Aranızda sıralama açılsın" daveti çıkıyor.
+
+**Keşfet işaretçileri:** düz renkli daire yerine kategori çipi — renkli
+yuvarlak + içinde beyaz lucide ikonu + altında sivri uç, çapa uçta.
+Renk tek başına altı kategoriyi ayırt ettirmiyordu, özellikle renk
+körlüğünde.
+
+**MOCKUP EKLENTİSİ:** `src/components/discover/pin-icons.ts` — altı kategori
+ikonunun yol verisi lucide-react'ten bir kez çıkarılıp sabit olarak alındı.
+Leaflet'in `divIcon`'u HTML metni alıyor, React bileşeni değil. Denenen ve
+elenen alternatifler: `react-dom/server`in `renderToStaticMarkup`ını client
+tarafında çağırmak (sunucu render kütüphanesini tarayıcı paketine sokuyordu)
+ve paketten ikon düğümlerini çalışma anında okumak (lucide-react ham yol
+verisini dışa vermiyor, ölçüldü). lucide sürümü yükseltilirse bu yolların
+yenilenmesi gerekiyor.
+
+**Eski yeşil taraması:** `#17b890` / `#3ddc97` kod, stil ve yapılandırma
+dosyalarında kalmadı; yalnızca README ve bu raporun geçmiş bölümlerinde
+metin olarak geçiyor.
+
+**Kanıtlar (yerel dev sunucu, oturumlu curl):**
+- `/`, `/takim`, `/destek`, `/siralama?kapsam=takimlar`, `/arkadaslar` → 200
+- Oturumsuz `/destek`, `/takim`, `/siralama` → 307 (giriş yönlendirmesi)
+- Ana sayfada görünen başlıklar: Merhaba, Arkadaşlar, Takımım, Ödüller,
+  Destek, Öne çıkan görev, Bugün için önerilen, Şehrin için bildir
+- XP verilince: İlçende kartı ve Son bildirimler bölümü çıkıyor
+- Arkadaşsız kullanıcıda: "Arkadaş ekle · Aranızda sıralama açılsın"
+- `/gorevler?kapsam=team` → yalnızca iki takım görevi, "Takım" rozetiyle
