@@ -277,3 +277,113 @@ metin olarak geçiyor.
 - XP verilince: İlçende kartı ve Son bildirimler bölümü çıkıyor
 - Arkadaşsız kullanıcıda: "Arkadaş ekle · Aranızda sıralama açılsın"
 - `/gorevler?kapsam=team` → yalnızca iki takım görevi, "Takım" rozetiyle
+
+---
+
+## FAZ G — Bulut + kapanış
+
+### Bulut push YAPILAMADI — açık engel
+
+`supabase db push` bulut veritabanına bağlanamadı:
+
+```
+FATAL: password authentication failed for user "postgres" (SQLSTATE 28P01)
+host=aws-0-ap-southeast-2.pooler.supabase.com
+user=postgres.dfttglwicxopwejakitk
+```
+
+Ölçüm: erişim token'ı **çalışıyor** (`supabase projects list` projeyi
+`ACTIVE_HEALTHY` döndürüyor), reddedilen yalnızca veritabanı şifresi.
+Elimdeki şifre bulutta artık geçerli değil. Şifre tahmin edilmedi, hiçbir
+dosyaya yazılmadı; proje sahibinden güncel veritabanı şifresi gerekiyor.
+
+Şifre verildiğinde push'un tek adımı kaldı:
+
+```
+SUPABASE_ACCESS_TOKEN=<token> SUPABASE_DB_PASSWORD=<şifre> \
+  pnpm dlx supabase@latest db push
+```
+
+Bekleyen migration'lar: `20260916000000_friendships.sql`,
+`20260916010000_friends_leaderboard.sql`, `20260916020000_teams.sql`,
+`20260916030000_support.sql`.
+
+### Bulutun şu anki durumu (REST ile ölçüldü, anon anahtarla)
+
+- `faq_items`, `teams`, `team_members`, `support_tickets`, `friendships`
+  → **404** (henüz yok, beklenen)
+- `create_team`, `join_team`, `create_ticket`, `reply_ticket`,
+  `send_friend_request`, `leaderboard_teams`, `list_all_tickets` → **404**
+- `tasks` GET → 200 (mevcut şema yerinde)
+- anon `tasks` INSERT → **401**; anon `submit_task` RPC → **404**
+  (mevcut korumalar bozulmadı)
+
+Push sonrası koşulacak doğrulamalar (bu gece koşulamadı):
+`faq_items` 6 satır, anon yazma denemeleri reddi, yeni RPC'lerin anon'a
+kapalı olması.
+
+### `rls_isolation.sql` — yeni senaryolar (yerelde tam koşuldu)
+
+SENARYO 22 (arkadaşlık), 23 (takım), 24 (destek) eklendi; dosya 645 satır.
+Tam koşum sonucu: 14 `ERROR` satırının **hepsi beklenen** reddetmeler
+(`provinces` RLS ×2, teslim tekilliği, `task_submissions` RLS ×2,
+`xp_transactions`, `notify`, `user_badges`, `problem_reports`,
+`reward_redemptions`, `friendships`, takım görevi engeli, destek yetkisi,
+`support_tickets`). Beklenmeyen hata yok.
+
+Kritik doğrulamalar:
+- Arkadaş olmayanın profil kartı: `is_friend f`, XP ve rozet **null**;
+  kabul sonrası ikisi de görünür
+- Taraf olmayan kullanıcı ilişkiyi görmüyor (0) ve elle yazamıyor
+- Takımsız kullanıcı takım görevine teslim gönderemiyor
+- Eşik öncesi bonus satırı 0 → eşik sonrası 2 → `award_task_points` tekrar
+  çağrıldıktan sonra **hâlâ 2** (idempotent)
+- Başka takımın satırları görünmüyor (0/0)
+- Destek talebi sahibi olmayan: 0 talep, 0 mesaj, 0 kuyruk, yanıt reddedildi
+- Süper admin kuyruğu görüyor; yanıtı `answered` + `support_reply` bildirimi
+- `provinces` 81, `profiles` 3 — test verisi sızıntısı yok
+
+### `pnpm check:all`
+
+Çıkış kodu **0** (types + lint + build).
+
+### MOCKUP EKLENTİSİ listesi
+
+Dilim metninde adı geçmeyen, görsel hedefi tamamlamak için eklenenler:
+
+1. `src/components/discover/pin-icons.ts` — harita işaretçilerinin kategori
+   ikon yolları (gerekçe ve elenen alternatifler FAZ F bölümünde).
+2. Görev kartında ve görev detayında **takım rozeti / bonus açıklaması** —
+   takım görevini bireyselden ayırt eden görsel işaret dilimde istenmemişti,
+   ama filtreyle gelen görevin neden farklı olduğu ekranda görünmüyordu.
+3. Sıralama mini'sindeki **"Arkadaş ekle" daveti** — arkadaşsız kullanıcıda
+   boş kart yerine eylem.
+4. `/profil` üzerindeki Arkadaşlar / Takımım / Destek bağlantıları — hızlı
+   erişim ızgarası gelmeden önce bu ekranların yetim kalmaması için.
+
+### Bilinçli kapsam dışı / devredilen
+
+- **Panel ve admin görev formlarında takım alanları yok** (`scope`,
+  `min_team_size`, `team_bonus_xp`, `team_bonus_coin`). Takım görevleri
+  şimdilik yalnızca migration seed'iyle geliyor; sahada takım görevi
+  açılabilmesi için ayrı bir dilim gerekiyor.
+- **Bulut push ve push sonrası REST doğrulaması** — şifre engeli (yukarıda).
+- DOKUNMA listesi korundu: etkinlik domain'i, streak, anket, QR/Health
+  doğrulama, push notification, gerçek zamanlı kanallar, auth sağlayıcı
+  eklenmedi.
+
+### Sabah görsel turu — bakılacak ekranlar
+
+1. `/` — hero, 4'lü hızlı erişim, öne çıkan görev bandının gradyan kenarı,
+   öneri şeridinin yatay kaydırması, sıralama mini'sinin iki kartı
+2. `/gorevler` — iki filtre satırı; `?kapsam=team` ile takım rozetli kartlar
+3. `/gorevler/<takım görevi>` — magenta bonus kartı
+4. `/takim` — takımsız görünüm (kur / kodla katıl), sonra takım görünümü:
+   davet kodu, kopyala düğmesi, üye listesi, kaptan eylemleri
+5. `/arkadaslar` — üç sekme, profil kartı modalı (arkadaş / arkadaş değil)
+6. `/siralama` — Takımlar sekmesi ve Arkadaşlar sekmesi
+7. `/destek` — SSS akordiyonu, yeni talep formu, konuşma balonları
+8. `/admin/destek` — durum filtreleri, açılır konuşma, yanıtla/kapat
+9. `/kesfet` — kategori çipli işaretçiler (renk + ikon), popup
+10. Karanlık/aydınlık tema geçişi ve `prefers-reduced-motion` ile animasyonsuz
+    görünüm

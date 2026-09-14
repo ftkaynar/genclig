@@ -487,6 +487,158 @@ rollback;
 
 \echo ''
 \echo '=========================================================='
+\echo 'SENARYO 22: arkadaslik -- profil karti gizliligi'
+\echo '=========================================================='
+
+update public.profiles set username = 'rls_a' where id = :'A';
+update public.profiles set username = 'rls_b' where id = :'B';
+update public.profiles set username = 'rls_c' where id = :'C';
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- B, C nin kartina bakiyor (arkadas DEGIL): xp ve rozet bos olmali'
+select is_friend, total_xp is null as xp_gizli, badge_count is null as rozet_gizli
+from public.get_profile_card('rls_c');
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select status from public.send_friend_request('rls_c');
+commit;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select public.respond_friend_request(
+  (select id from public.friendships where requester_id = :'B' and addressee_id = :'C'),
+  true);
+commit;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- kabul sonrasi ayni kart: artik gorunur olmali'
+select is_friend, total_xp is not null as xp_gorunur, badge_count is not null as rozet_gorunur
+from public.get_profile_card('rls_c');
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- A taraf degil: iliskiyi gormemeli (0) ve elle yazamamali'
+select count(*) as a_gordugu_iliski from public.friendships;
+insert into public.friendships (requester_id, addressee_id)
+values (:'A', :'B');
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 23: takim -- bonus idempotent, baska takim gorunmez'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select (public.create_team('RLS Takimi', 'shield')).name as kurulan_takim;
+commit;
+
+select invite_code as rlskod from public.teams where name = 'RLS Takimi' \gset
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select (public.join_team(:'rlskod')).name as katilinan;
+commit;
+
+\echo '-- takimsiz A takim gorevine teslim gonderemez'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select public.submit_task('0000f1a5-0000-4000-8000-0000000000e2'::uuid, 41.013400, 28.981200, null);
+rollback;
+
+\echo '-- B teslim: bonus yok (esik 2, tek kisi)'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select (public.submit_task('0000f1a5-0000-4000-8000-0000000000e2'::uuid, 41.013400, 28.981200, null)).status as b_durum;
+commit;
+select count(*) as bonus_satiri_esik_oncesi from public.xp_transactions where reason = 'team_bonus';
+
+\echo '-- C teslim: esik doldu, iki uyeye de bonus'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select (public.submit_task('0000f1a5-0000-4000-8000-0000000000e2'::uuid, 41.013400, 28.981200, null)).status as c_durum;
+commit;
+select count(*) as bonus_satiri_esik_sonrasi from public.xp_transactions where reason = 'team_bonus';
+
+\echo '-- award_task_points tekrar: kopya olusmamali (hala 2)'
+select public.award_task_points(id) from public.task_submissions
+ where task_id = '0000f1a5-0000-4000-8000-0000000000e2'::uuid;
+select count(*) as bonus_satiri_tekrar_sonrasi from public.xp_transactions where reason = 'team_bonus';
+
+\echo '-- A baska takimin satirlarini gormemeli (0/0)'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as a_gordugu_takim from public.teams;
+select count(*) as a_gordugu_uyelik from public.team_members;
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 24: destek -- talep yalitimi'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select (public.create_ticket('RLS destek testi',
+  'Bu talebi yalnizca sahibi ve super admin gorebilmeli.')).status as durum;
+commit;
+
+select id as destek_tid from public.support_tickets order by created_at desc limit 1 \gset
+
+\echo '-- B (sahibi degil, super admin degil): 0 talep, 0 mesaj, yanit yok'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as b_gordugu_talep from public.support_tickets;
+select count(*) as b_gordugu_mesaj from public.ticket_messages;
+select count(*) as b_kuyrugu from public.list_all_tickets(null);
+select public.reply_ticket(:'destek_tid'::uuid, 'araya giriyorum');
+rollback;
+
+\echo '-- A super admin (SENARYO 6 dan beri): kuyrugu gormeli'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select subject, status, username from public.list_all_tickets(null);
+rollback;
+
+\echo '-- super admin yaniti: answered + support_reply bildirimi'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select (public.reply_ticket(:'destek_tid'::uuid, 'Merhaba, inceledik.')).is_staff as personel_mi;
+commit;
+select status from public.support_tickets where id = :'destek_tid'::uuid;
+select type from public.notifications where user_id = :'C' order by created_at desc limit 1;
+
+\echo '-- dogrudan insert kapali'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.support_tickets (user_id, subject) values (:'C', 'elle yazma');
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
 \echo 'SON DURUM: provinces sayisi degismemis olmali (81)'
 \echo '=========================================================='
 select count(*) as provinces_toplam from public.provinces;
