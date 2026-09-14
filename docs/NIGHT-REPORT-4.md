@@ -190,3 +190,118 @@ sıram" kartı korundu.
 yok", "Bu dönemde takım puanı yok") tek bir dile getirildi —
 **"Bu kategoride henüz sıralama yok"** — ve kapsama uygun eylem butonu
 korundu (takımda "Takımıma git", konum eksikse "Konumunu ayarla").
+
+---
+
+## FAZ Z — Kapanış
+
+### Bulut push
+
+```
+20260918000000_community.sql   (M22)
+20260918010000_quiz.sql        (M23)
+```
+
+Kapanış kontrolü:
+
+```
+db push --dry-run  → {"upToDate":true,"migrations":[]}
+db diff --linked   → No schema changes found
+```
+
+### Bulut REST doğrulaması (anon anahtarla)
+
+Tablolar — hepsi **401** (anon'un tablo yetkisi hiç yok, RLS'e sıra
+gelmiyor):
+`channels`, `channel_messages`, `message_reports`, `user_mutes`,
+`task_quiz_questions`.
+
+RPC'ler doğru argümanlarla — hepsi **401** (PostgREST şemada görüyor,
+yetki kapalı): `post_message`, `get_task_quiz`, `submit_quiz`,
+`list_channel_messages`, `moderate_delete`, `mute_user`.
+
+### `rls_isolation.sql` — SENARYO 26 ve 27
+
+Dosya 815 satır. Tam koşumda **19 `ERROR` satırının hepsi beklenen
+reddetme**; beklenmeyen hata yok.
+
+**SENARYO 26 (topluluk izolasyonu):**
+- B kendi kanalını (1) ve kendi mesajını (1) görüyor
+- **C başka ilçede ve yetkisiz: mesaj listesi 0, ham tablo 0, kanal 1**
+  (yalnızca kendi kanalı)
+- C başka ilçenin mesajını raporlayamıyor
+- Süper admin 39 kanalı görüyor (moderatör olarak, beklenen)
+- Doğrudan insert → `permission denied`
+
+**Yol boyunca çıkan hata (testte, kodda değil):** ilk yazdığım senaryoda
+izolasyonu A kullanıcısıyla sınıyordum, oysa A SENARYO 6'dan beri
+**süper admin**. 39 kanalı görmesi ve raporlayabilmesi doğru davranış,
+izolasyon kanıtı değil. Senaryo yetkisiz C ile yeniden yazıldı; ilk hâli
+kodda bir sızıntı varmış gibi görünüyordu, yoktu.
+
+**SENARYO 27 (quiz gizliliği):**
+- `get_task_quiz` dönüş tipi: `TABLE(id, question, options, sort)` —
+  `correct_key` **yok**
+- Kullanıcı 3 soruyu görüyor, ham tablodan **0 satır** görüyor
+- Boş cevap → `passed f`, 0/3, teslim 0
+- Doğru cevaplar → `passed t`, 3/3, teslim `approved`, XP 70
+- anon: sorular, teslim, ham tablo → hepsi `false`
+
+`provinces` 81, `profiles` 3 — test verisi sızıntısı yok.
+
+### `pnpm check:all`
+
+Her fazın sonunda koşuldu, hepsinde çıkış kodu **0**.
+
+### Bilinçli kapsam dışı
+
+DOKUNMA listesi korundu: sohbette **fotoğraf ve bağlantı yok** (ilk sürüm
+salt metin), **özel mesajlaşma yok**, push notification yok, Supabase
+bölge taşıma yapılmadı, çark/çekiliş yok.
+
+Ayrıca borç olarak duruyor:
+- **Gerçek zamanlı sohbet** — şu an 30 saniyelik yoklama var. Supabase
+  realtime kanalları bu dilimin DOKUNMA listesindeydi.
+- **Quiz geçme eşiği** `quiz_pass_ratio()` içinde sabit; görev başına
+  ayarlanabilir olması istenirse `tasks` tablosuna kolon gerekiyor.
+- **Kanal kapsamı** yalnızca ilçe ve yalnızca İstanbul için seed'li.
+  `channels.scope` sütunu il/mahalle için yer tutuyor ama davranış yok.
+
+### Sabah görsel turu
+
+1. **`/topluluk`** — sohbet baloncukları (kendi mesajın sağda gradyan),
+   kullanıcı adına dokununca profil kartı + Arkadaş ekle, 500 karakter
+   sayacı, ⋯ menüsünde Rapor et / Sil
+2. **18 yaş altı uyarı şeridi** — turuncu, kapatılamaz (doğum tarihi boş
+   bir hesapla da görünmeli)
+3. **İlçesiz kullanıcı** — "Önce ilçeni ayarla" boş durumu
+4. **Hız sınırı** — arka arkaya iki mesaj gönderip "Biraz yavaş" uyarısını
+   görün
+5. **`/panel/moderasyon` ve `/admin/moderasyon`** — rapor kuyruğu; Sil /
+   Geri aç / Sustur (süre seçimi) / Raporu kapat. Admin'de "Tüm kanallarda
+   sustur" butonu görünür, panelde görünmez
+6. **Quiz görevi** — "Belediye tarih müzesini ziyaret et" → Testi çöz,
+   soru soru ilerleme çubuğu, yanlış cevapla sonuç ekranı ve "Tekrar dene",
+   doğru cevapla kutlama
+7. **Panel görev formu** — `verification = quiz` seçince soru editörünün
+   açılması; şık ekleme/silme ve doğru şık tikinin kaymadığını doğrulayın
+8. **`/siralama`** — ikonlu kapsam çipleri (globe → map-pin → compass →
+   home → users → shield), seçili çipin gradyanı, altta dönem hapları
+9. **Boş durum** — "Bu kategoride henüz sıralama yok"
+10. Ana sayfa hızlı erişimde **Topluluk** (Destek'in yerini aldı; Destek
+    `/profil` üzerinden)
+
+### Dilim özeti
+
+Dört faz, dört commit, hepsi push'landı. İki migration buluta gitti,
+`db diff --linked` temiz, `check:all` her fazda 0.
+
+**Bulunan ve düzeltilen hatalar:**
+1. `react-hooks/purity` — susturma durumunu `Date.now()` ile
+   karşılaştırıyordum. Doğru çözüm karşılaştırmayı taşımak değil,
+   tamamen kaldırmaktı: `my_channel` RPC'si `muted_until` alanını zaten
+   `until > now()` koşuluyla dolduruyor.
+2. `ModerationRow` tipinde `channel_id` yoktu ama bileşende
+   kullanıyordum; RPC'ye kolon eklendi.
+3. RLS senaryosunda izolasyonu süper admin kullanıcıyla sınamıştım
+   (yukarıda).

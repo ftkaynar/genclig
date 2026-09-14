@@ -703,6 +703,120 @@ select count(*) as c_okunmamis_duyuru from public.notifications
 
 \echo ''
 \echo '=========================================================='
+\echo 'SENARYO 26: topluluk -- kanal izolasyonu'
+\echo '=========================================================='
+
+/*
+  Yalitim sinamasi YETKISIZ kullanici ile yapilmali.
+  A, SENARYO 6 dan beri super_admin; tum kanallari gormesi ve
+  raporlayabilmesi dogru davranis, izolasyon kaniti degil.
+  Bu yuzden yazan B, disaridaki C (hicbir rolu yok).
+*/
+select id as ilce1 from public.districts where province_id = 34 order by name limit 1 \gset
+select id as ilce2 from public.districts where province_id = 34 order by name offset 1 limit 1 \gset
+
+update public.profiles set district_id = :'ilce1' where id = :'B';
+update public.profiles set district_id = :'ilce2' where id = :'C';
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- B kendi kanalinda mesaj yaziyor'
+select (public.post_message('RLS testi: bu mesaj yalnizca kendi ilcemde gorunmeli.')).body as yazilan;
+\echo '-- B kendi mesajini goruyor (1 olmali)'
+select count(*) as b_gordugu_mesaj from public.list_channel_messages(100);
+select count(*) as b_gordugu_kanal from public.channels;
+commit;
+
+\echo '-- C BASKA ilce, yetkisiz: mesaji GORMUYOR (hepsi 0/1 olmali)'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as c_gordugu_mesaj from public.list_channel_messages(100);
+select count(*) as c_ham_tablodan from public.channel_messages;
+select count(*) as c_gordugu_kanal from public.channels;
+rollback;
+
+\echo '-- C baska ilcenin mesajini raporlayamaz'
+select id as rlsmsg from public.channel_messages order by created_at desc limit 1 \gset
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select public.report_message(:'rlsmsg'::uuid, 'baska ilceden');
+rollback;
+
+\echo '-- super admin (A) moderator olarak tum kanallari gorur (beklenen)'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as a_super_gordugu_kanal from public.channels;
+rollback;
+
+\echo '-- dogrudan insert kapali'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.channel_messages (channel_id, user_id, body)
+values (public.my_channel_id(), :'B', 'elle yazma');
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 27: quiz -- dogru cevap gizliligi'
+\echo '=========================================================='
+
+\echo '-- get_task_quiz donus tipinde correct_key YOK:'
+select pg_get_function_result(oid) as get_task_quiz_donus
+from pg_proc where proname = 'get_task_quiz';
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- kullanici sorulari goruyor'
+select count(*) as gorulen_soru
+from public.get_task_quiz('0000f1a5-0000-4000-8000-0000000000a1'::uuid);
+\echo '-- ama HAM tabloyu okuyamiyor (0 olmali)'
+select count(*) as ham_tablodan_gorunen from public.task_quiz_questions;
+rollback;
+
+\echo '-- yanlis cevap gecmiyor, puan yazilmiyor'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select passed, correct_count, total_count from public.submit_quiz(
+  '0000f1a5-0000-4000-8000-0000000000a1'::uuid, '{}'::jsonb);
+commit;
+select count(*) as quiz_teslimi from public.task_submissions
+ where user_id = :'C' and task_id = '0000f1a5-0000-4000-8000-0000000000a1'::uuid;
+
+\echo '-- dogru cevaplarla geciyor ve puan yaziliyor'
+select id as qq1 from public.task_quiz_questions
+ where task_id = '0000f1a5-0000-4000-8000-0000000000a1'::uuid and sort = 1 \gset
+select id as qq2 from public.task_quiz_questions
+ where task_id = '0000f1a5-0000-4000-8000-0000000000a1'::uuid and sort = 2 \gset
+select id as qq3 from public.task_quiz_questions
+ where task_id = '0000f1a5-0000-4000-8000-0000000000a1'::uuid and sort = 3 \gset
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select passed, correct_count from public.submit_quiz(
+  '0000f1a5-0000-4000-8000-0000000000a1'::uuid,
+  jsonb_build_object(:'qq1', 'c', :'qq2', 'a', :'qq3', 'b'));
+commit;
+select status from public.task_submissions
+ where user_id = :'C' and task_id = '0000f1a5-0000-4000-8000-0000000000a1'::uuid;
+select amount from public.xp_transactions
+ where user_id = :'C' and reason = 'task' order by created_at desc limit 1;
+
+\echo '-- anon quiz yetkileri'
+select has_function_privilege('anon', 'public.get_task_quiz(uuid)', 'execute') as anon_sorular,
+       has_function_privilege('anon', 'public.submit_quiz(uuid, jsonb)', 'execute') as anon_teslim,
+       has_table_privilege('anon', 'public.task_quiz_questions', 'select') as anon_ham;
+
+\echo ''
+\echo '=========================================================='
 \echo 'SON DURUM: provinces sayisi degismemis olmali (81)'
 \echo '=========================================================='
 select count(*) as provinces_toplam from public.provinces;
