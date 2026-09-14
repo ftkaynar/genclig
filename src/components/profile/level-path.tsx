@@ -1,10 +1,11 @@
 import { Icon } from "@/components/ui/icon";
+import { REWARD_TONE, badgeTone } from "@/lib/profile/badge-tones";
 
 export type LevelNode = {
   level: number;
   minXp: number;
   /** Bu seviyede açılan rozetler (XP eşikli rozetler). */
-  badges: { name: string; icon: string | null }[];
+  badges: { slug: string; name: string; icon: string | null }[];
   /** Bu seviyede açılan ödüller. */
   rewards: { title: string }[];
 };
@@ -51,14 +52,22 @@ export function LevelPath({
           const isLast = index === nodes.length - 1;
           const onLeft = index % 2 === 0;
 
+          /*
+            Rozet hapları rozetin kendi rengini alıyor (rozet ızgarasıyla
+            aynı ton), ödül hapları altın kalıyor. Önceden ikisi de aynı
+            altındı ve yolda hangisinin rozet hangisinin ödül olduğu
+            ancak ikondan anlaşılıyordu.
+          */
           const milestones = [
             ...node.badges.map((badge) => ({
               icon: badge.icon ?? "award",
               text: badge.name,
+              tone: badgeTone(badge.slug),
             })),
             ...node.rewards.map((reward) => ({
               icon: "gift",
               text: reward.title,
+              tone: REWARD_TONE,
             })),
           ];
 
@@ -160,7 +169,7 @@ export function LevelPath({
                         key={item.text}
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                           reached
-                            ? "bg-coin/15 text-coin"
+                            ? item.tone.chip
                             : "bg-surface text-ink-muted"
                         }`}
                       >

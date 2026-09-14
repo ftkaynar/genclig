@@ -3,9 +3,12 @@
 import { useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
+import { badgeTone } from "@/lib/profile/badge-tones";
 
 export type BadgeItem = {
   id: string;
+  /** Rozet rengini belirliyor; bkz. lib/profile/badge-tones.ts */
+  slug: string;
   name: string;
   description: string;
   icon: string | null;
@@ -25,8 +28,14 @@ export type BadgeItem = {
   kilitliler birbirinin aynısıydı.
 
   Yeni davranış: kilitli rozette de KENDİ ikonu duruyor — soluk ama
-  seçilebilir netlikte (gri-mor) — ve üstüne küçük bir kilit rozeti
-  biniyor. Kazanılan rozet dolu renkte ve hafif parıltılı.
+  seçilebilir netlikte — ve üstüne küçük bir kilit rozeti biniyor.
+  Kazanılan rozet dolu renkte ve hafif parıltılı.
+
+  Renk artık rozete özel: her rozet slug'ından gelen kendi tonunda
+  çiziliyor (bkz. lib/profile/badge-tones.ts). Önceden kazanılmış her
+  rozet aynı altın tonundaydı, kilitliler tek tip griydi; ızgara tek
+  renkli görünüyordu. Kilitli rozet de aynı rengi taşıyor ama kısılmış,
+  böylece kazanılmış ile kilitli hâlâ bir bakışta ayrılıyor.
 */
 function badgeDate(value: string): string {
   return new Date(value).toLocaleDateString("tr-TR", {
@@ -49,6 +58,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
     <>
       <ul className="mt-3 grid grid-cols-3 gap-2.5">
         {badges.map((badge) => {
+          const tone = badgeTone(badge.slug);
           const ratio = badge.progress
             ? Math.min(
                 100,
@@ -67,7 +77,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                 onClick={() => setOpen(badge)}
                 className={`flex w-full flex-col items-center rounded-xl border p-2.5 text-center transition-colors ${
                   badge.earned
-                    ? "border-coin/50 bg-coin/10"
+                    ? tone.card
                     : "border-edge bg-surface hover:border-primary/40"
                 }`}
               >
@@ -75,8 +85,8 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                   <span
                     className={`flex h-11 w-11 items-center justify-center rounded-xl ${
                       badge.earned
-                        ? "badge-earned bg-coin/20 text-coin"
-                        : "bg-edge/40 text-ink-muted/70"
+                        ? `badge-earned ${tone.box}`
+                        : tone.lockedBox
                     }`}
                   >
                     <Icon name={badge.icon ?? "award"} className="h-6 w-6" />
@@ -104,7 +114,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                 {/* Kilitliyse kriter + ilerleme; kazanılmışsa tarih. */}
                 {badge.earned ? (
                   badge.earned_at ? (
-                    <span className="mt-0.5 text-[9px] text-coin">
+                    <span className={`mt-0.5 text-[9px] ${tone.text}`}>
                       {badgeDate(badge.earned_at)}
                     </span>
                   ) : null
@@ -145,8 +155,8 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
             <span
               className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
                 open.earned
-                  ? "badge-earned bg-coin/20 text-coin"
-                  : "bg-edge/40 text-ink-muted/70"
+                  ? `badge-earned ${badgeTone(open.slug).box}`
+                  : badgeTone(open.slug).lockedBox
               }`}
             >
               <Icon name={open.icon ?? "award"} className="h-8 w-8" />
@@ -161,7 +171,11 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
             </p>
 
             {open.earned ? (
-              <p className="mt-3 text-sm font-semibold text-coin">
+              <p
+                className={`mt-3 text-sm font-semibold ${
+                  badgeTone(open.slug).text
+                }`}
+              >
                 {open.earned_at
                   ? `${badgeDate(open.earned_at)} tarihinde kazandın`
                   : "Kazanıldı"}

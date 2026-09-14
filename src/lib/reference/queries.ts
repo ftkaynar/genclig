@@ -141,6 +141,8 @@ export const getBadgeNames = unstable_cache(
 );
 
 export type BadgeThreshold = {
+  /** Rozet rengi için; bkz. lib/profile/badge-tones.ts */
+  slug: string;
   name: string;
   icon: string | null;
   /** `xp_total` kriterli rozetin XP eşiği. */
@@ -160,10 +162,11 @@ export const getXpBadgeThresholds = unstable_cache(
     const supabase = createPublicClient();
     const { data } = await supabase
       .from("badges")
-      .select("name,icon,criteria")
+      .select("slug,name,icon,criteria")
       .eq("status", "active");
 
     const rows = (data ?? []) as {
+      slug: string;
       name: string;
       icon: string | null;
       criteria: { type?: string; amount?: number } | null;
@@ -176,6 +179,7 @@ export const getXpBadgeThresholds = unstable_cache(
           typeof row.criteria.amount === "number",
       )
       .map((row) => ({
+        slug: row.slug,
         name: row.name,
         icon: row.icon,
         amount: row.criteria!.amount as number,

@@ -88,7 +88,11 @@ export default async function ProfilePage() {
               badge.amount >= row.min_xp &&
               (next === undefined || badge.amount < next.min_xp),
           )
-          .map((badge) => ({ name: badge.name, icon: badge.icon })),
+          .map((badge) => ({
+            slug: badge.slug,
+            name: badge.name,
+            icon: badge.icon,
+          })),
         // Ödül kilometre taşları doğrudan min_level ile eşleşiyor.
         rewards: rewardMilestones
           .filter((reward) => reward.minLevel === row.level)
@@ -249,6 +253,7 @@ export default async function ProfilePage() {
           <BadgeGrid
             badges={badges.map((badge) => ({
               id: badge.id,
+              slug: badge.slug,
               name: badge.name,
               description: badge.description,
               icon: badge.icon,
