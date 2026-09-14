@@ -184,3 +184,32 @@ export const getXpBadgeThresholds = unstable_cache(
   ["reference", "xp-badges"],
   { revalidate: ONE_HOUR, tags: [REFERENCE_TAGS.badges] },
 );
+
+export type RewardMilestone = {
+  title: string;
+  minLevel: number;
+};
+
+/**
+ * Seviyeye bağlı ödüller — Seviye Yolu'nda kilometre taşı olarak.
+ *
+ * Yalnızca `min_level > 1` olanlar dönüyor: seviye 1'de zaten herkese
+ * açık olan bir ödülü "burada açılır" diye işaretlemek yanıltıcıydı.
+ */
+export const getRewardMilestones = unstable_cache(
+  async (): Promise<RewardMilestone[]> => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("rewards")
+      .select("title,min_level")
+      .gt("min_level", 1)
+      .order("min_level");
+
+    return (data ?? []).map((row) => ({
+      title: row.title as string,
+      minLevel: row.min_level as number,
+    }));
+  },
+  ["reference", "reward-milestones"],
+  { revalidate: ONE_HOUR, tags: ["ref-rewards"] },
+);

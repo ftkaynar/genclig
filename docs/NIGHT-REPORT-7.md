@@ -172,3 +172,54 @@ istemcide gizlemek veriyi zaten göndermiş olmak demekti.
 Gizlilik sınırı **tek yerde**: ayrı bir "arkadaşın istatları" fonksiyonu
 yazılmadı; iki fonksiyon olsaydı biri güncellenip diğeri unutulduğunda
 sınır sessizce açılabilirdi.
+
+---
+
+## FAZ S4 — Seviye Yolu v2
+
+Düz dikey liste **zigzag yola** dönüştü: düğümler sola-sağa alternatif
+diziliyor, aralarındaki bağlayıcı çizgi ilerledikçe doluyor (geçilen kısım
+mor→indigo gradyan, gelecek gri).
+
+- **Geçilen seviye:** dolu halka, mor tonda, seviye numarası yazılı
+- **Mevcut seviye:** büyük gradyan düğüm + nabız animasyonu
+- **Gelecek seviye:** kesikli kenarlı gri düğüm, içinde kilit ikonu
+- **Kilometre taşları:** o seviyede açılan rozet ve **ödül**ler düğümün
+  yanında ikonlu çip olarak; ulaşılmamışsa "· burada açılır" eki
+- **Mevcut seviyede** bir sonrakine ilerleme çubuğu ve "Seviye N için X XP"
+
+**Nabız yalnızca `box-shadow` yayılımını oynatıyor.** `scale` denendi ve
+elendi: düğümün boyutu değişince komşu düğümleri itiyor ve yol
+kayıyordu. `prefers-reduced-motion` altında duruyor.
+
+**Yeni tablo yok:** tamamı `levels` + `badges` + `rewards.min_level`
+verisinden. Ödül kilometre taşları `min_level` ile doğrudan eşleşiyor;
+`min_level = 1` olanlar dışarıda — seviye 1'de zaten herkese açık bir
+ödülü "burada açılır" diye işaretlemek yanıltıcıydı.
+
+Rozet eşleşmesi hâlâ yalnızca `xp_total` kriterli rozetlerde: diğer
+kriterler (görev sayısı, kategori) XP'ye çevrilemiyor ve uydurma bir
+eşleştirme kullanıcıya yanlış hedef gösterirdi.
+
+### Kanıtlar (yerel dev sunucu, oturumlu)
+
+`/profil` → 200. HTML'de:
+
+```
+kimlik kartı:  card-tier + card-tier-bronze, flip-scene, flip-inner,
+               AKT / SOS / KEŞ, "İstat kırılımı", "Ayrıntıları gör"
+seviye yolu:   "Seviye Yolu", node-pulse, "buradasın",
+               "burada açılır" (3 ödül kilometre taşı), "Sıradaki duraklar"
+```
+
+**Dört kademe de doğrulandı.** Üretim koduna dev-only OVR override query
+param'ı **eklemedim** — test arka kapısı canlıda kalma riski taşıyor.
+Bunun yerine `user_stats.tier` doğrudan veritabanından değiştirilip sayfa
+çekildi:
+
+```
+bronze  → card-tier-bronze   · etiket "Bronz"
+silver  → card-tier-silver   · etiket "Gümüş"
+gold    → card-tier-gold     · etiket "Altın"
+special → card-tier-special  · etiket "Özel"
+```

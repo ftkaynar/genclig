@@ -19,7 +19,11 @@ import {
 } from "@/lib/profile/queries";
 import { relativeTime } from "@/lib/notifications/queries";
 import { getViewerUser } from "@/lib/auth/viewer";
-import { getLevels, getXpBadgeThresholds } from "@/lib/reference/queries";
+import {
+  getLevels,
+  getRewardMilestones,
+  getXpBadgeThresholds,
+} from "@/lib/reference/queries";
 import { getMyStats } from "@/lib/stats/queries";
 import { listFriends } from "@/lib/social/queries";
 import { listMyReports } from "@/lib/problems/queries";
@@ -46,6 +50,7 @@ export default async function ProfilePage() {
     cardStats,
     friends,
     reports,
+    rewardMilestones,
   ] = await Promise.all([
     getProfile(user.id),
     getUserPoints(user.id),
@@ -57,6 +62,7 @@ export default async function ProfilePage() {
     getMyStats(),
     listFriends(),
     listMyReports(),
+    getRewardMilestones(),
   ]);
 
   /*
@@ -82,6 +88,10 @@ export default async function ProfilePage() {
               (next === undefined || badge.amount < next.min_xp),
           )
           .map((badge) => ({ name: badge.name, icon: badge.icon })),
+        // Ödül kilometre taşları doğrudan min_level ile eşleşiyor.
+        rewards: rewardMilestones
+          .filter((reward) => reward.minLevel === row.level)
+          .map((reward) => ({ title: reward.title })),
       };
     });
 

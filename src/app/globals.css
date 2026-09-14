@@ -462,13 +462,34 @@
   );
 }
 
+/*
+  Seviye Yolu'nda mevcut seviyenin nabzı.
+
+  Yalnızca box-shadow yayılımı oynuyor; boyut değişmediği için yol
+  düzeni kaymıyor (scale denenmişti, komşu düğümleri itiyordu).
+*/
+@keyframes genclig-node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--color-primary) 0%, transparent);
+  }
+}
+
+.node-pulse {
+  animation: genclig-node-pulse 2.2s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,
   .anim-glow,
   .skeleton,
   .live-dot,
-  .card-tier-special {
+  .card-tier-special,
+  .node-pulse {
     animation: none;
   }
 
