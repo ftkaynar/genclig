@@ -9,14 +9,15 @@ import { Icon } from "@/components/ui/icon";
   parmak genişliğinin altına indiriyordu). Bu dört ekran profil altında
   gömülüydü ve kullanıcı varlıklarını fark etmiyordu.
 
-  D23te Destek yerini Toplulukta bıraktı: sohbet günlük kullanılan bir
-  ekran, destek ise yalnızca sorun çıkınca aranıyor. Destek /profil
-  üzerinden erişilebilir durumda.
+  D23te Destek yerini Toplulukta, D24te Ödüller yerini Görevlerime
+  bıraktı. Gerekçe ikisinde de aynı: ızgara dört slot ve günlük
+  kullanılan ekranlar öncelikli. Destek /profil üzerinden, Ödüller ise
+  HUD üstündeki coin hapından ve /profil üzerinden erişilebiliyor.
 */
 const ITEMS = [
   { href: "/arkadaslar", icon: "users", label: "Arkadaşlar", tone: "text-primary bg-primary/15" },
   { href: "/takim", icon: "shield", label: "Takımım", tone: "text-magenta bg-magenta/15" },
-  { href: "/oduller", icon: "gift", label: "Ödüller", tone: "text-coin bg-coin/15" },
+  { href: "/gorevlerim", icon: "list-checks", label: "Görevlerim", tone: "text-coin bg-coin/15" },
   { href: "/topluluk", icon: "megaphone", label: "Topluluk", tone: "text-xp bg-xp/15" },
 ] as const;
 
