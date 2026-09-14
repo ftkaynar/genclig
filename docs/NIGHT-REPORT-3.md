@@ -362,3 +362,34 @@ kesikli ayırıcı saf CSS. Denenen ve elenen alternatif: SVG maske — aynı
 görüntüyü veriyordu ama tema değişiminde arka plan rengini takip
 etmiyordu, çünkü maske rengi bilmiyor; `radial-gradient` `var()`
 okuyabiliyor. Aktif kuponda gradyan durum şeridi, kullanılmışta soluk.
+
+---
+
+## FAZ V — Profil "Seviye Yolu" + rötuşlar
+
+**Seviye Yolu** (`src/components/profile/level-path.tsx`): dikey yol —
+mevcut seviye gradyanlı ve parıltılı düğüm, sonraki beş seviye sıralı,
+aralarında ilerleme çizgisi. Her düğümde "… XP kaldı".
+
+**Yeni tablo yok:** tamamı `levels` ve `badges` verisinden türetiliyor.
+Rozet eşleşmesi yalnızca `xp_total` kriterli rozetlerde yapılıyor; görev
+sayısı, kategori ve bildirim kriterli rozetler XP'ye çevrilemiyor ve
+uydurma bir eşleştirme kullanıcıya yanlış hedef gösterirdi. Rozet, iki
+seviye eşiği arasına düşen XP değerine sahipse o düğümde beliriyor.
+
+**Yol boyunca çıkan hata (benim):** FAZ P'de yazdığım `getLevels()`
+sorgusunda `title` kolonunu seçiyordum; `levels` tablosunda öyle bir kolon
+yok (yalnızca `level` ve `min_xp`). Seviye Yolu'nu bağlarken yakalandı ve
+düzeltildi. FAZ P'de bu sorgu hiçbir yerden çağrılmadığı için sessiz
+kalmıştı.
+
+**Podyum kademe renkleri:** 1 altın `#d4a02c`, 2 gümüş `#9aa6b8`,
+3 bronz `#b07b4f` — madalya geleneği. Önceki sürümde 3. basamak marka
+moruydu ve "üçüncülük" okunmuyordu. Taç ikonu yalnızca birincide; üçünde
+de olsa ayırt ediciliği kaybolurdu.
+
+**Eski yeşil/soluk kalıntı taraması:** kod, stil ve yapılandırmada
+`#17b890` / `#3ddc97` yok. Tek kalıntı `globals.css` içindeki
+`--color-teal` token'ıydı (v2'de indigoya yönlendirilmişti) — artık
+hiçbir yerden okunmuyordu, ölü token olarak silindi. Kullanan son yer
+podyumun 3. basamağıydı, o da bronza geçti.

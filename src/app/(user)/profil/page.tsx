@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Icon } from "@/components/ui/icon";
+import { LevelPath, type LevelNode } from "@/components/profile/level-path";
 import { LevelRing } from "@/components/ui/level-ring";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
@@ -17,6 +18,7 @@ import {
 } from "@/lib/profile/queries";
 import { relativeTime } from "@/lib/notifications/queries";
 import { getViewerUser } from "@/lib/auth/viewer";
+import { getLevels, getXpBadgeThresholds } from "@/lib/reference/queries";
 
 export const metadata = {
   title: "Profil — GençLİG",
@@ -29,13 +31,49 @@ export default async function ProfilePage() {
     redirect("/giris?next=/profil");
   }
 
-  const [profile, points, badges, stats, activity] = await Promise.all([
+  const [
+    profile,
+    points,
+    badges,
+    stats,
+    activity,
+    levels,
+    xpBadges,
+  ] = await Promise.all([
     getProfile(user.id),
     getUserPoints(user.id),
     getBadges(user.id),
     getProfileStats(user.id),
     getRecentActivity(user.id),
+    getLevels(),
+    getXpBadgeThresholds(),
   ]);
+
+  /*
+    Seviye Yolu düğümleri: mevcut seviye + sonraki beş seviye.
+    Tamamı levels ve badges verisinden; yeni tablo yok.
+  */
+  const nodes: LevelNode[] = levels
+    .filter(
+      (row) =>
+        row.level >= points.level && row.level <= points.level + 5,
+    )
+    .map((row, index, all) => {
+      const next = all[index + 1];
+      return {
+        level: row.level,
+        minXp: row.min_xp,
+        // Rozet, bu seviye ile bir sonraki seviye arasına düşen XP
+        // eşiğine sahipse bu düğümde gösteriliyor.
+        badges: xpBadges
+          .filter(
+            (badge) =>
+              badge.amount >= row.min_xp &&
+              (next === undefined || badge.amount < next.min_xp),
+          )
+          .map((badge) => ({ name: badge.name, icon: badge.icon })),
+      };
+    });
 
   const earnedCount = badges.filter((badge) => badge.earned).length;
   const location = [profile.neighborhood, profile.district, profile.province]
@@ -141,6 +179,12 @@ export default async function ProfilePage() {
             <ProfileLink href="/ayarlar" icon="settings" label="Ayarlar" />
           </div>
         </section>
+
+        <LevelPath
+          currentLevel={points.level}
+          currentXp={points.xp}
+          nodes={nodes}
+        />
 
         <section className="mt-4 rounded-2xl border border-edge bg-card p-4">
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">

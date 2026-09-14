@@ -47,7 +47,7 @@ export type TaskCategoryRef = {
   icon: string | null;
 };
 export type ProblemCategoryRef = { id: number; name: string };
-export type LevelRef = { level: number; min_xp: number; title: string | null };
+export type LevelRef = { level: number; min_xp: number };
 export type BadgeRef = { id: string; name: string };
 
 export const getProvinces = unstable_cache(
@@ -122,7 +122,7 @@ export const getLevels = unstable_cache(
     const supabase = createPublicClient();
     const { data } = await supabase
       .from("levels")
-      .select("level,min_xp,title")
+      .select("level,min_xp")
       .order("level");
     return (data ?? []) as LevelRef[];
   },
@@ -137,5 +137,50 @@ export const getBadgeNames = unstable_cache(
     return (data ?? []) as BadgeRef[];
   },
   ["reference", "badges"],
+  { revalidate: ONE_HOUR, tags: [REFERENCE_TAGS.badges] },
+);
+
+export type BadgeThreshold = {
+  name: string;
+  icon: string | null;
+  /** `xp_total` kriterli rozetin XP eşiği. */
+  amount: number;
+};
+
+/**
+ * XP eşikli rozetler — Seviye Yolu'nda seviye düğümleriyle kesiştirmek
+ * için.
+ *
+ * Yalnızca `xp_total` kriterli rozetler dönüyor; görev sayısı ya da
+ * kategori kriterli rozetler XP'ye çevrilemiyor ve uydurma bir eşleştirme
+ * kullanıcıya yanlış hedef gösterirdi.
+ */
+export const getXpBadgeThresholds = unstable_cache(
+  async (): Promise<BadgeThreshold[]> => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("badges")
+      .select("name,icon,criteria")
+      .eq("status", "active");
+
+    const rows = (data ?? []) as {
+      name: string;
+      icon: string | null;
+      criteria: { type?: string; amount?: number } | null;
+    }[];
+
+    return rows
+      .filter(
+        (row) =>
+          row.criteria?.type === "xp_total" &&
+          typeof row.criteria.amount === "number",
+      )
+      .map((row) => ({
+        name: row.name,
+        icon: row.icon,
+        amount: row.criteria!.amount as number,
+      }));
+  },
+  ["reference", "xp-badges"],
   { revalidate: ONE_HOUR, tags: [REFERENCE_TAGS.badges] },
 );

@@ -10,10 +10,33 @@ import type { LeaderboardRow } from "@/lib/leaderboard/queries";
   Üçten az kişi varsa eksik basamaklar hiç çizilmiyor.
 */
 
-const TONE: Record<number, { ring: string; badge: string; height: string }> = {
-  1: { ring: "border-coin", badge: "bg-coin text-brand", height: "h-24" },
-  2: { ring: "border-edge", badge: "bg-edge text-ink", height: "h-16" },
-  3: { ring: "border-teal/60", badge: "bg-teal text-white", height: "h-12" },
+/*
+  Kademe renkleri: 1 altın, 2 gümüş, 3 bronz — madalya geleneği.
+  Önceki sürümde 3. basamak marka moruydu ve "üçüncülük" okunmuyordu.
+  Taç ikonu yalnızca birincide; üçünde de olsa ayırt ediciliği kaybolurdu.
+*/
+const TONE: Record<
+  number,
+  { ring: string; badge: string; height: string; crown: boolean }
+> = {
+  1: {
+    ring: "border-[#d4a02c]",
+    badge: "bg-[#d4a02c] text-brand",
+    height: "h-24",
+    crown: true,
+  },
+  2: {
+    ring: "border-[#9aa6b8]",
+    badge: "bg-[#9aa6b8] text-brand",
+    height: "h-16",
+    crown: false,
+  },
+  3: {
+    ring: "border-[#b07b4f]",
+    badge: "bg-[#b07b4f] text-white",
+    height: "h-12",
+    crown: false,
+  },
 };
 
 function Step({
@@ -27,6 +50,12 @@ function Step({
 
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center">
+      {tone.crown ? (
+        <Icon name="crown" className="mb-0.5 h-5 w-5 text-[#d4a02c]" />
+      ) : (
+        <span aria-hidden className="mb-0.5 block h-5" />
+      )}
+
       <span
         className={`flex h-12 w-12 items-center justify-center rounded-full border-2 ${tone.ring} bg-card text-base font-bold text-ink`}
       >
