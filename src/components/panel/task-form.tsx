@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { IconPicker } from "./icon-picker";
-import { saveTaskAction } from "@/lib/panel/task-actions";
+import { QuizEditor, type EditorQuestion } from "./quiz-editor";
+import {
+  saveQuizQuestionsAction,
+  saveTaskAction,
+} from "@/lib/panel/task-actions";
 
 export type TaskFormValues = {
   id?: string;
@@ -100,11 +104,14 @@ const STATUSES = [
  */
 export function TaskForm({
   initial,
+  initialQuiz = [],
   categories,
   scope,
   onSaved,
 }: {
   initial: TaskFormValues;
+  /** Düzenlemede mevcut sorular; yeni görevde boş. */
+  initialQuiz?: EditorQuestion[];
   categories: { id: number; name: string }[];
   scope: "panel" | "admin";
   onSaved?: () => void;
@@ -114,6 +121,7 @@ export function TaskForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [quiz, setQuiz] = useState<EditorQuestion[]>(initialQuiz);
 
   const needsLocation =
     values.verification === "gps" || values.verification === "photo_gps";
@@ -133,6 +141,24 @@ export function TaskForm({
         setError(result.error);
         return;
       }
+
+      /*
+        Sorular görev kaydından SONRA yazılıyor: yeni görevde soruların
+        bağlanacağı id ancak kayıt dönünce belli oluyor.
+      */
+      if (values.verification === "quiz") {
+        const taskId = result.id ?? values.id;
+        if (!taskId) {
+          setError("Görev kaydedildi ama sorular bağlanamadı. Sayfayı yenile.");
+          return;
+        }
+        const quizResult = await saveQuizQuestionsAction(taskId, quiz);
+        if (quizResult.error) {
+          setError(quizResult.error);
+          return;
+        }
+      }
+
       setNotice(result.notice ?? "Kaydedildi.");
       router.refresh();
       onSaved?.();
@@ -248,6 +274,12 @@ export function TaskForm({
             ))}
           </select>
         </Field>
+
+        {values.verification === "quiz" ? (
+          <div className="sm:col-span-2">
+            <QuizEditor questions={quiz} onChange={setQuiz} />
+          </div>
+        ) : null}
 
         <Field label="Kapsam">
           {/*

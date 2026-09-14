@@ -248,3 +248,77 @@ export async function setBadgeStatusAction(
   revalidatePath("/admin/rozetler");
   return { notice: status === "active" ? "Rozet aktif." : "Rozet pasife alındı." };
 }
+
+/*
+  Quiz sorularını kaydeder.
+
+  Ayrı bir eylem: görev kaydı (`saveTaskAction`) tasks tablosuna yazıyor,
+  sorular ise ayrı tabloda ve görev kimliği ancak kayıttan sonra biliniyor.
+  İkisini tek çağrıda birleştirmek, yeni görevde henüz id olmadığı için
+  yapay bir iki aşama gerektiriyordu.
+
+  Strateji: sil-ve-yeniden-yaz. Soru düzenlemede tek tek eşleştirme
+  (hangisi güncellendi, hangisi silindi) formun karmaşıklığını ikiye
+  katlıyordu ve soru sayısı bu ölçekte (bir görevde birkaç soru) tam
+  yeniden yazmayı ucuz kılıyor. Teslimler soru satırlarına bağlı değil,
+  bu yüzden yeniden yazmak geçmiş veriyi bozmuyor.
+*/
+export async function saveQuizQuestionsAction(
+  taskId: string,
+  questions: {
+    question: string;
+    options: { key: string; text: string }[];
+    correctKey: string;
+  }[],
+): Promise<TaskSaveState> {
+  const supabase = await createClient();
+
+  for (const [index, item] of questions.entries()) {
+    if (item.question.trim().length < 3) {
+      return { error: `${index + 1}. sorunun metni en az 3 karakter olmalı.` };
+    }
+    if (item.options.length < 2 || item.options.length > 6) {
+      return { error: `${index + 1}. soruda 2 ile 6 arası şık olmalı.` };
+    }
+    if (item.options.some((option) => option.text.trim().length === 0)) {
+      return { error: `${index + 1}. soruda boş şık var.` };
+    }
+    if (!item.options.some((option) => option.key === item.correctKey)) {
+      return { error: `${index + 1}. soruda doğru şık seçilmemiş.` };
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("task_quiz_questions")
+    .delete()
+    .eq("task_id", taskId);
+
+  if (deleteError) {
+    return { error: "Sorular güncellenemedi." };
+  }
+
+  if (questions.length > 0) {
+    const { error: insertError } = await supabase
+      .from("task_quiz_questions")
+      .insert(
+        questions.map((item, index) => ({
+          task_id: taskId,
+          question: item.question.trim(),
+          options: item.options.map((option) => ({
+            key: option.key,
+            text: option.text.trim(),
+          })),
+          correct_key: item.correctKey,
+          sort: index + 1,
+        })),
+      );
+
+    if (insertError) {
+      return { error: "Sorular kaydedilemedi." };
+    }
+  }
+
+  revalidatePath("/panel/gorevler");
+  revalidatePath("/admin/gorevler");
+  return { notice: "Sorular kaydedildi." };
+}

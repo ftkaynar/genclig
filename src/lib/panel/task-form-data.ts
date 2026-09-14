@@ -63,3 +63,33 @@ export async function loadTaskForEdit(
     status: data.status ?? "draft",
   };
 }
+
+/**
+ * Düzenleme formu için quiz soruları — doğru şık DAHİL.
+ *
+ * Kullanıcı tarafındaki `get_task_quiz` bilerek anahtarı gizliyor; burada
+ * soruyu yazan personel düzenleyecek, doğru şıkkı görmesi gerekiyor.
+ * Erişim RLS ile sınırlı: ham tabloyu yalnızca süper admin ve görevin
+ * belediyesindeki personel okuyabiliyor.
+ */
+export async function loadQuizForEdit(taskId: string): Promise<
+  {
+    question: string;
+    options: { key: string; text: string }[];
+    correctKey: string;
+  }[]
+> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("task_quiz_questions")
+    .select("question,options,correct_key,sort")
+    .eq("task_id", taskId)
+    .order("sort");
+
+  return (data ?? []).map((row) => ({
+    question: row.question as string,
+    options: row.options as { key: string; text: string }[],
+    correctKey: row.correct_key as string,
+  }));
+}

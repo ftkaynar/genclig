@@ -6,6 +6,7 @@ import { RewardBadges } from "@/components/tasks/task-card";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Icon } from "@/components/ui/icon";
+import { getTaskQuiz } from "@/lib/quiz/queries";
 import { getTeamTaskProgress } from "@/lib/teams/queries";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import {
@@ -16,6 +17,7 @@ import {
   TASK_TYPE_LABEL,
   VERIFICATION_LABEL,
 } from "@/lib/tasks/labels";
+import { QuizRunner } from "@/components/quiz/quiz-runner";
 import { SubmitTask } from "@/components/tasks/submit-task";
 import {
   getParticipantCount,
@@ -53,6 +55,11 @@ export default async function TaskDetailPage({
     Takım ilerlemesi definer RPC'den: RLS takım arkadaşlarının teslimlerini
     gizliyor, normal sorgu en fazla kendi teslimini sayardı.
   */
+  // Sorular yalnızca quiz görevinde okunuyor; diğer görevlerde bu RPC
+  // boş dönerdi ve gereksiz bir tur olurdu.
+  const quiz =
+    task.verification === "quiz" ? await getTaskQuiz(task.id) : [];
+
   const teamProgress =
     task.scope === "team" ? await getTeamTaskProgress([task.id]) : null;
   const minTeam = task.min_team_size ?? 2;
@@ -220,13 +227,22 @@ export default async function TaskDetailPage({
                   : "Teslimin incelemeye alındı."}
               </p>
             ) : (
-              <SubmitTask
-                taskId={task.id}
-                userId={viewer.id}
-                verification={task.verification}
-                xp={task.xp}
-                coin={task.coin}
-              />
+              task.verification === "quiz" ? (
+                <QuizRunner
+                  taskId={task.id}
+                  questions={quiz}
+                  xp={task.xp}
+                  coin={task.coin}
+                />
+              ) : (
+                <SubmitTask
+                  taskId={task.id}
+                  userId={viewer.id}
+                  verification={task.verification}
+                  xp={task.xp}
+                  coin={task.coin}
+                />
+              )
             )
           ) : (
             <Link

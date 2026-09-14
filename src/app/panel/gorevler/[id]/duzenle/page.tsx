@@ -4,7 +4,11 @@ import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
 import { TaskForm } from "@/components/panel/task-form";
 import { PANEL_NAV } from "@/lib/panel/nav";
 import { getPanelContext } from "@/lib/panel/guard";
-import { listTaskCategories, loadTaskForEdit } from "@/lib/panel/task-form-data";
+import {
+  listTaskCategories,
+  loadQuizForEdit,
+  loadTaskForEdit,
+} from "@/lib/panel/task-form-data";
 
 export const metadata = { title: "Görev düzenle — GençLİG Panel" };
 
@@ -20,6 +24,10 @@ export default async function EditPanelTaskPage({
 
   const { id } = await params;
   const task = await loadTaskForEdit(id);
+  // Quiz görevinde mevcut sorular forma yükleniyor (doğru şık dahil —
+  // soruyu yazan personel düzenleyecek).
+  const quiz =
+    task?.verification === "quiz" ? await loadQuizForEdit(id) : [];
 
   // RLS görevi gizlediğinde de buraya düşülüyor: başka belediyenin görevini
   // düzenlemeye çalışan personel 404 görüyor, varlığını öğrenmiyor.
@@ -35,7 +43,12 @@ export default async function EditPanelTaskPage({
       subtitle={`${context.municipalityName} · görev düzenle`}
       nav={PANEL_NAV}
     >
-      <TaskForm initial={task} categories={categories} scope="panel" />
+      <TaskForm
+        initial={task}
+        initialQuiz={quiz}
+        categories={categories}
+        scope="panel"
+      />
     </PanelShell>
   );
 }
