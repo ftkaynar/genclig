@@ -31,6 +31,8 @@
 
 delete from auth.users where id in (:'A', :'B', :'C');
 delete from public.provinces where id > 81;
+-- Duyuru senaryosunun test belediyesi (SENARYO 25).
+delete from public.municipalities where slug = 'rls-duyuru-bld';
 select count(*) as kalan_test_kullanicisi from auth.users where id in (:'A', :'B', :'C');
 select count(*) as kalan_test_rolu from public.user_roles where user_id in (:'A', :'B');
 
@@ -636,6 +638,68 @@ set local role authenticated;
 insert into public.support_tickets (user_id, subject) values (:'C', 'elle yazma');
 \echo '(yukarida yetki hatasi bekleniyor)'
 rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 25: duyuru -- hedefleme ve yetki'
+\echo '=========================================================='
+
+-- A super_admin (SENARYO 6 dan beri). B ve C normal kullanici.
+-- Test belediyesi SENARYO 0 da siliniyor.
+insert into public.municipalities (name, slug, level, province_id)
+values ('RLS Duyuru Bld', 'rls-duyuru-bld', 'district', 34)
+on conflict (slug) do nothing;
+
+select id as rlsmuni from public.municipalities where slug = 'rls-duyuru-bld' \gset
+
+update public.profiles set municipality_id = :'rlsmuni' where id = :'B';
+insert into public.user_roles (user_id, role, municipality_id)
+values (:'B', 'municipality_admin', :'rlsmuni')
+on conflict do nothing;
+
+\echo '-- normal kullanici (C) duyuru gonderemez'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select public.send_announcement('Korsan duyuru',
+  'Normal kullanicidan duyuru gonderme denemesi metni.', 'all');
+rollback;
+
+\echo '-- personel (B) all gonderemez'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select public.send_announcement('Korsan genel',
+  'Personelden tum ulkeye duyuru gonderme denemesi metni.', 'all');
+rollback;
+
+\echo '-- super admin (A) all gonderiyor: kullanici sayisi kadar bildirim'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+select public.send_announcement('RLS genel duyuru',
+  'Tum kullanicilara giden test duyurusu metni burada.', 'all') as gonderilen;
+commit;
+
+select
+  (select count(*) from public.profiles where username is not null) as profil_sayisi,
+  (select count(*) from public.notifications where title = 'RLS genel duyuru') as bildirim_sayisi,
+  (select sent_count from public.announcements where title = 'RLS genel duyuru') as kayitli_sayi;
+
+\echo '-- C duyuru satirlarini goremiyor (0) ve elle yazamiyor'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as c_gordugu_duyuru from public.announcements;
+select count(*) as c_gecmis from public.list_announcements(null);
+insert into public.announcements (title, body, audience, created_by)
+values ('elle', 'elle yazma denemesi metni', 'all', :'C');
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+\echo '-- C nin canindaki okunmamis sayaci arttı mi'
+select count(*) as c_okunmamis_duyuru from public.notifications
+ where user_id = :'C' and type = 'announcement' and is_read = false;
 
 \echo ''
 \echo '=========================================================='
