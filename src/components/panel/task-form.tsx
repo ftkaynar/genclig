@@ -342,7 +342,7 @@ export function TaskForm({
         type="button"
         onClick={save}
         disabled={pending}
-        className="mt-4 w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+        className="mt-4 w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
       >
         {pending ? "Kaydediliyor..." : values.id ? "Güncelle" : "Görevi oluştur"}
       </button>

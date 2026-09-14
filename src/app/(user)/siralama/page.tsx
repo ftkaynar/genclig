@@ -79,7 +79,7 @@ export default async function LeaderboardPage({
                 aria-current={item.key === scope ? "page" : undefined}
                 className={
                   item.key === scope
-                    ? "block rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-brand"
+                    ? "block rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white"
                     : "block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
                 }
               >
@@ -134,7 +134,7 @@ export default async function LeaderboardPage({
             action={
               <Link
                 href="/ayarlar"
-                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
               >
                 Konumunu ayarla
               </Link>

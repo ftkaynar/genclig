@@ -6,6 +6,8 @@ import { useRef, useState, useTransition } from "react";
 import { submitTaskAction } from "@/lib/tasks/actions";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/upload";
+import { Celebration, type CelebrationData } from "@/components/game/celebration";
+import { Toast } from "@/components/game/toast";
 
 /** Kanıt fotoğrafı üst sınırı. Telefon kamerası tek karede bunu aşmıyor. */
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
@@ -59,7 +61,8 @@ export function SubmitTask({
 
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
+  const [badgeToast, setBadgeToast] = useState<string | null>(null);
   const [step, setStep] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -69,7 +72,6 @@ export function SubmitTask({
 
   async function handleSubmit() {
     setError(null);
-    setSuccess(null);
 
     let photoPath: string | null = null;
     let lat: number | null = null;
@@ -132,22 +134,23 @@ export function SubmitTask({
       }
 
       /*
-        Ödül metni görevin tanımındaki değerlerden yazılıyor. Onaylanan teslimde
-        award_task_points tam bu değerleri işliyor; ayrıca bakiyeyi sorgulayıp
-        farkı hesaplamak, aynı sayıyı ikinci bir yoldan üretmek olurdu.
-        Beklemedeki teslimde ödül henüz yazılmadığı için sayı gösterilmiyor.
+        Ödül değerleri görevin tanımından geliyor. Onaylanan teslimde
+        award_task_points tam bu değerleri işliyor; bakiyeyi sorgulayıp farkı
+        hesaplamak aynı sayıyı ikinci bir yoldan üretmek olurdu.
       */
-      setSuccess(
-        result.status === "approved"
-          ? `Görev tamamlandı 🎉  +${xp} XP • +${coin} Coin`
-          : "Görevin incelemeye alındı.",
-      );
+      setCelebration({
+        xp,
+        coin,
+        approved: result.status === "approved",
+        levelUp: result.levelUp ? { level: result.levelUp } : null,
+      });
+
+      if (result.newBadge) {
+        setBadgeToast(result.newBadge);
+      }
+
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
-
-      // Durum rozeti ve katılım sayacı sunucuda hesaplanıyor; sayfanın
-      // yeniden çekilmesi gerekiyor.
-      startTransition(() => router.refresh());
     } finally {
       setStep(null);
     }
@@ -164,13 +167,22 @@ export function SubmitTask({
         </p>
       ) : null}
 
-      {success ? (
-        <p
-          role="status"
-          className="rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary"
-        >
-          {success}
-        </p>
+      {celebration ? (
+        <Celebration
+          data={celebration}
+          onClose={() => {
+            setCelebration(null);
+            startTransition(() => router.refresh());
+          }}
+        />
+      ) : null}
+
+      {badgeToast ? (
+        <Toast
+          title={badgeToast}
+          description="Profilinden rozetlerini görebilirsin."
+          onDone={() => setBadgeToast(null)}
+        />
       ) : null}
 
       {needsPhoto ? (
@@ -187,7 +199,7 @@ export function SubmitTask({
               setError(null);
               setFile(event.target.files?.[0] ?? null);
             }}
-            className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-sm text-ink file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand"
+            className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-sm text-ink file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
           />
           <span className="mt-1.5 block text-xs text-ink-muted">
             En fazla 8 MB.
@@ -199,7 +211,7 @@ export function SubmitTask({
         type="button"
         onClick={handleSubmit}
         disabled={busy}
-        className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {step ?? (verification === "gps" ? "Konumumu doğrula" : "Görevi tamamla")}
       </button>

@@ -218,7 +218,7 @@ export default async function ProfilePage() {
                   </div>
                   <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface">
                     <div
-                      className="h-full rounded-full bg-primary"
+                      className="h-full rounded-full bg-cyan transition-[width] duration-700 ease-out"
                       style={{
                         width: `${Math.round((item.count / maxCategory) * 100)}%`,
                       }}

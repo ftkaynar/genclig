@@ -103,7 +103,7 @@ export function AvatarUpload({
               const file = event.target.files?.[0];
               if (file) void handleChange(file);
             }}
-            className="w-full rounded-xl border border-edge bg-surface px-3 py-2 text-xs text-ink file:mr-2 file:rounded-full file:border-0 file:bg-primary file:px-2.5 file:py-1 file:text-[11px] file:font-semibold file:text-brand"
+            className="w-full rounded-xl border border-edge bg-surface px-3 py-2 text-xs text-ink file:mr-2 file:rounded-full file:border-0 file:bg-primary file:px-2.5 file:py-1 file:text-[11px] file:font-semibold file:text-white"
           />
         </label>
 

@@ -35,3 +35,31 @@ kültür→indigo, eğitim→amber, sosyal→mor, şehir→cyan. Harita pinleri 
 CSS animasyon altyapısı eklendi (`anim-pop`, `anim-rise`, `anim-glow`,
 konfeti keyframe'i) — kütüphane yok. `prefers-reduced-motion` altında hepsi
 kapanıyor.
+
+## FAZ B — Oyun hissi katmanı
+
+**Durum: TAMAM**
+
+- **Kutlama ekranı** (`components/game/celebration.tsx`): tam ekran örtü, XP
+  sayacı `requestAnimationFrame` ile yukarı sayıyor (easeOutCubic), seviye
+  atlandıysa "SEVİYE N!" + konfeti. Konfeti mutlak konumlu div'ler —
+  kütüphane yok. Parçacıkların yönü/rengi bir kez hesaplanıp sabitleniyor;
+  her render'da yeniden rastgele üretilseydi uçarken titrerdi.
+- **Seviye atlama tespiti** sunucuda: `submitTaskAction` teslimden önce ve
+  sonra seviyeyi okuyup karşılaştırıyor.
+- **Rozet toast'ı** (`components/game/toast.tsx`): 4 sn, sayfa içi. Rozet
+  bildirimi listeye de düşüyor; toast o an ekrandaysa kaçırmasın diye.
+  Kuyruk yok — aynı anda birden fazla toast gerektiren akış henüz yok.
+- **XP çubukları** `transition-[width]` ile dolar.
+- **Giriş/kayıt ekranları**: gradyan sahne + cam efektli (backdrop-blur) kart,
+  logo ve marka sloganı. Sahne tema ne olursa olsun koyu kalıyor — giriş
+  ekranı markanın ilk izlenimi, açık temada soluk bir formaya dönüşmesi
+  istenmedi. Form alanlarının renkleri `.auth-card` kapsamında çevriliyor;
+  bileşenlere ayrı "koyu varyant" propu eklemek her alanı iki kez tanımlamak
+  demekti.
+- **Emoji temizliği**: 🔒 📍 🏅 🔔 🥇 kalıntıları lucide ikonlarına çevrildi.
+- **CTA metin rengi**: mor zeminde `text-brand` okunmuyordu; 22 dosyada
+  toplu olarak `text-white`'a çekildi.
+
+**MOCKUP EKLENTİSİ:** Giriş ekranına mockup'taki "Dijitalde başla, gerçek
+hayatta fark yarat." sloganı eklendi.

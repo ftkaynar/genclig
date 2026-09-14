@@ -63,7 +63,7 @@ export function NoAccess({
           <p className="mt-2 text-sm text-ink-muted">{message}</p>
           <Link
             href="/"
-            className="mt-5 inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+            className="mt-5 inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
           >
             Ana sayfaya dön
           </Link>

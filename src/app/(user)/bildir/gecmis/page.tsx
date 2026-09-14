@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
+import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { relativeTime } from "@/lib/notifications/queries";
 import {
@@ -48,7 +49,7 @@ export default async function MyReportsPage() {
             action={
               <Link
                 href="/bildir"
-                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
               >
                 İlk bildirimini gönder
               </Link>
@@ -86,8 +87,9 @@ export default async function MyReportsPage() {
                 </p>
 
                 {report.address_text ? (
-                  <p className="mt-1.5 text-xs text-ink-muted">
-                    📍 {report.address_text}
+                  <p className="mt-1.5 flex items-center gap-1 text-xs text-ink-muted">
+                    <Icon name="map-pin" className="h-3.5 w-3.5 shrink-0" />
+                    {report.address_text}
                   </p>
                 ) : null}
 

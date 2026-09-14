@@ -85,7 +85,7 @@ export function MunicipalityEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-brand"
+        className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white"
       >
         Yeni belediye
       </button>
@@ -181,7 +181,7 @@ export function MunicipalityEditor({
           type="button"
           onClick={save}
           disabled={pending}
-          className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-brand disabled:opacity-60"
+          className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
           {pending ? "Kaydediliyor..." : "Kaydet"}
         </button>

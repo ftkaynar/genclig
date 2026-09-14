@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { setProblemStatusAction } from "@/lib/panel/actions";
+import { Icon } from "@/components/ui/icon";
 import type { PanelReportRow } from "@/lib/panel/queries";
 
 const STATUS_OPTIONS = [
@@ -101,8 +102,9 @@ export function ReportList({ reports }: { reports: PanelReportRow[] }) {
             <p className="mt-0.5 text-sm text-ink-muted">{report.description}</p>
 
             {report.address_text ? (
-              <p className="mt-1.5 text-xs text-ink-muted">
-                📍 {report.address_text}
+              <p className="mt-1.5 flex items-center gap-1 text-xs text-ink-muted">
+                <Icon name="map-pin" className="h-3.5 w-3.5 shrink-0" />
+                {report.address_text}
               </p>
             ) : null}
 

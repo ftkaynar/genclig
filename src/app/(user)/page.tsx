@@ -78,7 +78,7 @@ export default async function UserHomePage() {
 
             <Link
               href="/kayit"
-              className="mt-7 block w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand transition-opacity hover:opacity-90"
+              className="mt-7 block w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
             >
               Hemen başla
             </Link>

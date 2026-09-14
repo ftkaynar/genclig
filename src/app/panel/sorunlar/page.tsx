@@ -60,7 +60,7 @@ export default async function PanelReportsPage({
                 href={href(filter.key, kind ?? "")}
                 className={
                   filter.key === status
-                    ? "block rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-brand"
+                    ? "block rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     : "block rounded-full border border-edge bg-card px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
                 }
               >

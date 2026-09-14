@@ -4,7 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 
-/** Kimlik ekranlarının ortak kabuğu: marka başlığı + kart. */
+/*
+  Kimlik ekranlarının ortak kabuğu.
+
+  Gradyan bir sahne üzerinde cam efektli (backdrop-blur) kart. Sahne sayfanın
+  tamamını kaplıyor ve tema ne olursa olsun koyu kalıyor: giriş ekranı markanın
+  ilk izlenimi, açık temada soluk bir forma dönüşmesi istenmedi.
+*/
 export function AuthShell({
   title,
   description,
@@ -17,35 +23,43 @@ export function AuthShell({
   footer?: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-10">
-      <Link href="/" className="mx-auto mb-6 flex flex-col items-center gap-2">
-        <Image
-          src="/brand/logo-mark.png"
-          alt="GençLİG"
-          width={56}
-          height={56}
-          className="h-14 w-14"
-          priority
-        />
-        <span className="text-xl font-bold tracking-tight text-ink">
-          GençLİG
-        </span>
-      </Link>
+    <div className="brand-gradient relative min-h-dvh">
+      {/* Gradyanı koyulaştıran örtü: form kartının kontrastı için. */}
+      <div aria-hidden className="absolute inset-0 bg-brand/55" />
 
-      <section className="rounded-3xl border border-edge bg-card p-6 shadow-sm">
-        <h1 className="text-lg font-semibold tracking-tight text-ink">
-          {title}
-        </h1>
-        {description ? (
-          <p className="mt-1.5 text-sm text-ink-muted">{description}</p>
+      <main className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
+        <Link href="/" className="mx-auto mb-7 flex flex-col items-center gap-2.5">
+          <Image
+            src="/brand/logo-mark.png"
+            alt="GençLİG"
+            width={64}
+            height={64}
+            className="h-16 w-16 drop-shadow-lg"
+            priority
+          />
+          <span className="text-2xl font-black tracking-tight text-white">
+            GençLİG
+          </span>
+          <span className="text-xs text-white/70">
+            Dijitalde başla, gerçek hayatta fark yarat.
+          </span>
+        </Link>
+
+        <section className="auth-card anim-rise rounded-3xl border border-white/15 bg-white/10 p-6 shadow-2xl backdrop-blur-xl">
+          <h1 className="text-lg font-bold tracking-tight text-white">
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-1.5 text-sm text-white/70">{description}</p>
+          ) : null}
+          <div className="mt-5">{children}</div>
+        </section>
+
+        {footer ? (
+          <div className="mt-5 text-center text-sm text-white/70">{footer}</div>
         ) : null}
-        <div className="mt-5">{children}</div>
-      </section>
-
-      {footer ? (
-        <div className="mt-5 text-center text-sm text-ink-muted">{footer}</div>
-      ) : null}
-    </main>
+      </main>
+    </div>
   );
 }
 
@@ -162,7 +176,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? pendingLabel : children}
     </button>

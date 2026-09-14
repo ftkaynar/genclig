@@ -102,7 +102,7 @@ export function RoleManager({
           type="button"
           onClick={() => run(true)}
           disabled={pending}
-          className="rounded-full bg-cta px-3 py-1.5 text-xs font-semibold text-brand disabled:opacity-60"
+          className="rounded-full bg-cta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
         >
           Ver
         </button>

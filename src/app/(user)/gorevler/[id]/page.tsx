@@ -185,7 +185,7 @@ export default async function TaskDetailPage({
           ) : (
             <Link
               href={`/giris?next=/gorevler/${task.id}`}
-              className="block w-full rounded-full bg-cta px-6 py-3 text-center text-base font-semibold text-brand"
+              className="block w-full rounded-full bg-cta px-6 py-3 text-center text-base font-semibold text-white"
             >
               Göreve başlamak için giriş yap
             </Link>

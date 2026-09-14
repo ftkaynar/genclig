@@ -134,7 +134,7 @@ export function ReviewQueue({ items }: { items: ReviewItem[] }) {
                   type="button"
                   onClick={() => run(item.id, "approve")}
                   disabled={pendingId === item.id}
-                  className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-brand disabled:opacity-60"
+                  className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 >
                   {pendingId === item.id ? "..." : "Onayla"}
                 </button>

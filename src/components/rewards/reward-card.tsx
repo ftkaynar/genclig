@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { redeemRewardAction } from "@/lib/rewards/actions";
+import { Icon } from "@/components/ui/icon";
+import { CoinPill } from "@/components/ui/pills";
 import type { RewardRow } from "@/lib/rewards/queries";
 
 /**
@@ -90,9 +92,7 @@ export function RewardCard({
           <p className="text-sm font-semibold text-ink">{reward.title}</p>
           <p className="mt-0.5 text-xs text-ink-muted">{reward.description}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-coin/15 px-2.5 py-1 text-xs font-semibold text-coin">
-          {reward.coin_cost}
-        </span>
+        <CoinPill value={reward.coin_cost} prefix="" className="shrink-0" />
       </div>
 
       {reward.stock !== null ? (
@@ -104,8 +104,12 @@ export function RewardCard({
       {locked ? (
         <ul className="mt-2.5 flex flex-col gap-1">
           {missing.map((item) => (
-            <li key={item} className="text-[11px] text-ink-muted">
-              🔒 {item}
+            <li
+              key={item}
+              className="flex items-center gap-1.5 text-[11px] text-ink-muted"
+            >
+              <Icon name="lock" className="h-3 w-3 shrink-0" />
+              {item}
             </li>
           ))}
         </ul>
@@ -127,7 +131,7 @@ export function RewardCard({
               type="button"
               onClick={handleRedeem}
               disabled={pending}
-              className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-brand disabled:opacity-60"
+              className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
               {pending ? "Alınıyor..." : "Evet, al"}
             </button>
@@ -146,7 +150,7 @@ export function RewardCard({
           type="button"
           onClick={() => setConfirming(true)}
           disabled={locked}
-          className="mt-3 w-full rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-3 w-full rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {locked ? "Şartlar karşılanmadı" : "Kullan"}
         </button>

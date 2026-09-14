@@ -49,7 +49,7 @@ export default async function TasksPage({
                   aria-current={isActive ? "page" : undefined}
                   className={
                     isActive
-                      ? "block rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-brand"
+                      ? "block rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white"
                       : "block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
                   }
                 >

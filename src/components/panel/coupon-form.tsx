@@ -52,7 +52,7 @@ export function CouponForm() {
         type="button"
         onClick={handleSubmit}
         disabled={pending || code.trim().length < 4}
-        className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Kontrol ediliyor..." : "Kodu kullan"}
       </button>

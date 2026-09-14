@@ -191,3 +191,39 @@
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Cam kart (giriş / kayıt)
+
+   Form alanları paylaşılan bileşenlerden geliyor ve varsayılan olarak açık
+   yüzeye göre renklendirilmiş. Cam kartın içinde koyu zemin üzerindeler, bu
+   yüzden renkler kapsam seviyesinde çevriliyor. Bileşenlere ayrı bir koyu
+   varyant propu eklemek her alanı iki kez tanımlamak demekti.
+   --------------------------------------------------------------------------- */
+
+.auth-card label > span {
+  color: rgb(255 255 255 / 0.9);
+}
+
+.auth-card label > span:last-child {
+  color: rgb(255 255 255 / 0.6);
+}
+
+.auth-card input,
+.auth-card select,
+.auth-card textarea {
+  background-color: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.2);
+  color: #ffffff;
+}
+
+.auth-card input::placeholder,
+.auth-card textarea::placeholder {
+  color: rgb(255 255 255 / 0.5);
+}
+
+/* Açılır liste seçenekleri işletim sisteminin penceresinde çiziliyor;
+   orada beyaz metin okunmuyor. */
+.auth-card select option {
+  color: #111a2e;
+}

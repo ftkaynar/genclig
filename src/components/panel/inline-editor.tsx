@@ -156,7 +156,7 @@ export function InlineEditor({
           type="button"
           onClick={handleSubmit}
           disabled={pending}
-          className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-brand disabled:opacity-60"
+          className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
           {pending ? "Kaydediliyor..." : submitLabel}
         </button>
