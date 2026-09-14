@@ -63,3 +63,42 @@ kapanıyor.
 
 **MOCKUP EKLENTİSİ:** Giriş ekranına mockup'taki "Dijitalde başla, gerçek
 hayatta fark yarat." sloganı eklendi.
+
+## FAZ C — Arkadaşlık (M17)
+
+**Durum: TAMAM**
+
+Migration `20260916000000_friendships.sql` + `20260916010000_friends_leaderboard.sql`:
+- `friendships` tek satırda ve iki yönlü. Çift kayıt (her yön için ayrı satır)
+  denendi ve elendi: iki satırı senkron tutmak kabul/ret akışında tutarsızlık
+  riski demekti. Teklik `least/greatest` indeksiyle yön bağımsız.
+- `notifications.type` check'i genişletildi: `friend_request`,
+  `friend_accepted`, `team_invite`, `support_reply`.
+- RPC'ler: `send_friend_request`, `respond_friend_request`, `remove_friend`,
+  `search_users`, `get_profile_card`, `list_friends`, `list_friend_requests`,
+  `are_friends`, `my_friend_ids`.
+- `leaderboard_top` / `leaderboard_my_rank` → `arkadaslar` kapsamı eklendi
+  (arkadaşlar + çağıranın kendisi). `/siralama`'daki pasif sekme aktifleşti.
+
+**Gizlilik:** `get_profile_card` arkadaşsa tam kart (XP, rozet, görev), değilse
+yalnızca kullanıcı adı + avatar + seviye döndürüyor. Karar tek yerde: arayüzde
+"arkadaş mı" kontrolü yapıp alanları gizlemek, veriyi zaten göndermiş olmak
+demekti.
+
+**Arama:** En az 3 karakter. İki harflik sorgu neredeyse tüm kullanıcıları
+döndürüp listeyi tarama aracına çevirirdi.
+
+**Kanıtlar:**
+- 2 harflik arama → 0 sonuç; "bora" → bora_f (Lv.4)
+- İstek gönderildi → `pending` + `friend_request` bildirimi
+- Kendine istek → "Kendine arkadaşlık isteği gönderemezsin."
+- Tekrar istek → "Bekleyen bir istek zaten var."
+- **Arkadaş değilken** profil kartı: `is_friend f`, `total_xp` ve
+  `badge_count` **boş**
+- Kabul sonrası: `is_friend t`, XP 500, rozet 0, görev 0 görünüyor
+- Yetkisiz yanıt denemesi → reddedildi (RLS ilişkiyi de gizliyor)
+- Arkadaşlar sıralaması: ayse + bora; cem (arkadaş değil) listede **yok**
+- C ilişkiyi göremiyor (0), doğrudan insert → `permission denied`
+
+**UI:** `/arkadaslar` — Arkadaşlarım / İstekler / Ara sekmeleri, profil kartı
+modalı, arkadaş kartında haftalık XP.

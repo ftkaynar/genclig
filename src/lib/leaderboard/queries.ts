@@ -19,6 +19,7 @@ export const SCOPES = [
   { key: "il", label: "İl" },
   { key: "ilce", label: "İlçe" },
   { key: "mahalle", label: "Mahalle" },
+  { key: "arkadaslar", label: "Arkadaşlar" },
 ] as const;
 
 export const PERIODS = [

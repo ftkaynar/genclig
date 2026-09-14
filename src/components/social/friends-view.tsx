@@ -1,0 +1,410 @@
+"use client";
+
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import {
+  getProfileCardAction,
+  removeFriendAction,
+  respondFriendRequestAction,
+  searchUsersAction,
+  sendFriendRequestAction,
+  type ProfileCard,
+  type SearchResult,
+} from "@/lib/social/actions";
+import { Icon } from "@/components/ui/icon";
+import { EmptyState, XpPill } from "@/components/ui/pills";
+import type { FriendRequestRow, FriendRow } from "@/lib/social/queries";
+
+type Tab = "friends" | "requests" | "search";
+
+/** Avatar ya da baş harf rozeti. */
+function Avatar({
+  url,
+  name,
+  size = 40,
+}: {
+  url: string | null;
+  name: string;
+  size?: number;
+}) {
+  if (url) {
+    return (
+      <Image
+        src={url}
+        alt=""
+        width={size}
+        height={size}
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+        unoptimized
+      />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden
+      className="brand-gradient flex shrink-0 items-center justify-center rounded-full font-bold text-white"
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+export function FriendsView({
+  friends,
+  requests,
+}: {
+  friends: FriendRow[];
+  requests: FriendRequestRow[];
+}) {
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>("friends");
+  const [message, setMessage] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[] | null>(null);
+  const [card, setCard] = useState<ProfileCard | null>(null);
+
+  const incoming = requests.filter((item) => item.direction === "incoming");
+  const outgoing = requests.filter((item) => item.direction === "outgoing");
+
+  async function run(fn: () => Promise<{ error?: string; notice?: string }>) {
+    setMessage(null);
+    setPending(true);
+    try {
+      const result = await fn();
+      setMessage(result.error ?? result.notice ?? null);
+      if (!result.error) router.refresh();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function doSearch() {
+    setMessage(null);
+    if (query.trim().length < 3) {
+      setMessage("En az 3 karakter yaz.");
+      return;
+    }
+    setPending(true);
+    try {
+      setResults(await searchUsersAction(query));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function openCard(username: string) {
+    setPending(true);
+    try {
+      setCard(await getProfileCardAction(username));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const TABS: { key: Tab; label: string; count?: number }[] = [
+    { key: "friends", label: "Arkadaşlarım", count: friends.length },
+    { key: "requests", label: "İstekler", count: incoming.length },
+    { key: "search", label: "Ara" },
+  ];
+
+  return (
+    <div>
+      <nav aria-label="Arkadaş sekmeleri">
+        <ul className="flex gap-2">
+          {TABS.map((item) => (
+            <li key={item.key}>
+              <button
+                type="button"
+                onClick={() => setTab(item.key)}
+                aria-current={tab === item.key ? "page" : undefined}
+                className={
+                  tab === item.key
+                    ? "rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white"
+                    : "rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
+                }
+              >
+                {item.label}
+                {item.count ? ` (${item.count})` : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {message ? (
+        <p
+          role="status"
+          className="mt-3 rounded-xl border border-edge bg-card px-3.5 py-2.5 text-sm text-ink-muted"
+        >
+          {message}
+        </p>
+      ) : null}
+
+      {/* Profil kartı modalı */}
+      {card ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-brand/80 px-6 backdrop-blur-sm"
+        >
+          <div className="anim-pop w-full max-w-sm rounded-3xl border border-edge bg-card p-6 text-center">
+            <Avatar url={card.avatar_url} name={card.username} size={72} />
+            <p className="mt-3 text-lg font-bold text-ink">{card.username}</p>
+            <p className="text-sm text-ink-muted">Seviye {card.level}</p>
+
+            {card.is_friend ? (
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <span className="rounded-xl bg-surface px-2 py-2.5">
+                  <span className="block text-base font-bold text-xp">
+                    {card.total_xp ?? 0}
+                  </span>
+                  <span className="block text-[11px] text-ink-muted">XP</span>
+                </span>
+                <span className="rounded-xl bg-surface px-2 py-2.5">
+                  <span className="block text-base font-bold text-primary">
+                    {card.badge_count ?? 0}
+                  </span>
+                  <span className="block text-[11px] text-ink-muted">Rozet</span>
+                </span>
+                <span className="rounded-xl bg-surface px-2 py-2.5">
+                  <span className="block text-base font-bold text-status-success">
+                    {card.completed_tasks ?? 0}
+                  </span>
+                  <span className="block text-[11px] text-ink-muted">Görev</span>
+                </span>
+              </div>
+            ) : (
+              <p className="mt-4 rounded-xl bg-surface px-3.5 py-3 text-xs text-ink-muted">
+                Ayrıntılar yalnızca arkadaşlara görünür.
+              </p>
+            )}
+
+            <div className="mt-5 flex gap-2">
+              {!card.is_friend && card.request_status === "none" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    run(() => sendFriendRequestAction(card.username)).then(() =>
+                      setCard(null),
+                    )
+                  }
+                  className="flex-1 rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  Arkadaş ekle
+                </button>
+              ) : null}
+
+              {card.is_friend ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    run(() => removeFriendAction(card.user_id)).then(() =>
+                      setCard(null),
+                    )
+                  }
+                  className="flex-1 rounded-full border border-status-danger/50 px-4 py-2.5 text-sm font-medium text-status-danger disabled:opacity-60"
+                >
+                  Çıkar
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setCard(null)}
+                className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-4">
+        {tab === "friends" ? (
+          friends.length === 0 ? (
+            <EmptyState
+              icon="users"
+              title="Henüz arkadaşın yok"
+              description="Kullanıcı adıyla arayıp istek gönderebilirsin."
+              action={
+                <button
+                  type="button"
+                  onClick={() => setTab("search")}
+                  className="rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  Arkadaş ara
+                </button>
+              }
+            />
+          ) : (
+            <ul className="flex flex-col gap-2.5">
+              {friends.map((friend) => (
+                <li key={friend.user_id}>
+                  <button
+                    type="button"
+                    onClick={() => openCard(friend.username)}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-edge bg-card p-3 text-left transition-colors hover:border-primary/60"
+                  >
+                    <Avatar url={friend.avatar_url} name={friend.username} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-ink">
+                        {friend.username}
+                      </span>
+                      <span className="block text-[11px] text-ink-muted">
+                        Seviye {friend.level}
+                      </span>
+                    </span>
+                    <XpPill value={friend.weekly_xp} className="shrink-0" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : null}
+
+        {tab === "requests" ? (
+          incoming.length === 0 && outgoing.length === 0 ? (
+            <EmptyState
+              icon="bell"
+              title="Bekleyen istek yok"
+              description="Sana gelen arkadaşlık istekleri burada görünür."
+            />
+          ) : (
+            <div className="flex flex-col gap-4">
+              {incoming.length > 0 ? (
+                <section>
+                  <h2 className="text-sm font-semibold text-ink">
+                    Gelen istekler
+                  </h2>
+                  <ul className="mt-2 flex flex-col gap-2.5">
+                    {incoming.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-3"
+                      >
+                        <Avatar url={item.avatar_url} name={item.username} />
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
+                          {item.username}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() =>
+                            run(() => respondFriendRequestAction(item.id, true))
+                          }
+                          className="rounded-full bg-cta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                        >
+                          Kabul
+                        </button>
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() =>
+                            run(() => respondFriendRequestAction(item.id, false))
+                          }
+                          className="rounded-full border border-edge px-3 py-1.5 text-xs font-medium text-ink-muted disabled:opacity-60"
+                        >
+                          Reddet
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              {outgoing.length > 0 ? (
+                <section>
+                  <h2 className="text-sm font-semibold text-ink">
+                    Gönderdiklerim
+                  </h2>
+                  <ul className="mt-2 flex flex-col gap-2.5">
+                    {outgoing.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
+                      >
+                        <Avatar url={item.avatar_url} name={item.username} />
+                        <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                          {item.username}
+                        </span>
+                        <span className="shrink-0 text-[11px] text-ink-muted">
+                          Bekliyor
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </div>
+          )
+        ) : null}
+
+        {tab === "search" ? (
+          <div>
+            <div className="flex gap-2">
+              <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-edge bg-surface px-3 py-2">
+                <Icon name="search" className="h-4 w-4 shrink-0 text-ink-muted" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Kullanıcı adı (en az 3 karakter)"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={doSearch}
+                disabled={pending}
+                className="shrink-0 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                Ara
+              </button>
+            </div>
+
+            {results === null ? null : results.length === 0 ? (
+              <p className="mt-4 rounded-2xl border border-edge bg-card px-4 py-6 text-center text-sm text-ink-muted">
+                Eşleşen kullanıcı bulunamadı.
+              </p>
+            ) : (
+              <ul className="mt-4 flex flex-col gap-2.5">
+                {results.map((item) => (
+                  <li key={item.user_id}>
+                    <button
+                      type="button"
+                      onClick={() => openCard(item.username)}
+                      className="flex w-full items-center gap-3 rounded-2xl border border-edge bg-card p-3 text-left transition-colors hover:border-primary/60"
+                    >
+                      <Avatar url={item.avatar_url} name={item.username} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-ink">
+                          {item.username}
+                        </span>
+                        <span className="block text-[11px] text-ink-muted">
+                          Seviye {item.level}
+                        </span>
+                      </span>
+                      <Icon
+                        name="chevron-right"
+                        className="h-4 w-4 shrink-0 text-ink-muted"
+                      />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

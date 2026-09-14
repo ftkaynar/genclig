@@ -87,15 +87,6 @@ export default async function LeaderboardPage({
               </Link>
             </li>
           ))}
-          {/* Arkadaşlık domaini sonraki dilimlerde; sekme yerini tutuyor. */}
-          <li>
-            <span
-              aria-disabled
-              className="block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted opacity-50"
-            >
-              Arkadaşlar — yakında
-            </span>
-          </li>
         </ul>
       </nav>
 
