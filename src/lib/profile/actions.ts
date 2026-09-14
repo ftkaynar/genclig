@@ -29,6 +29,7 @@ export async function updateProfileAction(
   }
 
   const username = String(formData.get("username") ?? "").trim().toLowerCase();
+  const phone = String(formData.get("phone") ?? "").trim();
   const displayName = String(formData.get("displayName") ?? "").trim();
   const provinceId = String(formData.get("provinceId") ?? "").trim();
   const districtId = String(formData.get("districtId") ?? "").trim();
@@ -64,6 +65,31 @@ export async function updateProfileAction(
       return { error: "Bu kullanıcı adı alınmış. Başka bir tane dene." };
     }
     return { error: "Profil kaydedilemedi. Lütfen tekrar dene." };
+  }
+
+  /*
+    Telefon `set_phone` ile: normalize etme ve benzersizlik kontrolü
+    orada. Boş bırakılırsa dokunulmuyor — ayarlar ekranında telefon
+    zorunlu değil, ZATEN kayıtlı olduğu için onboarding'de alınmış
+    oluyor. Silme yolu bilerek yok; telefon zorunlu bir alan.
+  */
+  if (phone.length > 0) {
+    const { error: phoneError } = await supabase.rpc("set_phone", {
+      p_phone: phone,
+    });
+
+    if (phoneError) {
+      const known = [
+        "Bu telefon zaten kayıtlı",
+        "Geçerli bir cep telefonu",
+        "zorunlu",
+      ];
+      return {
+        error: known.some((needle) => phoneError.message.includes(needle))
+          ? phoneError.message
+          : "Telefon kaydedilemedi. Lütfen tekrar dene.",
+      };
+    }
   }
 
   revalidatePath("/profil");

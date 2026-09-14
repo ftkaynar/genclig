@@ -72,11 +72,14 @@ export function TextField({
   defaultValue,
   hint,
   required = true,
+  inputMode,
 }: {
   label: string;
   name: string;
   type?: string;
   autoComplete?: string;
+  /** Mobilde doğru klavyeyi açmak için (telefon alanında "numeric"). */
+  inputMode?: "text" | "numeric" | "tel" | "email";
   placeholder?: string;
   defaultValue?: string;
   hint?: string;
@@ -89,6 +92,7 @@ export function TextField({
         name={name}
         type={type}
         required={required}
+        inputMode={inputMode}
         autoComplete={autoComplete}
         placeholder={placeholder}
         defaultValue={defaultValue}

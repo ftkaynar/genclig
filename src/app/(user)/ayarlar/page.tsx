@@ -44,6 +44,9 @@ export default async function SettingsPage() {
             provinces={provinces ?? []}
             initial={{
               username: profile?.username ?? "",
+              // Kayıtlı numara "+905321112233" biçiminde; kullanıcıya
+              // yerel yazımla gösteriliyor.
+              phone: profile?.phone ? profile.phone.replace("+90", "") : "",
               displayName: profile?.display_name ?? "",
               provinceId: profile?.province_id ? String(profile.province_id) : "",
               districtId: profile?.district_id ? String(profile.district_id) : "",

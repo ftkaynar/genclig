@@ -29,7 +29,14 @@ type Option = { id: number; name: string };
   Profilin yazılması ise client'ta DEĞİL, completeOnboardingAction içinde
   sunucuda yapılıyor.
 */
-export function OnboardingForm({ provinces }: { provinces: Option[] }) {
+export function OnboardingForm({
+  provinces,
+  initialUsername = "",
+}: {
+  provinces: Option[];
+  /** Telefonu eksik olan mevcut kullanıcıda dolu gelir. */
+  initialUsername?: string;
+}) {
   const [state, formAction] = useActionState(completeOnboardingAction, INITIAL);
 
   const [provinceId, setProvinceId] = useState("");
@@ -101,8 +108,19 @@ export function OnboardingForm({ provinces }: { provinces: Option[] }) {
         label="Kullanıcı adı"
         name="username"
         autoComplete="username"
+        defaultValue={initialUsername}
         placeholder="ornek_kullanici"
         hint="3-20 karakter; küçük harf, rakam ve alt çizgi."
+      />
+
+      <TextField
+        label="Telefon"
+        name="phone"
+        type="tel"
+        autoComplete="tel"
+        inputMode="numeric"
+        placeholder="5XX XXX XX XX"
+        hint="Türkiye cep numarası. Başında 0 ya da +90 yazman gerekmiyor."
       />
 
       <SelectField

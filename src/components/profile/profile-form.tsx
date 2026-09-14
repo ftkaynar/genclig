@@ -25,6 +25,7 @@ export function ProfileForm({
   provinces: Option[];
   initial: {
     username: string;
+    phone: string;
     displayName: string;
     provinceId: string;
     districtId: string;
@@ -89,6 +90,17 @@ export function ProfileForm({
         defaultValue={initial.username}
         placeholder="ornek_kullanici"
         hint="3-20 karakter; küçük harf, rakam ve alt çizgi. Sıralamada bu ad görünür."
+      />
+
+      <TextField
+        label="Telefon"
+        name="phone"
+        type="tel"
+        required={false}
+        inputMode="numeric"
+        defaultValue={initial.phone}
+        placeholder="5XX XXX XX XX"
+        hint="Boş bırakırsan mevcut numaran korunur."
       />
 
       <TextField

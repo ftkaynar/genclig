@@ -24,12 +24,19 @@ export default async function OnboardingPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username")
+    .select("username,phone")
     .eq("id", user.id)
     .maybeSingle();
 
-  // Profil zaten tamamsa onboarding tekrar gösterilmez.
-  if (profile?.username) {
+  /*
+    Profil zaten tamamsa onboarding tekrar gösterilmez.
+
+    "Tamam" tanımına telefon da girdi (D24 FAZ F1). Kullanıcı adı olup
+    telefonu olmayan mevcut hesaplar bu ekrana bir kez daha uğruyor;
+    form kullanıcı adını dolu getiriyor ki baştan yazmak zorunda
+    kalmasınlar.
+  */
+  if (profile?.username && profile?.phone) {
     redirect("/");
   }
 
@@ -41,9 +48,14 @@ export default async function OnboardingPage() {
   return (
     <AuthShell
       title="Profilini tamamla"
-      description="Kullanıcı adını seç ve nerede yaşadığını söyle."
+      description="Kullanıcı adını, telefonunu ve nerede yaşadığını gir."
     >
-      <OnboardingForm provinces={provinces ?? []} />
+      {/* Kullanıcı adı doluysa (telefon eksik olduğu için buradaysa)
+          yeniden yazdırmıyoruz. */}
+      <OnboardingForm
+        provinces={provinces ?? []}
+        initialUsername={profile?.username ?? ""}
+      />
     </AuthShell>
   );
 }

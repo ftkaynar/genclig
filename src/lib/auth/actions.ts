@@ -135,6 +135,7 @@ export async function completeOnboardingAction(
   formData: FormData,
 ): Promise<ActionState> {
   const username = readString(formData, "username").toLowerCase();
+  const phone = readString(formData, "phone");
   const provinceId = readString(formData, "provinceId");
   const districtId = readString(formData, "districtId");
   const neighborhoodId = readString(formData, "neighborhoodId");
@@ -144,6 +145,9 @@ export async function completeOnboardingAction(
       error:
         "Kullanıcı adı 3-20 karakter olmalı; yalnızca küçük harf, rakam ve alt çizgi kullanılabilir.",
     };
+  }
+  if (!phone.trim()) {
+    return { error: "Telefon numaran zorunlu." };
   }
   if (!provinceId) {
     return { error: "İl seçmelisin." };
@@ -180,6 +184,30 @@ export async function completeOnboardingAction(
       return { error: "Bu kullanıcı adı alınmış. Başka bir tane dene." };
     }
     return { error: "Profil kaydedilemedi. Lütfen tekrar dene." };
+  }
+
+  /*
+    Telefon ayrı RPC ile yazılıyor: normalize etme (0532…, +90 532…,
+    532… → +905321112233) ve benzersizlik kontrolü sunucuda,
+    `set_phone` içinde. Profil güncellemesiyle aynı çağrıda yazılsaydı
+    biçim doğrulaması istemciye düşerdi.
+
+    Sıra önemli: profil önce yazılıyor, telefon sonra. Telefon
+    benzersizlik hatası verirse kullanıcı adı çoktan kaydedilmiş oluyor
+    ve kullanıcı yalnızca telefonu düzeltip devam edebiliyor — tersi
+    sırada kullanıcı adını her denemede yeniden girmesi gerekirdi.
+  */
+  const { error: phoneError } = await supabase.rpc("set_phone", {
+    p_phone: phone,
+  });
+
+  if (phoneError) {
+    const known = ["Bu telefon zaten kayıtlı", "Geçerli bir cep telefonu", "zorunlu"];
+    return {
+      error: known.some((needle) => phoneError.message.includes(needle))
+        ? phoneError.message
+        : "Telefon kaydedilemedi. Lütfen tekrar dene.",
+    };
   }
 
   revalidatePath("/", "layout");

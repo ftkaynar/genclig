@@ -41,6 +41,8 @@ async function loadViewer() {
   return {
     user,
     username: profile?.username ?? null,
+    // D24: telefon da zorunlu alan; eksikse profil tamam sayılmıyor.
+    phone: profile?.phone ?? null,
     displayName: profile?.display_name ?? null,
     avatarUrl: profile?.avatar_url ?? null,
   };
@@ -49,8 +51,15 @@ async function loadViewer() {
 export default async function UserHomePage() {
   const viewer = await loadViewer();
 
-  // Oturum var ama profil eksikse onboarding zorunlu.
-  if (viewer && !viewer.username) {
+  /*
+    Oturum var ama profil eksikse onboarding zorunlu.
+
+    Telefon de bu kurala dahil (D24 FAZ F1). Mevcut kullanıcıların
+    profilinde telefon yok, bu yüzden onlar da bir kez onboarding'e
+    uğrayıp numaralarını giriyor — telefonu yalnızca yeni kayıtlardan
+    istemek, alanı sahada işe yaramaz hâle getirirdi.
+  */
+  if (viewer && (!viewer.username || !viewer.phone)) {
     redirect("/onboarding");
   }
 
