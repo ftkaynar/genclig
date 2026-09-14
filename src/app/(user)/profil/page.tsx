@@ -140,6 +140,7 @@ export default async function ProfilePage() {
             <ProfileLink href="/takim" icon="shield" label="Takımım" />
             <ProfileLink href="/oduller" icon="gift" label="Ödüller" />
             <ProfileLink href="/bildir/gecmis" icon="megaphone" label="Bildirimlerim" />
+            <ProfileLink href="/destek" icon="hand-heart" label="Destek" />
             <ProfileLink href="/ayarlar" icon="settings" label="Ayarlar" />
           </div>
         </section>

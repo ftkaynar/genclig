@@ -171,3 +171,56 @@ rozeti, görev detayında bonus açıklaması, `/siralama`'ya "Takımlar" sekmes
 görevleri şimdilik yalnızca migration seed'iyle geliyor. Dilim metninde
 istenmediği için eklenmedi; sahada takım görevi açılabilmesi için ayrı bir
 dilim gerekiyor.
+
+---
+
+## FAZ E — Destek merkezi (M19)
+
+**Migration:** `20260916030000_support.sql`
+
+`faq_items` (6 kayıt seed), `support_tickets` (open/answered/closed),
+`ticket_messages` (`is_staff` bayrağı satırda).
+
+**Neden `is_staff` satırda tutuluyor:** mesajı kimin yazdığını gönderenin
+güncel rolünden okusaydık, bir kullanıcı sonradan personel olduğunda eski
+mesajları geriye dönük personel yanıtı görünürdü.
+
+**Durum geçişleri:** personel yanıtı → `answered` + `support_reply` bildirimi;
+kullanıcı yanıtı → `open` (top yeniden personelde); kapalı talebe yazılamıyor.
+Kapanmış konuyu yeniden açmak yeni talep gerektiriyor, aksi halde eski
+talepler süresiz canlı kalırdı.
+
+**Açık talep sınırı:** kullanıcı başına 5. Aynı kullanıcının onlarca açık
+talebi personel kuyruğunu kullanılamaz hale getirirdi.
+
+**Personel = süper admin.** Destek platform düzeyinde; belediye rolüne
+bağlanmadı.
+
+**Hata ve düzeltmesi (ölçülerek bulundu):** `TICKET_STATUS_LABEL` ve tipler
+`queries.ts` içindeyken client bileşenlerinin import'u `next/headers`'a
+bağımlı `createClient`'ı bundle'a çekti; derleme
+"This API is only available in Server Components" ile kırıldı. Saf veri
+`src/lib/support/labels.ts`'e ayrıldı, veri erişimi `queries.ts`'te kaldı.
+
+**Kanıtlar (yerel psql):**
+- SSS 6 kayıt; anon okuyabiliyor (6), yazamıyor → `permission denied`
+- Kısa konu → "Konu en az 3 karakter olmalı."; kısa mesaj → "Mesaj en az 10
+  karakter olmalı."
+- Talep açıldı → `open`, 1 mesaj, `is_staff = false`
+- Başka kullanıcı talebi göremiyor (0 talep / 0 mesaj), yanıtlayamıyor →
+  "Bu talebe yanıt verme yetkin yok."
+- Personel yanıtı → `is_staff t`, durum `answered`, kullanıcıya
+  `support_reply` bildirimi
+- Kullanıcı yanıtı → `is_staff f`, durum tekrar `open`
+- Personel kuyruğu: normal kullanıcı için 0 satır; süper admin 1 satır
+  (konu, durum, kullanıcı adı, 3 mesaj)
+- Kapatma → `closed`; kapalıya yazma → "Bu talep kapatılmış."
+- Doğrudan insert/update → `permission denied for table support_tickets`
+- anon: `create_ticket`, `reply_ticket`, `list_all_tickets`,
+  `support_tickets` select → hepsi `false`; authenticated `ticket_messages`
+  insert → `false`
+
+**UI:** `/destek` (Sık sorulanlar akordiyonu + Taleplerim listesi + konuşma
+görünümü + yeni talep formu), `/admin/destek` (durum filtreli kuyruk, açılır
+konuşma, yanıtla/kapat). Admin gezinmesine "Destek", profil ekranına Destek
+bağlantısı eklendi.

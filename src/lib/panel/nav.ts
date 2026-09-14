@@ -13,6 +13,7 @@ export const ADMIN_NAV = [
   { href: "/admin", label: "Özet" },
   { href: "/admin/incelemeler", label: "İncelemeler" },
   { href: "/admin/sorunlar", label: "Bildirimler" },
+  { href: "/admin/destek", label: "Destek" },
   { href: "/admin/belediyeler", label: "Belediyeler" },
   { href: "/admin/kullanicilar", label: "Kullanıcılar" },
   { href: "/admin/gorevler", label: "Görevler" },
