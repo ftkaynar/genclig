@@ -34,7 +34,7 @@ export default async function PanelTasksPage() {
       <div className="mb-4">
         <Link
           href="/panel/gorevler/yeni"
-          className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+          className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
         >
           Yeni görev
         </Link>
@@ -48,7 +48,7 @@ export default async function PanelTasksPage() {
           action={
             <Link
               href="/panel/gorevler/yeni"
-              className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+              className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
             >
               Yeni görev oluştur
             </Link>

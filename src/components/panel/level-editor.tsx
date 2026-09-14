@@ -62,7 +62,7 @@ export function LevelEditor({
         type="button"
         onClick={save}
         disabled={pending}
-        className="rounded-full bg-cta px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+        className="rounded-full btn-chunky bg-cta px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
       >
         {pending ? "..." : "Kaydet"}
       </button>

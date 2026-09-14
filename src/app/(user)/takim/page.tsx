@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { TeamView } from "@/components/teams/team-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import { getMyTeam, getMyTeamMembers } from "@/lib/teams/queries";
 import { getViewerUser } from "@/lib/auth/viewer";
 
@@ -23,7 +23,7 @@ export default async function TeamPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Takımım" signedIn />
+      <UserHud title="Takımım" />
 
       <main className="flex-1 px-4 py-4">
         <TeamView team={team} members={members} />

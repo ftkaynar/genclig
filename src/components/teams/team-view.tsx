@@ -136,7 +136,7 @@ export function TeamView({
                 <button
                   type="button"
                   onClick={() => setMode("create")}
-                  className="rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                  className="rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
                 >
                   Takım kur
                 </button>
@@ -196,7 +196,7 @@ export function TeamView({
                 type="button"
                 disabled={pending}
                 onClick={() => run(() => createTeamAction(name, icon))}
-                className="flex-1 rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
               >
                 Kur
               </button>
@@ -231,7 +231,7 @@ export function TeamView({
                 type="button"
                 disabled={pending}
                 onClick={() => run(() => joinTeamAction(code))}
-                className="flex-1 rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
               >
                 Katıl
               </button>

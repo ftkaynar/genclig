@@ -33,7 +33,7 @@ export default async function AdminTasksPage() {
       <div className="mb-4">
         <Link
           href="/admin/gorevler/yeni"
-          className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+          className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
         >
           Yeni global görev
         </Link>

@@ -277,7 +277,7 @@ export function ReportForm({
         type="button"
         onClick={handleSubmit}
         disabled={busy}
-        className="w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-full btn-chunky bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {step ?? "Gönder"}
       </button>

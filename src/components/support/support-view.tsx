@@ -174,7 +174,7 @@ export function SupportView({
                     router.refresh();
                   }
                 }}
-                className="flex-1 rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
               >
                 Gönder
               </button>
@@ -314,7 +314,7 @@ export function SupportView({
                       router.refresh();
                     }
                   }}
-                  className="flex-1 rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                  className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                 >
                   Gönder
                 </button>
@@ -331,7 +331,7 @@ export function SupportView({
             <button
               type="button"
               onClick={() => setComposing(true)}
-              className="w-full rounded-full bg-cta px-5 py-3 text-sm font-semibold text-white"
+              className="w-full rounded-full btn-chunky bg-cta px-5 py-3 text-sm font-semibold text-white"
             >
               Yeni talep aç
             </button>

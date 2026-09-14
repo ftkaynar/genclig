@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { SupportView } from "@/components/support/support-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import { listFaq, listMyTickets } from "@/lib/support/queries";
 import { getViewerUser } from "@/lib/auth/viewer";
 
@@ -21,7 +21,7 @@ export default async function SupportPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Destek" signedIn />
+      <UserHud title="Destek" />
 
       <main className="flex-1 px-4 py-4">
         <SupportView faq={faq} tickets={tickets} />

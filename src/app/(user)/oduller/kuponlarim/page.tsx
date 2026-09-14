@@ -37,7 +37,7 @@ export default async function MyCouponsPage() {
             action={
               <Link
                 href="/oduller"
-                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
               >
                 Ödül havuzuna git
               </Link>

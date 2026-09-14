@@ -131,7 +131,7 @@ export function RewardCard({
               type="button"
               onClick={handleRedeem}
               disabled={pending}
-              className="flex-1 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
               {pending ? "Alınıyor..." : "Evet, al"}
             </button>
@@ -150,7 +150,7 @@ export function RewardCard({
           type="button"
           onClick={() => setConfirming(true)}
           disabled={locked}
-          className="mt-3 w-full rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-3 w-full rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {locked ? "Şartlar karşılanmadı" : "Kullan"}
         </button>

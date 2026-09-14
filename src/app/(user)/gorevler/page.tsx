@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { TaskCard } from "@/components/tasks/task-card";
 import { EmptyState } from "@/components/ui/pills";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { getSubmissionMap, getViewer, listFeedTasks } from "@/lib/tasks/queries";
+import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 
 export const metadata = {
   title: "Görevler — GençLİG",
@@ -48,7 +48,6 @@ export default async function TasksPage({
     ? (kapsam ?? "")
     : "";
 
-  const viewer = await getViewer();
   const tasks = await listFeedTasks(
     activeTab || undefined,
     activeScope || undefined,
@@ -57,7 +56,7 @@ export default async function TasksPage({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Görevler" signedIn={Boolean(viewer)} />
+      <UserHud title="Görevler" />
 
       <nav aria-label="Görev türü" className="px-4 pt-4">
         <ul className="flex gap-2">

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { RewardCard } from "@/components/rewards/reward-card";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { formatPoints, getUserPoints } from "@/lib/points/queries";
@@ -30,7 +30,7 @@ export default async function RewardsPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Ödül Havuzu" signedIn />
+      <UserHud title="Ödül Havuzu" />
 
       <div className="px-4 pt-3">
         <div className="flex items-center justify-between rounded-2xl border border-edge bg-card px-4 py-3">

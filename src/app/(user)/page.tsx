@@ -9,7 +9,7 @@ import { TaskCardCompact } from "@/components/tasks/task-card-compact";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import { formatPoints, getTodayEarnings, getUserPoints } from "@/lib/points/queries";
@@ -55,7 +55,7 @@ export default async function UserHomePage() {
   if (!viewer) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-        <UserHeader signedIn={false} />
+        <UserHud />
 
         <main className="flex flex-1 flex-col items-center justify-center px-4 py-8">
           <section className="brand-gradient w-full rounded-3xl px-6 py-10 text-center shadow-lg">
@@ -76,7 +76,7 @@ export default async function UserHomePage() {
 
             <Link
               href="/kayit"
-              className="mt-7 block w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
+              className="mt-7 block w-full rounded-full btn-chunky bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
             >
               Hemen başla
             </Link>
@@ -141,7 +141,7 @@ export default async function UserHomePage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader signedIn />
+      <UserHud />
 
       <main className="flex-1 px-4 pb-4">
         {/* Hero: selamlama + avatar + seviye halkası. */}

@@ -196,7 +196,7 @@ export function FriendsView({
                       setCard(null),
                     )
                   }
-                  className="flex-1 rounded-full bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                  className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                 >
                   Arkadaş ekle
                 </button>
@@ -240,7 +240,7 @@ export function FriendsView({
                 <button
                   type="button"
                   onClick={() => setTab("search")}
-                  className="rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                  className="rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
                 >
                   Arkadaş ara
                 </button>
@@ -302,7 +302,7 @@ export function FriendsView({
                           onClick={() =>
                             run(() => respondFriendRequestAction(item.id, true))
                           }
-                          className="rounded-full bg-cta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                          className="rounded-full btn-chunky bg-cta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
                         >
                           Kabul
                         </button>
@@ -365,7 +365,7 @@ export function FriendsView({
                 type="button"
                 onClick={doSearch}
                 disabled={pending}
-                className="shrink-0 rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                className="shrink-0 rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
               >
                 Ara
               </button>

@@ -1,6 +1,6 @@
 import { SkeletonHero, SkeletonList } from "@/components/ui/skeleton";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHudSkeleton } from "@/components/user-hud";
 
 /*
   Yükleme iskeleti.
@@ -12,7 +12,7 @@ import { UserHeader } from "@/components/user-header";
 export default function Loading() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Takımım" signedIn />
+      <UserHudSkeleton title="Takımım" />
 
       <main className="flex-1 px-4 py-4">
         <SkeletonHero />

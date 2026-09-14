@@ -211,12 +211,53 @@
   Hareket azaltma tercihi olan kullanıcıda kutlama sabit duruyor.
   Efekt keyfi; erişilebilirlik tercihi ondan önce gelir.
 */
+/*
+  Alt gezinmedeki orta düğmenin dış parıltı halkası.
+
+  box-shadow ile iki katman: içteki keskin mor halka, dıştaki yumuşak
+  yayılma. Ayrı bir element eklemek yerine gölge kullanıldı; düğmenin
+  dokunma hedefi büyümesin diye.
+*/
+.nav-glow {
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--color-primary) 35%, transparent),
+    0 6px 20px color-mix(in oklab, var(--color-primary) 45%, transparent);
+}
+
+/*
+  Dolgun buton dili.
+
+  2px koyu alt kenar fiziksel bir tuş hissi veriyor; basılınca buton
+  kenarı kadar aşağı iniyor ve kenar sıfırlanıyor, yani gerçekten içeri
+  çökmüş gibi duruyor. Denenen ve elenen alternatif: sadece scale küçültmek
+  — dokunma geri bildirimi veriyordu ama "tuş" hissi vermiyordu.
+*/
+@utility btn-chunky {
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-bottom-color: color-mix(in oklab, black 35%, transparent);
+  transition:
+    transform 90ms ease-out,
+    border-bottom-width 90ms ease-out;
+}
+
+.btn-chunky:active {
+  transform: translateY(2px);
+  border-bottom-width: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,
   .anim-glow,
   .skeleton {
     animation: none;
+  }
+
+  .btn-chunky,
+  .btn-chunky:active {
+    transition: none;
+    transform: none;
   }
 }
 

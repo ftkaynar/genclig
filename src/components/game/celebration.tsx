@@ -196,7 +196,7 @@ export function Celebration({
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full rounded-full bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
+          className="mt-6 w-full rounded-full btn-chunky bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
         >
           Devam
         </button>

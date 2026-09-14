@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { LevelRing } from "@/components/ui/level-ring";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import { formatPoints, getUserPoints } from "@/lib/points/queries";
 import {
   ACTIVITY_LABEL,
@@ -50,7 +50,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Profil" signedIn />
+      <UserHud title="Profil" />
 
       <main className="flex-1 px-4 py-4">
         <section className="rounded-2xl border border-edge bg-card p-4">

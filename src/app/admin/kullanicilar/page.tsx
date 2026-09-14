@@ -70,7 +70,7 @@ export default async function AdminUsersPage({
         />
         <button
           type="submit"
-          className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white"
         >
           Ara
         </button>

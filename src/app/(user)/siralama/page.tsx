@@ -5,7 +5,7 @@ import { Podium } from "@/components/leaderboard/podium";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
-import { UserHeader } from "@/components/user-header";
+import { UserHud } from "@/components/user-hud";
 import {
   PERIODS,
   SCOPES,
@@ -77,7 +77,7 @@ export default async function LeaderboardPage({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-      <UserHeader title="Sıralama" signedIn />
+      <UserHud title="Sıralama" />
 
       <nav aria-label="Kapsam" className="px-4 pt-3">
         <ul className="flex flex-wrap gap-2">
@@ -129,7 +129,7 @@ export default async function LeaderboardPage({
               action={
                 <Link
                   href="/takim"
-                  className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                  className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
                 >
                   Takımıma git
                 </Link>
@@ -179,7 +179,7 @@ export default async function LeaderboardPage({
             action={
               <Link
                 href="/ayarlar"
-                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white"
+                className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
               >
                 Konumunu ayarla
               </Link>

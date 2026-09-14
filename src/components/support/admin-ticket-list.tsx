@@ -168,7 +168,7 @@ export function AdminTicketList({ tickets }: { tickets: AdminTicketRow[] }) {
                             router.refresh();
                           }
                         }}
-                        className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                        className="rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
                       >
                         Yanıtla
                       </button>
