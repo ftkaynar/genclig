@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
   "buildCommand": "next build",
-  "installCommand": "pnpm install --frozen-lockfile"
+  "installCommand": "pnpm install --frozen-lockfile",
+  "regions": ["syd1"]
 }
