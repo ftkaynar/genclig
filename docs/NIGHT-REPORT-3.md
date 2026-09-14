@@ -178,3 +178,49 @@ yüksekliği kaplıyor, veri gelince üst bar zıplamıyor.
 25 dosyada 36 birincil butona uygulandı. Denenen ve elenen alternatif:
 yalnızca `scale` küçültmek — dokunma geri bildirimi veriyordu ama "tuş"
 hissi vermiyordu. `prefers-reduced-motion` altında geçiş ve dönüşüm kapalı.
+
+---
+
+## FAZ G — Görev ekranı v2
+
+**Filtreler** (`src/components/tasks/task-filters.tsx`):
+
+- Üstte **Bireysel | Takım** segmentli anahtarı; seçili taraf gradyanlı bir
+  gösterge olarak kayıyor (`transition-all`, 300 ms).
+  Üçüncü konum ("Hepsi") bilerek yok: iki durumlu anahtarda kayan gösterge
+  okunabiliyor, üç durumda anahtar olmaktan çıkıp sıradan bir sekme şeridine
+  dönüyordu. "Hepsi"ye dönüş seçili tarafa tekrar dokunarak yapılıyor.
+- Altında yatay kaydırmalı **tip çipleri** — Tümü / Sürekli / Anlık, her
+  birinde kaç görev olduğunu gösteren sayı rozetiyle. Kullanıcı boş bir
+  sekmeye tıklayıp "hiç görev yok" ekranıyla karşılaşmasın diye.
+- Anlık çipinde nabız gibi yanıp sönen canlı noktası (`.live-dot`),
+  `prefers-reduced-motion` altında duruyor.
+
+Sayılar tek sorgudan hesaplanıyor: her çip için ayrı `count` sorgusu üç ek
+veritabanı turu demekti. Sayfalama eklendiğinde yeniden değerlendirilmeli
+(kod içinde not düşüldü).
+
+**Kart v2** (`src/components/tasks/task-card.tsx`): zorluk kademesi
+2 px çerçeve rengiyle (kolay bronz `#b07b4f`, orta gümüş `#9aa6b8`, zor
+altın `#d4a02c`) **ve** sağ üst köşede kademe adını yazan rozetle. Renk tek
+başına yeterli değil — renk körlüğünde ayırt edilemiyordu.
+
+Kategori chip ikonu 44 px'e çıktı (`IconBadge size="card"`): 40 px kart
+içinde zayıf kalıyordu, 56 px ise başlığı aşağı itiyordu. XP/Coin hapları
+sağda dikey sütunda — kartın sağ kenarı bir "fiyat etiketi" sütunu gibi
+okunuyor. Anlık görevde geri sayım hapı turuncu→magenta gradyanında.
+
+**Takım bandı:** kartta "Takım · N/M kişi", detayda üye ilerleme çubuğu
+(magenta→mor gradyan) ve eşik dolduğunda "Eşik doldu — bonus yazıldı."
+
+**Yeni RPC** `team_task_progress(uuid[])` (`20260917010000_team_progress.sql`):
+`security definer` olmak zorunda — RLS kullanıcıya yalnızca kendi
+teslimlerini gösteriyor, takım arkadaşlarının teslimleri normal sorguyla
+sayılamıyor (aynı sınıf sorun D07'de ölçülmüştü). Fonksiyon yalnızca sayı
+döndürüyor, kimin tamamladığını sızdırmıyor.
+
+**Kanıtlar (yerel psql):**
+- Teslim yokken ilerleme `0`, doğru görev kimliğiyle
+- A teslim → `1`
+- B de teslim → **A da B de `2` görüyor** (RLS'e rağmen takım geneli sayım)
+- `anon` çalıştırma yetkisi → `false`

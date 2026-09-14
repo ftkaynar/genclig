@@ -2,13 +2,7 @@ import Link from "next/link";
 
 import { Countdown } from "./countdown";
 import { Icon } from "@/components/ui/icon";
-import {
-  CoinPill,
-  DifficultyDots,
-  IconBadge,
-  TimerPill,
-  XpPill,
-} from "@/components/ui/pills";
+import { CoinPill, IconBadge, XpPill } from "@/components/ui/pills";
 import {
   CATEGORY_TONE,
   CATEGORY_TONE_FALLBACK,
@@ -42,77 +36,109 @@ export function taskTone(task: TaskRow): string {
     : CATEGORY_TONE_FALLBACK;
 }
 
+/*
+  Zorluk kademesi.
+
+  Çerçeve rengi + köşe rozeti birlikte kullanılıyor: renk tek başına
+  ayırt edici değil (renk körlüğü), rozet metni kademeyi kesin söylüyor.
+*/
+const TIER = {
+  easy: { border: "tier-bronze", chip: "bg-[#b07b4f]", label: "Kolay" },
+  medium: { border: "tier-silver", chip: "bg-[#9aa6b8]", label: "Orta" },
+  hard: { border: "tier-gold", chip: "bg-[#d4a02c]", label: "Zor" },
+} as const;
+
+function tierOf(difficulty: string) {
+  return TIER[difficulty as keyof typeof TIER] ?? TIER.easy;
+}
+
 export function TaskCard({
   task,
   submission,
+  teamCount,
 }: {
   task: TaskRow;
   submission?: SubmissionSummary;
+  /** Takım görevinde aynı görevi tamamlamış takım arkadaşı sayısı. */
+  teamCount?: number;
 }) {
   const done = submission?.status === "approved";
+  const tier = tierOf(task.difficulty);
 
   return (
     <li>
       <Link
         href={`/gorevler/${task.id}`}
-        className="group flex gap-3 rounded-2xl border border-edge bg-card p-3.5 transition-all hover:border-primary/60 hover:shadow-sm active:scale-[0.99]"
+        className={`group relative block overflow-hidden rounded-2xl border-2 bg-card transition-all hover:shadow-sm active:scale-[0.99] ${tier.border}`}
       >
-        <IconBadge icon={taskIconName(task)} tone={taskTone(task)} />
+        {/* Köşe rozeti: kademe adı. */}
+        <span
+          className={`absolute right-0 top-0 rounded-bl-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white ${tier.chip}`}
+        >
+          {tier.label}
+        </span>
 
-        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-medium text-ink-muted">
-            {task.task_categories ? (
-              <span className="truncate">{task.task_categories.name}</span>
-            ) : null}
-            <span aria-hidden>·</span>
-            <span>{TASK_TYPE_LABEL[task.type] ?? task.type}</span>
-            <DifficultyDots difficulty={task.difficulty} className="ml-0.5" />
-            {task.scope === "team" ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-magenta/15 px-2 py-0.5 text-[10px] font-semibold text-magenta">
-                <Icon name="users" className="h-3 w-3" />
-                Takım
-              </span>
-            ) : null}
-          </span>
+        <span className="flex gap-3 p-3.5">
+          <IconBadge
+            icon={taskIconName(task)}
+            tone={taskTone(task)}
+            size="card"
+          />
 
-          <span className="truncate text-sm font-semibold text-ink">
-            {task.title}
-          </span>
+          <span className="flex min-w-0 flex-1 flex-col gap-1.5 pr-10">
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-ink-muted">
+              {task.task_categories ? (
+                <span className="truncate">{task.task_categories.name}</span>
+              ) : null}
+              <span aria-hidden>·</span>
+              <span>{TASK_TYPE_LABEL[task.type] ?? task.type}</span>
+            </span>
 
-          <span className="flex flex-wrap items-center gap-2">
-            <XpPill value={task.xp} />
-            <CoinPill value={task.coin} />
+            <span className="line-clamp-2 text-sm font-semibold leading-snug text-ink">
+              {task.title}
+            </span>
+
             {task.ends_at ? (
-              <TimerPill>
+              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-gradient-to-r from-amber/20 to-magenta/20 px-2.5 py-1 text-[11px] font-semibold text-amber">
+                <Icon name="timer" className="h-3.5 w-3.5" />
                 <Countdown
                   endsAt={task.ends_at}
                   initialLabel={task.remainingLabel ?? ""}
                 />
-              </TimerPill>
+              </span>
+            ) : null}
+
+            {task.scope === "team" ? (
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-magenta/15 px-2.5 py-1 text-[11px] font-semibold text-magenta">
+                <Icon name="users" className="h-3.5 w-3.5" />
+                Takım · {teamCount ?? 0}/{task.min_team_size ?? 2} kişi
+              </span>
+            ) : null}
+
+            {submission ? (
+              <span
+                className={
+                  done
+                    ? "inline-flex w-fit items-center gap-1 rounded-full bg-status-success/15 px-2.5 py-1 text-[11px] font-semibold text-status-success"
+                    : "inline-flex w-fit items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink-muted"
+                }
+              >
+                {done ? <Icon name="check" className="h-3 w-3" /> : null}
+                {SUBMISSION_STATUS_LABEL[submission.status] ?? submission.status}
+              </span>
             ) : null}
           </span>
-        </span>
 
-        <span className="flex shrink-0 flex-col items-end justify-between">
-          {submission ? (
-            <span
-              className={
-                done
-                  ? "inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary"
-                  : "inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink-muted"
-              }
-            >
-              {done ? <Icon name="check" className="h-3 w-3" /> : null}
-              {SUBMISSION_STATUS_LABEL[submission.status] ?? submission.status}
-            </span>
-          ) : (
-            <span />
-          )}
-
-          <Icon
-            name="chevron-right"
-            className="h-4 w-4 text-ink-muted transition-transform group-hover:translate-x-0.5"
-          />
+          {/* Ödül hapları sağda dikey: kartın sağ kenarı bir "fiyat
+              etiketi" sütunu gibi okunuyor, göz tek yerde tarıyor. */}
+          <span className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+            <XpPill value={task.xp} />
+            <CoinPill value={task.coin} />
+            <Icon
+              name="chevron-right"
+              className="mt-1 h-4 w-4 text-ink-muted transition-transform group-hover:translate-x-0.5"
+            />
+          </span>
         </span>
       </Link>
     </li>

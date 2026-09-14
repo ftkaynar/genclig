@@ -109,14 +109,27 @@ export function IconBadge({
 }: {
   icon: string | null | undefined;
   tone?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "card" | "lg";
 }) {
-  // v2: chip'ler büyüdü (liste 40px, detay 56px) ve ikon çizgisi kalınlaştı;
-  // küçük ince ikonlar koyu zeminde silik duruyordu.
+  // v2: chip'ler büyüdü ve ikon çizgisi kalınlaştı; küçük ince ikonlar
+  // koyu zeminde silik duruyordu. "card" (44px) görev kartı için ayrı bir
+  // kademe: 40px kart içinde zayıf, 56px ise başlığı aşağı itiyordu.
   const box =
-    size === "lg" ? "h-14 w-14" : size === "sm" ? "h-9 w-9" : "h-10 w-10";
+    size === "lg"
+      ? "h-14 w-14"
+      : size === "card"
+        ? "h-11 w-11"
+        : size === "sm"
+          ? "h-9 w-9"
+          : "h-10 w-10";
   const glyph =
-    size === "lg" ? "h-7 w-7" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
+    size === "lg"
+      ? "h-7 w-7"
+      : size === "card"
+        ? "h-[22px] w-[22px]"
+        : size === "sm"
+          ? "h-4 w-4"
+          : "h-5 w-5";
 
   return (
     <span

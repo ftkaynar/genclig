@@ -1,41 +1,19 @@
-import Link from "next/link";
-
 import { TaskCard } from "@/components/tasks/task-card";
+import {
+  ScopeSwitch,
+  TASK_SCOPES,
+  TASK_TYPE_TABS,
+  TypeChips,
+} from "@/components/tasks/task-filters";
 import { EmptyState } from "@/components/ui/pills";
 import { UserHud } from "@/components/user-hud";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
+import { getTeamTaskProgress } from "@/lib/teams/queries";
 
 export const metadata = {
   title: "Görevler — GençLİG",
 };
-
-/*
-  Sekmeler URL üzerinden (?tip=, ?kapsam=). Neden client state değil: sayfa
-  sunucuda render ediliyor ve filtre sorguya giriyor; state'te tutulsaydı ya
-  tüm görevleri çekip istemcide elemek ya da sayfayı client'a taşımak
-  gerekirdi. URL ayrıca paylaşılabilir ve geri tuşuyla çalışıyor.
-*/
-const TABS = [
-  { key: "", label: "Tümü" },
-  { key: "continuous", label: "Sürekli" },
-  { key: "instant", label: "Anlık" },
-] as const;
-
-const SCOPES = [
-  { key: "", label: "Hepsi" },
-  { key: "individual", label: "Bireysel" },
-  { key: "team", label: "Takım" },
-] as const;
-
-/** İki filtre birbirini sıfırlamasın diye bağlantılar mevcut seçimi taşıyor. */
-function buildHref(tip: string, kapsam: string): string {
-  const params = new URLSearchParams();
-  if (tip) params.set("tip", tip);
-  if (kapsam) params.set("kapsam", kapsam);
-  const query = params.toString();
-  return query ? `/gorevler?${query}` : "/gorevler";
-}
 
 export default async function TasksPage({
   searchParams,
@@ -43,66 +21,57 @@ export default async function TasksPage({
   searchParams: Promise<{ tip?: string; kapsam?: string }>;
 }) {
   const { tip, kapsam } = await searchParams;
-  const activeTab = TABS.some((tab) => tab.key === tip) ? (tip ?? "") : "";
-  const activeScope = SCOPES.some((item) => item.key === kapsam)
+  const activeTab = TASK_TYPE_TABS.some((tab) => tab.key === tip)
+    ? (tip ?? "")
+    : "";
+  const activeScope = TASK_SCOPES.some((item) => item.key === kapsam)
     ? (kapsam ?? "")
     : "";
 
-  const tasks = await listFeedTasks(
-    activeTab || undefined,
-    activeScope || undefined,
-  );
-  const submissions = await getSubmissionMap(tasks.map((task) => task.id));
+  /*
+    Kapsam filtresindeki tüm görevler bir kez çekiliyor; tip sayıları
+    bundan hesaplanıyor ve liste veritabanına dönmeden burada süzülüyor.
+
+    Neden tek sorgu: her çip için ayrı bir `count` sorgusu üç ek veritabanı
+    turu demekti ve görev sayısı bu ölçekte (onlarca) tek sorguyla rahat
+    taşınıyor. Sayfalama eklendiğinde bu yeniden değerlendirilmeli.
+  */
+  const scopeTasks = await listFeedTasks(undefined, activeScope || undefined);
+
+  const counts: Record<string, number> = {
+    "": scopeTasks.length,
+    continuous: scopeTasks.filter((task) => task.type === "continuous").length,
+    instant: scopeTasks.filter((task) => task.type === "instant").length,
+  };
+
+  const tasks = activeTab
+    ? scopeTasks.filter((task) => task.type === activeTab)
+    : scopeTasks;
+
+  const teamTaskIds = tasks
+    .filter((task) => task.scope === "team")
+    .map((task) => task.id);
+
+  const [submissions, teamProgress] = await Promise.all([
+    getSubmissionMap(tasks.map((task) => task.id)),
+    getTeamTaskProgress(teamTaskIds),
+  ]);
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Görevler" />
 
-      <nav aria-label="Görev türü" className="px-4 pt-4">
-        <ul className="flex gap-2">
-          {TABS.map((tab) => {
-            const isActive = tab.key === activeTab;
-            return (
-              <li key={tab.key || "all"}>
-                <Link
-                  href={buildHref(tab.key, activeScope)}
-                  aria-current={isActive ? "page" : undefined}
-                  className={
-                    isActive
-                      ? "block rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white"
-                      : "block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
-                  }
-                >
-                  {tab.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <div className="px-4 pt-3">
+        <ScopeSwitch activeScope={activeScope} activeTab={activeTab} />
+      </div>
 
-      <nav aria-label="Görev kapsamı" className="px-4 pt-2">
-        <ul className="flex gap-2">
-          {SCOPES.map((item) => {
-            const isActive = item.key === activeScope;
-            return (
-              <li key={item.key || "all"}>
-                <Link
-                  href={buildHref(activeTab, item.key)}
-                  aria-current={isActive ? "page" : undefined}
-                  className={
-                    isActive
-                      ? "block rounded-full bg-magenta/20 px-3.5 py-1.5 text-xs font-semibold text-magenta"
-                      : "block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
-                  }
-                >
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <div className="mt-2.5 px-4">
+        <TypeChips
+          counts={counts}
+          activeTab={activeTab}
+          activeScope={activeScope}
+        />
+      </div>
 
       <main className="flex-1 px-4 py-4">
         {tasks.length === 0 ? (
@@ -118,6 +87,7 @@ export default async function TasksPage({
                 key={task.id}
                 task={task}
                 submission={submissions.get(task.id)}
+                teamCount={teamProgress.get(task.id)}
               />
             ))}
           </ul>

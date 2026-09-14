@@ -246,11 +246,53 @@
   border-bottom-width: 0;
 }
 
+/*
+  Anlık görev çipindeki canlı noktası.
+
+  Nabız gibi sönüp yanıyor: "bu sekmedeki görevlerin süresi işliyor"
+  sinyali. Kırpışma değil yumuşak geçiş — dikkat çeksin ama rahatsız
+  etmesin.
+*/
+@keyframes genclig-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+.live-dot {
+  animation: genclig-pulse 1.6s ease-in-out infinite;
+}
+
+/*
+  Zorluk kademesi çerçeveleri.
+
+  Renk tek başına yeterli değil (renk körlüğü); kademe ayrıca köşe
+  rozetiyle de gösteriliyor. Değerler madeni tonlar: bronz, gümüş, altın.
+*/
+@utility tier-bronze {
+  border-color: #b07b4f;
+}
+
+@utility tier-silver {
+  border-color: #9aa6b8;
+}
+
+@utility tier-gold {
+  border-color: #d4a02c;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,
   .anim-glow,
-  .skeleton {
+  .skeleton,
+  .live-dot {
     animation: none;
   }
 

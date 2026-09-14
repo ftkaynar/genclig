@@ -6,6 +6,7 @@ import { RewardBadges } from "@/components/tasks/task-card";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Icon } from "@/components/ui/icon";
+import { getTeamTaskProgress } from "@/lib/teams/queries";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import {
   CATEGORY_TONE,
@@ -47,6 +48,15 @@ export default async function TaskDetailPage({
 
   const viewer = await getViewer();
   const submissions = await getSubmissionMap([task.id]);
+
+  /*
+    Takım ilerlemesi definer RPC'den: RLS takım arkadaşlarının teslimlerini
+    gizliyor, normal sorgu en fazla kendi teslimini sayardı.
+  */
+  const teamProgress =
+    task.scope === "team" ? await getTeamTaskProgress([task.id]) : null;
+  const minTeam = task.min_team_size ?? 2;
+  const teamDone = teamProgress?.get(task.id) ?? 0;
   const submission = submissions.get(task.id);
 
   const participantCount =
@@ -118,10 +128,31 @@ export default async function TaskDetailPage({
               Takım görevi
             </p>
             <p className="mt-1 text-xs text-ink-muted">
-              Takımından en az {task.min_team_size ?? 2} kişi tamamladığında
-              eşiği sağlayan herkese +{task.team_bonus_xp} XP ve
-              +{task.team_bonus_coin} coin bonus yazılır.
+              Takımından en az {minTeam} kişi tamamladığında eşiği sağlayan
+              herkese +{task.team_bonus_xp} XP ve +{task.team_bonus_coin} coin
+              bonus yazılır.
             </p>
+
+            {/* Üye ilerleme çubuğu: eşiğe ne kadar kaldığı görünsün. */}
+            <p className="mt-3 flex items-center justify-between text-[11px] font-semibold text-ink">
+              <span>Takımından tamamlayan</span>
+              <span className="text-magenta">
+                {teamDone} / {minTeam}
+              </span>
+            </p>
+            <span className="mt-1.5 block h-2 w-full overflow-hidden rounded-full bg-surface">
+              <span
+                className="block h-full rounded-full bg-gradient-to-r from-magenta to-primary transition-all"
+                style={{
+                  width: `${Math.min(100, Math.round((teamDone / minTeam) * 100))}%`,
+                }}
+              />
+            </span>
+            {teamDone >= minTeam ? (
+              <p className="mt-2 text-[11px] font-semibold text-status-success">
+                Eşik doldu — bonus yazıldı.
+              </p>
+            ) : null}
           </div>
         ) : null}
 

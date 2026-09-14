@@ -58,3 +58,29 @@ export async function getTeamLeaderboard(
   });
   return (data ?? []) as TeamLeaderboardRow[];
 }
+
+/**
+ * Takım görevlerinde aynı dönemde kaç takım arkadaşının görevi
+ * tamamladığı — görev kimliğine göre.
+ *
+ * security definer RPC'den geliyor: RLS kullanıcıya yalnızca kendi
+ * teslimlerini gösterdiği için takım arkadaşlarının teslimleri normal
+ * sorguyla sayılamıyor (aynı sınıf sorun D07/D08'de ölçülmüştü).
+ * Takımı olmayan kullanıcıda boş harita döner.
+ */
+export async function getTeamTaskProgress(
+  taskIds: string[],
+): Promise<Map<string, number>> {
+  const result = new Map<string, number>();
+  if (taskIds.length === 0) return result;
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("team_task_progress", {
+    p_task_ids: taskIds,
+  });
+
+  for (const row of (data ?? []) as { task_id: string; done: number }[]) {
+    result.set(row.task_id, row.done);
+  }
+  return result;
+}
