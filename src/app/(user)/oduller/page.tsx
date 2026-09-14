@@ -28,13 +28,57 @@ export default async function RewardsPage() {
     getBadgeNames(),
   ]);
 
+  /*
+    Vitrin seçimi: kullanıcının şartlarını karşıladığı ödüller arasından en
+    pahalısı. "Alabileceğin en iyi ödül" mantığı — erişilemeyen bir ödülü
+    vitrine koymak kullanıcıyı motive etmek yerine engeli hatırlatıyordu.
+    Hiçbiri karşılanmıyorsa vitrin en ucuz ödülü gösteriyor: bir sonraki
+    hedefi işaret ediyor.
+  */
+  const meetsConditions = (reward: (typeof rewards)[number]) =>
+    points.level >= reward.min_level &&
+    (!reward.required_badge_id || myBadges.has(reward.required_badge_id)) &&
+    points.coin >= reward.coin_cost;
+
+  const affordable = rewards.filter(meetsConditions);
+
+  const featured =
+    affordable.length > 0
+      ? affordable.reduce((best, item) =>
+          item.coin_cost > best.coin_cost ? item : best,
+        )
+      : rewards.length > 0
+        ? rewards.reduce((cheapest, item) =>
+            item.coin_cost < cheapest.coin_cost ? item : cheapest,
+          )
+        : null;
+
+  const rest = rewards.filter((reward) => reward.id !== featured?.id);
+
+  const cardProps = (reward: (typeof rewards)[number]) => ({
+    reward,
+    coinBalance: points.coin,
+    level: points.level,
+    hasBadge: reward.required_badge_id
+      ? myBadges.has(reward.required_badge_id)
+      : true,
+    requiredBadgeName: reward.required_badge_id
+      ? (badgeNames.get(reward.required_badge_id) ?? null)
+      : null,
+  });
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Ödül Havuzu" />
 
-      <div className="px-4 pt-3">
-        <div className="flex items-center justify-between rounded-2xl border border-edge bg-card px-4 py-3">
-          <span className="text-sm text-ink-muted">Bakiyen</span>
+      {/*
+        Bakiye barı yapışkan: mağazada gezerken "param yetiyor mu" sorusu
+        her kartta soruluyor, yukarı kaydırmak zorunda kalmamalı.
+        HUD'un hemen altında duruyor (top-[57px] HUD yüksekliği).
+      */}
+      <div className="sticky top-[57px] z-10 border-b border-edge bg-surface/95 px-4 py-2.5 backdrop-blur">
+        <div className="flex items-center justify-between rounded-xl bg-card px-3.5 py-2">
+          <span className="text-xs text-ink-muted">Bakiyen</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
             <Icon name="coins" className="h-4 w-4" />
             {formatPoints(points.coin)} Coin
@@ -50,26 +94,26 @@ export default async function RewardsPage() {
             description="Belediyen ödül eklediğinde burada listelenecek."
           />
         ) : (
-          <ul className="flex flex-col gap-3">
-            {rewards.map((reward) => (
-              <RewardCard
-                key={reward.id}
-                reward={reward}
-                coinBalance={points.coin}
-                level={points.level}
-                hasBadge={
-                  reward.required_badge_id
-                    ? myBadges.has(reward.required_badge_id)
-                    : true
-                }
-                requiredBadgeName={
-                  reward.required_badge_id
-                    ? (badgeNames.get(reward.required_badge_id) ?? null)
-                    : null
-                }
-              />
-            ))}
-          </ul>
+          <>
+            {featured ? (
+              <ul className="mb-4 list-none">
+                <RewardCard key={featured.id} {...cardProps(featured)} featured />
+              </ul>
+            ) : null}
+
+            {rest.length > 0 ? (
+              <>
+                <h2 className="mb-2 text-sm font-semibold text-ink">
+                  Tüm ödüller
+                </h2>
+                <ul className="flex flex-col gap-3">
+                  {rest.map((reward) => (
+                    <RewardCard key={reward.id} {...cardProps(reward)} />
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </>
         )}
 
         <Link

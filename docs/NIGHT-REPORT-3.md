@@ -325,3 +325,40 @@ Düzenleme formu da bu alanları yüklüyor (`loadTaskForEdit`).
 - Eşik 99 → `tasks_min_team_size_check` ihlali
 - Geçerli takım görevi yazıldı: `team / 3 / 60 / 30`
 - Feed sorgusu üç takım görevini de görüyor (ikisi seed, biri yeni)
+
+---
+
+## FAZ R — Ödül mağazası v2
+
+**Vitrin:** üstte büyük afiş kart — "ÖNE ÇIKAN" şeridi, geniş görsel alanı,
+kademe çerçevesi.
+
+Seçim kuralı: kullanıcının **şartlarını karşıladığı** ödüller arasından en
+pahalısı. "Alabileceğin en iyi ödül" mantığı — erişilemeyen bir ödülü
+vitrine koymak motive etmek yerine engeli hatırlatıyordu. Hiçbiri
+karşılanmıyorsa vitrin **en ucuz** ödülü gösteriyor, yani bir sonraki hedefi
+işaret ediyor.
+
+**Yapışkan bakiye barı:** HUD'un hemen altında (`top-[57px]`). Mağazada
+gezerken "param yetiyor mu" sorusu her kartta soruluyor; kullanıcı yukarı
+kaydırmak zorunda kalmamalı.
+
+**Maliyet kademesi:** <300 bronz, 300–700 gümüş, >700 altın. Hem 2 px
+çerçeve rengi hem köşe şeridi — renk tek başına ayırt edici değil.
+Görseli olmayan ödüllerde kademeye göre gradyan zemin + dev hediye ikonu.
+
+**Şart çipleri:** karşılanan yeşil tik, karşılanmayan kırmızımsı kilit
+çipi ("Seviye 5", "… rozeti", "120 coin daha"). Önceki sürüm şartları düz
+metin listesi olarak yazıyordu; çip hâli hangi şartın tamam olduğunu da
+gösteriyor.
+
+**Kod açılış anı:** satın alma onayından sonra kart CSS 3D `rotateY` ile
+çevriliyor (`.flip-scene` / `.flip-inner`), arka yüzde gradyan başlık,
+kesikli ayırıcı ve kupon kodu. `prefers-reduced-motion` altında dönüş
+kapalı ve arka yüz doğrudan gösteriliyor — yoksa kod hiç görünmezdi.
+
+**Kuponlarım bilet görünümü:** `.ticket` — iki yandaki zımba delikleri ve
+kesikli ayırıcı saf CSS. Denenen ve elenen alternatif: SVG maske — aynı
+görüntüyü veriyordu ama tema değişiminde arka plan rengini takip
+etmiyordu, çünkü maske rengi bilmiyor; `radial-gradient` `var()`
+okuyabiliyor. Aktif kuponda gradyan durum şeridi, kullanılmışta soluk.

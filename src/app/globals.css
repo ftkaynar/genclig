@@ -287,6 +287,72 @@
   border-color: #d4a02c;
 }
 
+/*
+  Kupon bileti görünümü.
+
+  Kesikli kenar ve zımba delikleri saf CSS: radial-gradient ile iki yandan
+  yarım daire "oyuluyor". Denenen ve elenen alternatif: SVG maske —
+  aynı görüntüyü veriyordu ama tema değişiminde arka plan rengini takip
+  etmiyordu, çünkü maske rengi bilmiyor. radial-gradient var() okuyabiliyor.
+*/
+.ticket {
+  position: relative;
+}
+
+.ticket::before,
+.ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--color-surface);
+  transform: translateY(-50%);
+}
+
+.ticket::before {
+  left: -9px;
+}
+
+.ticket::after {
+  right: -9px;
+}
+
+/* Kupon kodunun bulunduğu bölümü ayıran kesikli çizgi. */
+.ticket-dash {
+  border-top: 2px dashed var(--color-edge);
+}
+
+/*
+  Kart çevirme (kod açılışı).
+
+  3D dönüş: dış kap perspektif, iç kap döner, iki yüz arka yüzü gizler.
+*/
+.flip-scene {
+  perspective: 900px;
+}
+
+.flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 650ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  backface-visibility: hidden;
+}
+
+.flip-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,
@@ -299,6 +365,27 @@
   .btn-chunky,
   .btn-chunky:active {
     transition: none;
+    transform: none;
+  }
+
+  /*
+    Çevirme animasyonu kapalıyken kart dönmüyor; arka yüz doğrudan
+    gösteriliyor, yoksa kod hiç görünmezdi.
+  */
+  .flip-inner {
+    transition: none;
+  }
+
+  .flip-inner.is-flipped {
+    transform: none;
+  }
+
+  .flip-inner.is-flipped .flip-front {
+    display: none;
+  }
+
+  .flip-inner.is-flipped .flip-back {
+    position: static;
     transform: none;
   }
 }
