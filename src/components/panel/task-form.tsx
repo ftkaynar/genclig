@@ -15,6 +15,10 @@ export type TaskFormValues = {
   categoryId: string;
   verification: string;
   difficulty: string;
+  taskScope: string;
+  minTeamSize: string;
+  teamBonusXp: string;
+  teamBonusCoin: string;
   icon: string;
   xp: string;
   coin: string;
@@ -36,6 +40,10 @@ export const EMPTY_TASK: TaskFormValues = {
   categoryId: "",
   verification: "photo",
   difficulty: "easy",
+  taskScope: "individual",
+  minTeamSize: "2",
+  teamBonusXp: "0",
+  teamBonusCoin: "0",
   icon: "list-checks",
   xp: "50",
   coin: "50",
@@ -55,6 +63,11 @@ const TYPES = [
   { value: "daily", label: "Günlük" },
   { value: "weekly", label: "Haftalık" },
   { value: "monthly", label: "Aylık" },
+];
+
+const SCOPES = [
+  { value: "individual", label: "Bireysel" },
+  { value: "team", label: "Takım" },
 ];
 
 const VERIFICATIONS = [
@@ -235,6 +248,67 @@ export function TaskForm({
             ))}
           </select>
         </Field>
+
+        <Field label="Kapsam">
+          {/*
+            Bireysel/Takım anahtarı. Takım seçildiğinde eşik ve bonus
+            alanları açılıyor; bireysel görevde bunlar anlamsız olduğu için
+            hiç gösterilmiyor — boş bırakılması gereken alanlar formu
+            gürültülü yapıyordu.
+          */}
+          <div className="flex rounded-lg border border-edge p-1">
+            {SCOPES.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => set("taskScope", item.value)}
+                aria-pressed={values.taskScope === item.value}
+                className={
+                  values.taskScope === item.value
+                    ? "flex-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white"
+                    : "flex-1 rounded-md px-3 py-1.5 text-xs font-medium text-ink-muted"
+                }
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        {values.taskScope === "team" ? (
+          <>
+            <Field label="Eşik (kaç kişi)">
+              <input
+                type="number"
+                min={2}
+                max={10}
+                value={values.minTeamSize}
+                onChange={(event) => set("minTeamSize", event.target.value)}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Takım bonusu XP">
+              <input
+                type="number"
+                min={0}
+                value={values.teamBonusXp}
+                onChange={(event) => set("teamBonusXp", event.target.value)}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Takım bonusu Coin">
+              <input
+                type="number"
+                min={0}
+                value={values.teamBonusCoin}
+                onChange={(event) => set("teamBonusCoin", event.target.value)}
+                className={inputClass}
+              />
+            </Field>
+          </>
+        ) : null}
 
         <Field label="XP">
           <input

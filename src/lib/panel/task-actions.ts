@@ -15,6 +15,10 @@ type Input = {
   categoryId: string;
   verification: string;
   difficulty: string;
+  taskScope: string;
+  minTeamSize: string;
+  teamBonusXp: string;
+  teamBonusCoin: string;
   icon: string;
   xp: string;
   coin: string;
@@ -83,6 +87,32 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     return { error: "Anlık görevde bitiş zamanı zorunlu." };
   }
 
+  /*
+    Takım görevi doğrulaması.
+
+    Eşik sunucuda zorunlu: form alanı gizlenebilir ya da istek elle
+    yazılabilir, oysa min_team_size olmadan award_task_points varsayılan 2
+    ile çalışır ve yönetici hiç istemediği bir eşik almış olur. Bonusu
+    sıfır olan takım görevi de anlamsız — takımca tamamlamanın karşılığı
+    bireysel ödülle aynı kalırdı.
+  */
+  const isTeamTask = input.taskScope === "team";
+  const minTeamSize = toNumberOrNull(input.minTeamSize);
+  const teamBonusXp = toNumberOrNull(input.teamBonusXp) ?? 0;
+  const teamBonusCoin = toNumberOrNull(input.teamBonusCoin) ?? 0;
+
+  if (isTeamTask) {
+    if (minTeamSize === null || minTeamSize < 2 || minTeamSize > 10) {
+      return { error: "Takım görevinde eşik 2 ile 10 arasında olmalı." };
+    }
+    if (teamBonusXp < 0 || teamBonusCoin < 0) {
+      return { error: "Takım bonusu negatif olamaz." };
+    }
+    if (teamBonusXp === 0 && teamBonusCoin === 0) {
+      return { error: "Takım görevinde en az bir bonus değeri girmelisin." };
+    }
+  }
+
   const needsLocation =
     input.verification === "gps" || input.verification === "photo_gps";
   const lat = toNumberOrNull(input.lat);
@@ -111,6 +141,10 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     category_id: Number(input.categoryId),
     verification: input.verification,
     difficulty: input.difficulty,
+    scope: isTeamTask ? "team" : "individual",
+    min_team_size: isTeamTask ? minTeamSize : null,
+    team_bonus_xp: isTeamTask ? teamBonusXp : 0,
+    team_bonus_coin: isTeamTask ? teamBonusCoin : 0,
     icon: input.icon.trim() || null,
     xp,
     coin,

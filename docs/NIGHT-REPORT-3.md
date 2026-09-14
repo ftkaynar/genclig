@@ -286,3 +286,42 @@ daha eklemek gereksizdi. Okuma `useSyncExternalStore` ile —
 `useEffect` + `setState` denendi, lint `set-state-in-effect` ile reddetti
 (aynı kurala D05'te de takılmıştık) ve haklıydı: efektle state yazmak
 fazladan bir render turu demek.
+
+---
+
+## FAZ S — Açık borç kapandı: takım görevi formu
+
+D21 FAZ D'de bildirilen boşluk: panel ve admin görev formlarında takım
+alanları yoktu, takım görevi yalnızca migration seed'iyle gelebiliyordu.
+
+**Form** (`src/components/panel/task-form.tsx`): Zorluk alanının altına
+Bireysel | Takım anahtarı. Takım seçildiğinde **koşullu** olarak eşik
+(2–10), bonus XP ve bonus coin alanları açılıyor. Bireysel görevde
+gösterilmiyor — boş bırakılması gereken alanlar formu gürültülü yapıyordu.
+
+**Ad çakışması (yol boyunca çıktı):** `task-actions.ts` içindeki `Input`
+tipinde `scope` alanı zaten vardı ve **farklı** bir anlam taşıyordu
+(`"panel" | "admin"` — çağıranın hangi panelden geldiği, `municipality_id`
+buna göre belirleniyor). Yeni alan `taskScope` olarak adlandırıldı; aynı
+adı kullanmak, görev kapsamının belediye kimliğini belirleyen mantığı
+sessizce bozardı.
+
+**Sunucu doğrulaması** (`saveTaskAction`):
+- Takım görevinde eşik zorunlu ve 2–10 arasında. Form alanı gizlenebilir ya
+  da istek elle yazılabilir; eşik olmadan `award_task_points` varsayılan 2
+  ile çalışır ve yönetici hiç istemediği bir eşik almış olurdu.
+- Bonus negatif olamaz.
+- İkisi de sıfır olan takım görevi reddediliyor — takımca tamamlamanın
+  karşılığı bireysel ödülle aynı kalırdı.
+- Bireysel görevde bu alanlar sunucuda sıfırlanıyor (`scope: "individual"`,
+  `min_team_size: null`, bonuslar 0).
+
+Düzenleme formu da bu alanları yüklüyor (`loadTaskForEdit`).
+
+**Kanıtlar (yerel psql):**
+- Kolonlar yerinde: `scope` (not null, default `individual`),
+  `min_team_size` (nullable), bonuslar (not null, default 0)
+- Geçersiz kapsam (`'takim'`) → `tasks_scope_check` ihlali
+- Eşik 99 → `tasks_min_team_size_check` ihlali
+- Geçerli takım görevi yazıldı: `team / 3 / 60 / 30`
+- Feed sorgusu üç takım görevini de görüyor (ikisi seed, biri yeni)
