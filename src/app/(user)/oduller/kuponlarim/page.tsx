@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
+import { EmptyState } from "@/components/ui/pills";
 import { relativeTime } from "@/lib/notifications/queries";
 import {
   REDEMPTION_STATUS_LABEL,
@@ -32,15 +33,19 @@ export default async function MyCouponsPage() {
 
       <main className="flex-1 px-4 py-4">
         {redemptions.length === 0 ? (
-          <div className="rounded-2xl border border-edge bg-card px-4 py-8 text-center">
-            <p className="text-sm text-ink-muted">Henüz kuponun yok.</p>
-            <Link
-              href="/oduller"
-              className="mt-3 inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
-            >
-              Ödül havuzuna git
-            </Link>
-          </div>
+          <EmptyState
+            icon="gift"
+            title="Henüz kuponun yok"
+            description="Coin biriktir, ödül havuzundan kupon al."
+            action={
+              <Link
+                href="/oduller"
+                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+              >
+                Ödül havuzuna git
+              </Link>
+            }
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {redemptions.map((item) => (

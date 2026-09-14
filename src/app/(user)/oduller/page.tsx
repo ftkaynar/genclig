@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { RewardCard } from "@/components/rewards/reward-card";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
+import { Icon } from "@/components/ui/icon";
+import { EmptyState } from "@/components/ui/pills";
 import { formatPoints, getUserPoints } from "@/lib/points/queries";
 import { getBadgeNames, getMyBadgeIds, listRewards } from "@/lib/rewards/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +38,8 @@ export default async function RewardsPage() {
       <div className="px-4 pt-3">
         <div className="flex items-center justify-between rounded-2xl border border-edge bg-card px-4 py-3">
           <span className="text-sm text-ink-muted">Bakiyen</span>
-          <span className="rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
+            <Icon name="coins" className="h-4 w-4" />
             {formatPoints(points.coin)} Coin
           </span>
         </div>
@@ -44,9 +47,11 @@ export default async function RewardsPage() {
 
       <main className="flex-1 px-4 py-4">
         {rewards.length === 0 ? (
-          <p className="rounded-2xl border border-edge bg-card px-4 py-8 text-center text-sm text-ink-muted">
-            Şu an ödül yok.
-          </p>
+          <EmptyState
+            icon="gift"
+            title="Şu an ödül yok"
+            description="Belediyen ödül eklediğinde burada listelenecek."
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {rewards.map((reward) => (

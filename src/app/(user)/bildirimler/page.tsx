@@ -2,12 +2,15 @@ import { redirect } from "next/navigation";
 
 import { markAllNotificationsReadAction } from "@/lib/notifications/actions";
 import {
+  NOTIFICATION_ICON,
   NOTIFICATION_LABEL,
   listNotifications,
   relativeTime,
 } from "@/lib/notifications/queries";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
+import { Icon } from "@/components/ui/icon";
+import { EmptyState } from "@/components/ui/pills";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -46,9 +49,11 @@ export default async function NotificationsPage() {
 
       <main className="flex-1 px-4 py-4">
         {notifications.length === 0 ? (
-          <p className="rounded-2xl border border-edge bg-card px-4 py-8 text-center text-sm text-ink-muted">
-            Henüz bildirimin yok.
-          </p>
+          <EmptyState
+            icon="bell"
+            title="Henüz bildirimin yok"
+            description="Görevlerin onaylandığında ve rozet kazandığında burada göreceksin."
+          />
         ) : (
           <ul className="flex flex-col gap-2.5">
             {notifications.map((item) => (
@@ -61,7 +66,11 @@ export default async function NotificationsPage() {
                 }
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-medium text-ink-muted">
+                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-ink-muted">
+                    <Icon
+                      name={NOTIFICATION_ICON[item.type] ?? "bell"}
+                      className="h-3.5 w-3.5"
+                    />
                     {NOTIFICATION_LABEL[item.type] ?? item.type}
                   </span>
                   <span className="text-[11px] text-ink-muted">

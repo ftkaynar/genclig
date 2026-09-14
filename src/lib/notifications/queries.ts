@@ -20,6 +20,16 @@ export const NOTIFICATION_LABEL: Record<string, string> = {
   system: "Sistem",
 };
 
+/** Bildirim türüne göre ikon. */
+export const NOTIFICATION_ICON: Record<string, string> = {
+  submission_approved: "check",
+  submission_rejected: "shield",
+  badge_earned: "award",
+  problem_status: "megaphone",
+  reward_redeemed: "gift",
+  system: "bell",
+};
+
 export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient();
 

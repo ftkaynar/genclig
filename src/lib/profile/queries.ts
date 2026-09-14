@@ -6,6 +6,7 @@ export type BadgeRow = {
   name: string;
   description: string;
   criteria: Record<string, unknown>;
+  icon: string | null;
   xp_bonus: number;
   coin_bonus: number;
   sort: number;
@@ -96,7 +97,7 @@ export async function getBadges(userId: string): Promise<BadgeRow[]> {
   const [{ data: all }, { data: mine }] = await Promise.all([
     supabase
       .from("badges")
-      .select("id,slug,name,description,criteria,xp_bonus,coin_bonus,sort")
+      .select("id,slug,name,description,criteria,icon,xp_bonus,coin_bonus,sort")
       .eq("status", "active")
       .order("sort"),
     supabase.from("user_badges").select("badge_id").eq("user_id", userId),

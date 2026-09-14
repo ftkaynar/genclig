@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Podium } from "@/components/leaderboard/podium";
+import { Icon } from "@/components/ui/icon";
+import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
 import {
@@ -15,9 +18,6 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata = {
   title: "Sıralama — GençLİG",
 };
-
-/** İlk üçün madalya işareti. */
-const MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 export default async function LeaderboardPage({
   searchParams,
@@ -120,46 +120,35 @@ export default async function LeaderboardPage({
       </nav>
 
       <main className="flex-1 px-4 py-4">
-        {myRank ? (
-          <div className="mb-3 rounded-2xl border border-primary/50 bg-card p-3.5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold text-ink">Benim sıram</span>
-              <span className="text-sm font-bold text-primary">
-                {myRank.rank}. / {myRank.scope_size}
-              </span>
-            </div>
-            <p className="mt-1 text-xs text-ink-muted">
-              {formatPoints(myRank.total_xp)} XP
-              {aboveMe
-                ? ` · üstündeki ${aboveMe.username} ile fark ${formatPoints(
-                    aboveMe.total_xp - myRank.total_xp,
-                  )} XP`
-                : myRank.rank === 1
-                  ? " · zirvedesin"
-                  : null}
-            </p>
+        {!missingLocation && rows.length > 0 ? (
+          <div className="mb-3">
+            <Podium rows={rows} currentUserId={user.id} />
           </div>
         ) : null}
 
         {missingLocation ? (
-          <div className="rounded-2xl border border-edge bg-card px-4 py-8 text-center">
-            <p className="text-sm text-ink-muted">
-              Bu sıralamayı görmek için konumunu ayarlaman gerekiyor.
-            </p>
-            <Link
-              href="/ayarlar"
-              className="mt-3 inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
-            >
-              Konumunu ayarla
-            </Link>
-          </div>
+          <EmptyState
+            icon="map-pin"
+            title="Konumun eksik"
+            description="Bu sıralamayı görmek için il, ilçe ve mahalleni ayarlaman gerekiyor."
+            action={
+              <Link
+                href="/ayarlar"
+                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+              >
+                Konumunu ayarla
+              </Link>
+            }
+          />
         ) : rows.length === 0 ? (
-          <p className="rounded-2xl border border-edge bg-card px-4 py-8 text-center text-sm text-ink-muted">
-            Bu dönemde henüz puan toplayan yok.
-          </p>
+          <EmptyState
+            icon="trophy"
+            title="Bu dönemde henüz puan yok"
+            description="İlk görevini tamamla, sıralamada yerini al."
+          />
         ) : (
           <ol className="flex flex-col gap-2">
-            {rows.map((row) => (
+            {rows.filter((row) => row.rank > 3).map((row) => (
               <li
                 key={row.user_id}
                 className={
@@ -169,7 +158,7 @@ export default async function LeaderboardPage({
                 }
               >
                 <span className="w-8 shrink-0 text-center text-sm font-bold text-ink-muted">
-                  {MEDAL[row.rank] ?? row.rank}
+                  {row.rank}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-ink">
@@ -187,6 +176,36 @@ export default async function LeaderboardPage({
           </ol>
         )}
       </main>
+
+      {/*
+        Kendi sıram yapışkan: kullanıcı listeyi kaydırırken kendi konumunu
+        kaybetmemeli. Alt gezinmenin hemen üstünde duruyor.
+      */}
+      {myRank ? (
+        <div className="sticky bottom-[57px] border-t border-edge bg-card px-4 py-2.5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+              {myRank.rank}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold text-ink">
+                Benim sıram · {myRank.scope_size} kişi arasında
+              </span>
+              <span className="block truncate text-[11px] text-ink-muted">
+                {formatPoints(myRank.total_xp)} XP
+                {aboveMe
+                  ? ` · üstündeki ${aboveMe.username} ile fark ${formatPoints(
+                      aboveMe.total_xp - myRank.total_xp,
+                    )} XP`
+                  : myRank.rank === 1
+                    ? " · zirvedesin"
+                    : null}
+              </span>
+            </span>
+            <Icon name="trending-up" className="h-4 w-4 shrink-0 text-primary" />
+          </div>
+        </div>
+      ) : null}
 
       <UserBottomNav active="ranking" />
     </div>

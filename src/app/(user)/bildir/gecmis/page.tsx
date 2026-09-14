@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
+import { EmptyState } from "@/components/ui/pills";
 import { relativeTime } from "@/lib/notifications/queries";
 import {
   KIND_LABEL,
@@ -40,15 +41,19 @@ export default async function MyReportsPage() {
 
       <main className="flex-1 px-4 py-4">
         {reports.length === 0 ? (
-          <div className="rounded-2xl border border-edge bg-card px-4 py-8 text-center">
-            <p className="text-sm text-ink-muted">Henüz bildirim göndermedin.</p>
-            <Link
-              href="/bildir"
-              className="mt-3 inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
-            >
-              İlk bildirimini gönder
-            </Link>
-          </div>
+          <EmptyState
+            icon="megaphone"
+            title="Henüz bildirim göndermedin"
+            description="Mahallende gördüğün bir sorunu ya da fikrini belediyene ilet."
+            action={
+              <Link
+                href="/bildir"
+                className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+              >
+                İlk bildirimini gönder
+              </Link>
+            }
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {reports.map((report, index) => (

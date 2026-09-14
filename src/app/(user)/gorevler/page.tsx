@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { TaskCard } from "@/components/tasks/task-card";
+import { EmptyState } from "@/components/ui/pills";
 import { UserHeader } from "@/components/user-header";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { getSubmissionMap, getViewer, listFeedTasks } from "@/lib/tasks/queries";
@@ -62,9 +63,11 @@ export default async function TasksPage({
 
       <main className="flex-1 px-4 py-4">
         {tasks.length === 0 ? (
-          <p className="rounded-2xl border border-edge bg-card px-4 py-8 text-center text-sm text-ink-muted">
-            Şu an aktif görev yok.
-          </p>
+          <EmptyState
+            icon="list-checks"
+            title="Şu an aktif görev yok"
+            description="Bu filtrede görev bulunmuyor. Diğer sekmelere bakabilirsin."
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {tasks.map((task) => (
