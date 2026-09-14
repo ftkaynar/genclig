@@ -168,7 +168,7 @@ export function FriendsView({
                     username: card.username,
                     avatarUrl: card.avatar_url,
                     level: card.level,
-                    location: null,
+                    district: null,
                   }}
                   stats={{
                     user_id: card.user_id,

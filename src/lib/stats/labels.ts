@@ -71,16 +71,3 @@ export const TIER_LABEL: Record<string, string> = {
   special: "Özel",
 };
 
-/**
- * Kademe yüzeyleri.
- *
- * Tamamen özgün tasarım: hiçbir oyun ya da markanın kartı taklit
- * edilmiyor. Metalik his CSS gradyanı + iç gölge + kenar parıltısıyla
- * kuruluyor; görsel varlık kullanılmıyor.
- */
-export const TIER_SURFACE: Record<string, string> = {
-  bronze: "card-tier-bronze",
-  silver: "card-tier-silver",
-  gold: "card-tier-gold",
-  special: "card-tier-special",
-};

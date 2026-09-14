@@ -380,86 +380,337 @@
 }
 
 /* ---------------------------------------------------------------------------
-   GENÇLİG Kimlik Kartı yüzeyleri
+   GENÇLİG Kimlik Kartı — VIP yüzey sistemi
 
-   Tamamen özgün: hiçbir oyun ya da markanın kart tasarımı taklit
-   edilmiyor, görsel varlık kullanılmıyor. Metalik his üç katmandan
-   geliyor — açılı taban gradyanı, üstte dar bir parlaklık bandı ve
-   içeriden gelen gölge.
+   TAMAMEN ÖZGÜN. Hiçbir oyunun, markanın ya da lisanslı ürünün kartı
+   taklit edilmiyor; dış görsel, logo ya da ticari font kullanılmıyor.
+   Form bilerek yuvarlak köşeli dikdörtgen — kalkan silueti değil.
+
+   Performans: animasyonların hepsi yalnızca `opacity`, `transform` ya da
+   `background-position` oynatıyor. Hiçbiri layout ya da paint
+   tetiklemiyor, bu yüzden düşük güçlü telefonlarda da akıcı.
+   `prefers-reduced-motion` altında hepsi duruyor (dosyanın sonundaki
+   blok).
 --------------------------------------------------------------------------- */
 
-.card-tier {
+.vipcard {
   position: relative;
+  aspect-ratio: 100 / 142;
+  border-radius: 20px;
   isolation: isolate;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.35),
-    inset 0 -2px 6px rgb(0 0 0 / 0.35),
-    0 8px 24px rgb(0 0 0 / 0.35);
+  overflow: hidden;
+  /* Çerçeve kalınlığı: gradyan kenar bu dolgudan görünüyor. */
+  padding: 3px;
 }
 
-/* Parlaklık bandı: kartın üst üçte birinden geçen ince ışık. */
-.card-tier::before {
-  content: "";
+/* --------------------------------------------------------------- çerçeve */
+
+/*
+  Çok duraklı metal kenar. Kademeye göre renk durakları değişiyor;
+  `background-size: 300%` + kayan pozisyon holografik akışı veriyor.
+*/
+.vipcard-frame {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    160deg,
-    rgb(255 255 255 / 0.28) 0%,
-    rgb(255 255 255 / 0.06) 32%,
-    transparent 55%
+  z-index: -2;
+  border-radius: inherit;
+  background-size: 300% 300%;
+  background-position: 0% 50%;
+}
+
+.vipcard-gold .vipcard-frame {
+  background-image: linear-gradient(
+    135deg,
+    #f7e7a6 0%,
+    #d4a02c 18%,
+    #8a5a1e 38%,
+    #f9edb8 55%,
+    #b8791f 74%,
+    #6b4413 88%,
+    #f7e7a6 100%
+  );
+  animation: vip-flow 6s linear infinite;
+}
+
+.vipcard-silver .vipcard-frame {
+  background-image: linear-gradient(
+    135deg,
+    #e6edf5 0%,
+    #9aa6b8 20%,
+    #5d6a7a 42%,
+    #dfe7f0 60%,
+    #8794a6 80%,
+    #e6edf5 100%
+  );
+  animation: vip-flow 9s linear infinite;
+}
+
+/* Bronz mat: akış yok, düz bakır. */
+.vipcard-bronze .vipcard-frame {
+  background-image: linear-gradient(
+    135deg,
+    #b07b4f 0%,
+    #7a4a24 45%,
+    #96663a 100%
   );
 }
 
-.card-tier-bronze {
-  background: linear-gradient(150deg, #7a4a24 0%, #b07b4f 45%, #6b3f1f 100%);
+@keyframes vip-flow {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 300% 50%;
+  }
 }
 
-.card-tier-silver {
-  background: linear-gradient(150deg, #6c7a8c 0%, #b9c4d2 45%, #5d6a7a 100%);
+/* Çerçevenin hemen içindeki ince holografik hat (altın ve efsanede). */
+.vipcard-hololine {
+  position: absolute;
+  inset: 3px;
+  z-index: -1;
+  border-radius: 17px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    #22d3ee,
+    #7c3aed,
+    #ec4899,
+    #22d3ee
+  );
+  background-size: 300% 300%;
+  animation: vip-flow 7s linear infinite;
+  /* Yalnız kenarı boyamak için maske: iç alan kesiliyor. */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
 }
 
-.card-tier-gold {
-  background: linear-gradient(150deg, #a5761a 0%, #f0c04a 45%, #8a5f12 100%);
+/* --------------------------------------------------------------- zemin */
+
+.vipcard-bg {
+  position: absolute;
+  inset: 3px;
+  border-radius: 17px;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 50% 38%,
+      #2a1a4d 0%,
+      #150e30 45%,
+      #0a0618 75%,
+      #050210 100%
+    );
+}
+
+/* Dokulu ince çizgi deseni. */
+.vipcard-texture {
+  position: absolute;
+  inset: 3px;
+  border-radius: 17px;
+  opacity: 0.09;
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgb(255 255 255 / 0.8) 0px,
+    rgb(255 255 255 / 0.8) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
+
+/* --------------------------------------------------------------- efektler */
+
+/*
+  Avatar arkasından ışın patlaması: iki konik gradyan üst üste.
+  Nefes alma yalnızca opacity oynatıyor.
+*/
+.vipcard-rays {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: 190%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  opacity: 0.55;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgb(255 255 255 / 0.16) 0deg 3deg,
+      transparent 3deg 11deg
+    );
+  mask-image: radial-gradient(circle, #000 0%, transparent 62%);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 62%);
+  animation: vip-breathe 4s ease-in-out infinite;
+}
+
+@keyframes vip-breathe {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Merkez mor hale. */
+.vipcard-glow {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 78%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgb(124 58 237 / 0.55) 0%,
+    rgb(124 58 237 / 0.18) 45%,
+    transparent 70%
+  );
+}
+
+.vipcard-glow-strong {
+  background: radial-gradient(
+    circle,
+    rgb(139 92 246 / 0.75) 0%,
+    rgb(34 211 238 / 0.25) 42%,
+    transparent 72%
+  );
+}
+
+/* Üstten geçen ışık süpürmesi. */
+.vipcard-sweep {
+  position: absolute;
+  inset: 3px;
+  border-radius: 17px;
+  overflow: hidden;
+}
+
+.vipcard-sweep::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -40%;
+  width: 45%;
+  height: 220%;
+  transform: rotate(18deg);
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(255 255 255 / 0.18),
+    transparent
+  );
+  animation: vip-sweep 4.5s ease-in-out infinite;
+}
+
+@keyframes vip-sweep {
+  0% {
+    transform: translateX(0) rotate(18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(340%) rotate(18deg);
+  }
+}
+
+/* Kartın çok hafif yüzmesi. */
+.vipcard-float {
+  animation: vip-float 5s ease-in-out infinite;
+}
+
+@keyframes vip-float {
+  0%,
+  100% {
+    transform: translateY(-6px);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+/* --------------------------------------------------------------- yazılar */
+
+/*
+  Altın gradyan yazı. `background-clip: text` ile; düz altın renk
+  denenmişti ve metal hissi vermiyordu.
+*/
+.vip-gold-text {
+  background-image: linear-gradient(
+    180deg,
+    #fff6d5 0%,
+    #f3d27a 35%,
+    #d4a02c 62%,
+    #a8761d 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.vip-silver-text {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #dbe4ef 35%,
+    #9aa6b8 65%,
+    #6d7a8c 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.vip-bronze-text {
+  background-image: linear-gradient(
+    180deg,
+    #f0cdab 0%,
+    #c98f56 40%,
+    #9a6533 70%,
+    #7a4a24 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Kademe etiketinin holografik yazısı. */
+.vip-holo-text {
+  background-image: linear-gradient(
+    100deg,
+    #22d3ee,
+    #a78bfa,
+    #ec4899,
+    #22d3ee
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: vip-flow 5s linear infinite;
 }
 
 /*
-  Özel kademe: koyu taban üzerinde marka moru-cyan holografik kayma.
-  Animasyon yalnızca background-position'ı oynatıyor (layout ya da paint
-  tetiklemiyor), bu yüzden düşük güçlü telefonlarda da akıcı.
+  Kullanıcı adının üstündeki/altındaki ayraç: kenarları saydama giden
+  ince altın çizgi. Süs ikonu bilerek yok — çizgi tek başına daha asil.
 */
-.card-tier-special {
-  background:
-    linear-gradient(
-      115deg,
-      #1a1033 0%,
-      #4c1d95 25%,
-      #22d3ee 45%,
-      #ec4899 65%,
-      #4c1d95 85%,
-      #1a1033 100%
-    );
-  background-size: 300% 300%;
-  animation: genclig-holo 9s ease-in-out infinite;
-}
-
-@keyframes genclig-holo {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* Kart üzerindeki metin okunurluğu için koyu iç katman. */
-.card-inner {
+.vip-rule {
+  height: 1px;
   background: linear-gradient(
-    to bottom,
-    rgb(0 0 0 / 0.15) 0%,
-    rgb(0 0 0 / 0.45) 100%
+    to right,
+    transparent,
+    rgb(212 160 44 / 0.9),
+    transparent
   );
+}
+
+/* İstat barı. */
+.vip-statbar {
+  background: linear-gradient(to right, #22d3ee, #7c3aed);
 }
 
 /*
@@ -488,9 +739,18 @@
   .anim-glow,
   .skeleton,
   .live-dot,
-  .card-tier-special,
-  .node-pulse {
+  .node-pulse,
+  .vipcard-frame,
+  .vipcard-hololine,
+  .vipcard-rays,
+  .vipcard-float,
+  .vip-holo-text {
     animation: none;
+  }
+
+  /* Süpürme tamamen gizleniyor; duran bir parlaklık lekesi tuhaf durur. */
+  .vipcard-sweep::after {
+    display: none;
   }
 
   .btn-chunky,

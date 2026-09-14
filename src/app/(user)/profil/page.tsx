@@ -123,10 +123,9 @@ export default async function ProfilePage() {
                 username: profile.username ?? "kullanici",
                 avatarUrl: profile.avatarUrl,
                 level: points.level,
-                location:
-                  [profile.district, profile.province]
-                    .filter(Boolean)
-                    .join(" · ") || null,
+                // Kartta yalnızca ilçe: il adı bayrakla zaten örtülü ve
+                // iki satır dar sütunda taşıyordu.
+                district: profile.district,
               }}
               stats={cardStats}
               badges={badges
