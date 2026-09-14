@@ -1117,6 +1117,129 @@ rollback;
 
 \echo ''
 \echo '=========================================================='
+\echo 'SENARYO 32: kimlik karti istatlari -- gizlilik ve yazma'
+\echo '=========================================================='
+
+/*
+  B ve C arkadas DEGIL (SENARYO 22 de B-C arkadas olmustu; burada once
+  iliskiyi kaldirip yalitimi temiz olcuyoruz, sonra geri kuruyoruz).
+*/
+delete from public.friendships
+ where (requester_id = :'B' and addressee_id = :'C')
+    or (requester_id = :'C' and addressee_id = :'B');
+
+select public.recompute_user_stats(:'B');
+select public.recompute_user_stats(:'C');
+
+\echo '-- ARKADAS DEGILKEN: B, C nin istat satirini gormemeli'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as b_gordugu_c_istati from public.user_stats where user_id = :'C';
+select count(*) as b_gordugu_kendi from public.user_stats where user_id = :'B';
+rollback;
+
+\echo '-- get_profile_card: arkadas degilken istatlar null'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select is_friend, ovr is null as ovr_gizli, akt is null as akt_gizli
+from public.get_profile_card('rls_c');
+rollback;
+
+\echo '-- ARKADAS OLUNCA gorunur'
+insert into public.friendships (requester_id, addressee_id, status)
+values (:'B', :'C', 'accepted')
+on conflict do nothing;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as b_gordugu_c_istati from public.user_stats where user_id = :'C';
+select is_friend, ovr is not null as ovr_gorunur from public.get_profile_card('rls_c');
+rollback;
+
+\echo '-- kullanici kendi kartina YAZAMAZ'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+update public.user_stats set ovr = 99, tier = 'special' where user_id = :'B';
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+\echo '-- recompute BASKASI icin cagrilamaz'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select public.recompute_user_stats(:'C');
+\echo '(yukarida yetki hatasi bekleniyor)'
+rollback;
+
+\echo '-- my_stats yalniz kendi satirini veriyor'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select user_id = :'B' as kendi_satiri from public.my_stats();
+rollback;
+
+\echo '-- istatlar 0-99 araliginda ve tier tutarli'
+select
+  bool_and(akt between 0 and 99 and sos between 0 and 99
+           and kat between 0 and 99 and kes between 0 and 99
+           and bil between 0 and 99 and azm between 0 and 99
+           and ovr between 0 and 99) as aralik_tamam,
+  bool_and(
+    tier = case when ovr >= 85 then 'special' when ovr >= 70 then 'gold'
+                when ovr >= 50 then 'silver' else 'bronze' end
+  ) as kademe_tutarli
+from public.user_stats;
+
+\echo '-- HESAP SILME tetikleyici yuzunden kirilmamali'
+begin;
+insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                        email_confirmed_at, created_at, updated_at)
+values ('00000000-0000-0000-0000-0000000000f7',
+        '00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+        'silme@t.local','x',now(),now(),now());
+update public.profiles set username='silme_u',
+  district_id=(select id from public.districts where province_id=34 order by name limit 1)
+ where id='00000000-0000-0000-0000-0000000000f7';
+/*
+  Kanal kimligi DOGRUDAN cozuluyor.
+
+  Once public.my_channel_id() kullanilmisti; o fonksiyon auth.uid()
+  okuyor ve bu betik postgres rolunde kostugu icin null donuyordu.
+  Sonuc: channel_id null -> NOT NULL ihlali -> islem abort -> DELETE hic
+  calismadi, yani silme iddiasi hicbir sey sinamiyordu (olculdu).
+*/
+insert into public.channel_messages (channel_id, user_id, body)
+select c.id, '00000000-0000-0000-0000-0000000000f7', 'x'
+from public.channels c
+join public.profiles p on p.district_id = c.district_id
+where p.id = '00000000-0000-0000-0000-0000000000f7'
+limit 1;
+delete from auth.users where id = '00000000-0000-0000-0000-0000000000f7';
+/*
+  psql -q komut etiketlerini bastiriyor, "DELETE 1" gorunmuyor; bu yuzden
+  iddia sayilabilir bir cikti olarak yaziliyor: silme basariliysa hem
+  kullanici hem istat satiri 0 olmali.
+*/
+select
+  (select count(*) from auth.users
+    where id = '00000000-0000-0000-0000-0000000000f7') as kalan_kullanici,
+  (select count(*) from public.user_stats
+    where user_id = '00000000-0000-0000-0000-0000000000f7') as kalan_istat;
+\echo '(ikisi de 0 olmali; FK hatasi GORUNMEMELI)'
+rollback;
+
+\echo '-- anon yetkileri'
+select has_function_privilege('anon', 'public.my_stats()', 'execute') as anon_my_stats,
+       has_table_privilege('anon', 'public.user_stats', 'select') as anon_select,
+       has_table_privilege('authenticated', 'public.user_stats', 'update') as auth_update,
+       has_table_privilege('authenticated', 'public.user_stats', 'insert') as auth_insert;
+
+\echo ''
+\echo '=========================================================='
 \echo 'SON DURUM: provinces sayisi degismemis olmali (81)'
 \echo '=========================================================='
 select count(*) as provinces_toplam from public.provinces;

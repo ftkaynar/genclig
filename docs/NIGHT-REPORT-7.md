@@ -223,3 +223,119 @@ silver  → card-tier-silver   · etiket "Gümüş"
 gold    → card-tier-gold     · etiket "Altın"
 special → card-tier-special  · etiket "Özel"
 ```
+
+---
+
+## FAZ Z — Kapanış
+
+### Bulut
+
+```
+20260921000000_user_stats.sql → uygulandı
+db push --dry-run → tam olarak bu tek migration
+db diff --linked  → No schema changes found
+```
+
+**Bulut REST (anon):** `user_stats` tablosu → **401**, `my_stats` RPC →
+**401**.
+
+### `rls_isolation.sql` — 1225 satır, SENARYO 32
+
+D24'ten beri uyguladığım disiplin: toplam sayıyla yetinmeyip eski koşuyla
+**diff**.
+
+```
+26a27,28
+> ERROR:  permission denied for table user_stats
+> ERROR:  permission denied for function recompute_user_stats
+```
+
+Yalnızca iki **ekleme**; hiçbir eski iddia kaybolmamış. Toplam 26 → 28.
+
+SENARYO 32 doğrulananlar:
+- Arkadaş **değilken**: B, C'nin istat satırını görmüyor (0), kendi
+  satırını görüyor (1); `get_profile_card`'da `ovr`/`akt` **null**
+- Arkadaş **olunca**: satır görünüyor (1), `ovr` dolu
+- Kullanıcı kendi kartına yazamıyor → `permission denied for table`
+- `recompute_user_stats` başkası için çağrılamıyor →
+  `permission denied for function`
+- `my_stats` yalnız kendi satırını veriyor
+- **Tüm istatlar 0-99 aralığında ve tier ↔ ovr tutarlı** (tablo geneli
+  `bool_and` ile)
+- **Hesap silme kırılmıyor:** silme sonrası kullanıcı 0, istat satırı 0
+- anon: `my_stats`, `user_stats` select, authenticated update/insert →
+  hepsi `false`
+
+**Testte bulunan iki kendi hatam:**
+
+1. Silme testinde `public.my_channel_id()` kullanmıştım; o fonksiyon
+   `auth.uid()` okuyor ve betik postgres rolünde koştuğu için **null**
+   dönüyordu → `channel_id` NOT NULL ihlali → işlem abort → **DELETE hiç
+   çalışmadı**, yani silme iddiası hiçbir şey sınamıyordu. Kanal kimliği
+   doğrudan çözülerek düzeltildi.
+2. `psql -q` komut etiketlerini bastırdığı için "DELETE 1" görünmüyordu;
+   iddia "sonra kaç satır kaldı" sayımına çevrildi. Görünmeyen bir çıktıya
+   dayanan iddia, iddia değil.
+
+`provinces` 81, `profiles` 3 — test verisi sızıntısı yok.
+
+### `pnpm check:all`
+
+Her fazın sonunda koşuldu, hepsinde çıkış kodu **0**.
+
+### Telif
+
+Kimlik kartı tasarımı **tamamen özgün**: hiçbir oyunun, markanın ya da
+lisanslı ürünün kartı taklit edilmedi; hiçbir dış görsel, logo veya font
+kullanılmadı. Yüzeyler saf CSS gradyanı, ikonlar zaten projede olan
+lucide kümesinden, renkler GENÇLİG v2 paletinden.
+
+### Bilinçli kapsam dışı
+
+DOKUNMA listesi korundu: marka/oyun görseli taklidi yok, SMS/e-posta yok,
+realtime yok, push yok, çark/çekiliş yok, bölge taşıma yok.
+
+**Duran borçlar:**
+- İstat tazeleme her yazmada anında koşuyor. Kullanıcı sayısı büyürse bu
+  çağrı bir kuyruğa taşınmalı; migration içinde not düşüldü.
+- İlk dolum `do $$ ... loop` ile tek tek; büyük tabloda toplu sorgu ya da
+  arka plan işi gerekir.
+- Rozet kilometre taşları yalnızca `xp_total` kriterli rozetlerde
+  (D22'den beri açık).
+- `/gorevler` kategori filtresi, realtime sohbet, quiz eşiği kolonu
+  (D23-D25'ten) hâlâ açık.
+
+### Sabah görsel turu
+
+1. **`/profil`** — kimlik kartı ortalı ve büyük; kademeye göre metalik
+   yüzey
+2. **Kartı çevir** — "Ayrıntıları gör" ya da alttaki ikinci nokta; arka
+   yüzde altı istat barı, "nasıl artar" ipuçları, özet sayılar, rozetler
+3. **Özel kademe** — holografik kaymanın akıcılığı (OVR 85+ gerekiyor;
+   veritabanından `tier='special'` yapılarak da bakılabilir)
+4. **`prefers-reduced-motion`** — holografik kayma ve düğüm nabzı durmalı,
+   kart yine de doğru görünmeli
+5. **Seviye Yolu** — zigzag düzen, mevcut seviyede nabız, kilitli
+   seviyelerde kilit ikonu, kilometre taşlarında "· burada açılır"
+6. **İlerleme çubuğu** — mevcut seviyenin yanında "Seviye N için X XP"
+7. **`/arkadaslar`** → bir arkadaşın adına dokun → modalda **mini kimlik
+   kartı**
+8. **Arkadaş olmayan** birinin kartı → yalnızca avatar + seviye +
+   "Arkadaş ekle", istat yok
+9. **Bir görev tamamla** → profile dön → AKT ve OVR'ın arttığını gör
+10. **Bir sorun bildir** → KAT'ın arttığını gör
+
+### Dilim özeti
+
+Dört faz, üç commit (S1-S3 birlikte, S4, Z), hepsi push'landı. Bir
+migration (M26) buluta gitti, `db diff --linked` temiz, `check:all` her
+fazda 0.
+
+**Bulduğum ve düzelttiğim dört hata:**
+1. **Hesap silme kırılıyordu** — cascade + AFTER DELETE tetikleyicisi
+   silinmiş kullanıcı için istat yazmaya çalışıyordu (FK ihlali).
+2. **`get_profile_card`'da belirsiz kolon** — OUT parametresi tablo
+   kolonuyla çakışıyordu; yalnızca arkadaş yolunda patlıyordu.
+3. **`create or replace` dönüş tipini değiştiremiyor** — fonksiyonu
+   genişletmek için önce `drop` gerekti.
+4. **Silme testim hiçbir şey sınamıyordu** (yukarıda).
