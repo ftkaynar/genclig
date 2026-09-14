@@ -48,3 +48,24 @@ export async function listDiscoverTasks(): Promise<DiscoverTask[]> {
     categoryName: row.task_categories?.name ?? null,
   }));
 }
+
+export type DistrictStats = {
+  district_name: string;
+  active_tasks: number;
+  weekly_completed: number;
+  channel_id: string | null;
+};
+
+/**
+ * Keşfet'teki "İlçende" kartı.
+ *
+ * security definer RPC: haftalık tamamlanan sayısı başka kullanıcıların
+ * teslimlerini de kapsıyor ve RLS onları gizliyor. Fonksiyon yalnızca
+ * toplu sayı döndürüyor. İlçesi olmayan kullanıcıda null döner.
+ */
+export async function getDistrictStats(): Promise<DistrictStats | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("district_discover_stats");
+  const rows = (data ?? []) as DistrictStats[];
+  return rows[0] ?? null;
+}

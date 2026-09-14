@@ -83,7 +83,13 @@ export function TaskMap({
       center={center}
       zoom={12}
       scrollWheelZoom
-      className="h-72 w-full rounded-2xl border border-edge"
+      /*
+        Keşfet v2te harita kompaktlaştı (ekranın ~%40ı): altındaki keşif
+        şeritleri ilk ekranda görünsün diye. Köşe yuvarlatma ve kenarlık
+        dıştaki kapsayıcıya taşındı, yoksa leaflet kutucukları köşeden
+        taşıyordu.
+      */
+      className="h-[38dvh] max-h-80 min-h-56 w-full"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
