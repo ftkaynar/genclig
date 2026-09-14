@@ -92,6 +92,19 @@ export type ProfileCard = {
   total_xp: number | null;
   badge_count: number | null;
   completed_tasks: number | null;
+  /*
+    İstatlar yalnızca arkadaşlarda dolu geliyor; arkadaş değilken hepsi
+    null. Karar sunucuda (get_profile_card) — istemcide gizlemek, veriyi
+    zaten göndermiş olmak demekti.
+  */
+  akt: number | null;
+  sos: number | null;
+  kat: number | null;
+  kes: number | null;
+  bil: number | null;
+  azm: number | null;
+  ovr: number | null;
+  tier: string | null;
 };
 
 export async function getProfileCardAction(

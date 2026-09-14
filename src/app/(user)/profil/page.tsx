@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { FlipCard } from "@/components/card/flip-card";
 import { Icon } from "@/components/ui/icon";
 import { LevelPath, type LevelNode } from "@/components/profile/level-path";
 import { LevelRing } from "@/components/ui/level-ring";
@@ -19,6 +20,9 @@ import {
 import { relativeTime } from "@/lib/notifications/queries";
 import { getViewerUser } from "@/lib/auth/viewer";
 import { getLevels, getXpBadgeThresholds } from "@/lib/reference/queries";
+import { getMyStats } from "@/lib/stats/queries";
+import { listFriends } from "@/lib/social/queries";
+import { listMyReports } from "@/lib/problems/queries";
 
 export const metadata = {
   title: "Profil — GençLİG",
@@ -39,6 +43,9 @@ export default async function ProfilePage() {
     activity,
     levels,
     xpBadges,
+    cardStats,
+    friends,
+    reports,
   ] = await Promise.all([
     getProfile(user.id),
     getUserPoints(user.id),
@@ -47,6 +54,9 @@ export default async function ProfilePage() {
     getRecentActivity(user.id),
     getLevels(),
     getXpBadgeThresholds(),
+    getMyStats(),
+    listFriends(),
+    listMyReports(),
   ]);
 
   /*
@@ -91,6 +101,40 @@ export default async function ProfilePage() {
       <UserHud title="Profil" />
 
       <main className="flex-1 px-4 py-4">
+        {/*
+          GENÇLİG Kimlik Kartı profilin merkezinde ve ortalı. İstatlar
+          hesaplanamadıysa (yeni hesap, hiç davranış yok) kart
+          gösterilmiyor; boş bir kart "bozuk" gibi duruyordu.
+        */}
+        {cardStats ? (
+          <section className="mb-5 flex justify-center">
+            <FlipCard
+              identity={{
+                username: profile.username ?? "kullanici",
+                avatarUrl: profile.avatarUrl,
+                level: points.level,
+                location:
+                  [profile.district, profile.province]
+                    .filter(Boolean)
+                    .join(" · ") || null,
+              }}
+              stats={cardStats}
+              badges={badges
+                .filter((badge) => badge.earned)
+                .map((badge) => ({
+                  id: badge.id,
+                  name: badge.name,
+                  icon: badge.icon,
+                }))}
+              totals={{
+                tasks: stats.approvedTasks,
+                reports: reports.length,
+                friends: friends.length,
+              }}
+            />
+          </section>
+        ) : null}
+
         <section className="rounded-2xl border border-edge bg-card p-4">
           <div className="flex items-center gap-4">
             <LevelRing

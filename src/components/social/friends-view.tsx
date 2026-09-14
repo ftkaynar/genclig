@@ -13,6 +13,7 @@ import {
   type ProfileCard,
   type SearchResult,
 } from "@/lib/social/actions";
+import { IdentityCard } from "@/components/card/identity-card";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState, XpPill } from "@/components/ui/pills";
 import type { FriendRequestRow, FriendRow } from "@/lib/social/queries";
@@ -155,7 +156,37 @@ export function FriendsView({
           className="fixed inset-0 z-50 flex items-center justify-center bg-brand/80 px-6 backdrop-blur-sm"
         >
           <div className="anim-pop w-full max-w-sm rounded-3xl border border-edge bg-card p-6 text-center">
-            <Avatar url={card.avatar_url} name={card.username} size={72} />
+            {/*
+              Arkadaşsa kimlik kartının mini sürümü; değilse yalnızca
+              avatar ve seviye. İstatlar zaten sunucudan null geliyor.
+            */}
+            {card.is_friend && card.ovr !== null && card.tier ? (
+              <span className="mx-auto block w-fit">
+                <IdentityCard
+                  size="mini"
+                  identity={{
+                    username: card.username,
+                    avatarUrl: card.avatar_url,
+                    level: card.level,
+                    location: null,
+                  }}
+                  stats={{
+                    user_id: card.user_id,
+                    akt: card.akt ?? 0,
+                    sos: card.sos ?? 0,
+                    kat: card.kat ?? 0,
+                    kes: card.kes ?? 0,
+                    bil: card.bil ?? 0,
+                    azm: card.azm ?? 0,
+                    ovr: card.ovr,
+                    tier: card.tier as "bronze" | "silver" | "gold" | "special",
+                    computed_at: "",
+                  }}
+                />
+              </span>
+            ) : (
+              <Avatar url={card.avatar_url} name={card.username} size={72} />
+            )}
             <p className="mt-3 text-lg font-bold text-ink">{card.username}</p>
             <p className="text-sm text-ink-muted">Seviye {card.level}</p>
 
