@@ -47,7 +47,7 @@ export function BalanceSummary({
       <div className="mt-3.5 flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/25 px-3 py-1.5 text-xs font-semibold text-white">
           <Icon name="coins" className="h-3.5 w-3.5" />
-          {formatPoints(points.coin)} Coin
+          {formatPoints(points.coin)} Token
         </span>
 
         {/* Bugünkü kazanç yalnızca sıfırdan büyükse gösteriliyor: "bugün 0 XP"
@@ -56,7 +56,7 @@ export function BalanceSummary({
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white">
             <Icon name="trending-up" className="h-3.5 w-3.5" />
             Bugün +{todayXp} XP
-            {todayCoin ? ` • +${todayCoin} Coin` : null}
+            {todayCoin ? ` • +${todayCoin} Token` : null}
           </span>
         ) : null}
       </div>

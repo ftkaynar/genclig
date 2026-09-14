@@ -3,7 +3,7 @@ import { Icon } from "./icon";
 /*
   Ortak "hap" bileşenleri.
 
-  XP ve Coin her ekranda aynı görünmeli; renk ve ikon seçimini her sayfada
+  XP ve Token her ekranda aynı görünmeli; renk ve ikon seçimini her sayfada
   tekrarlamak, biri değiştiğinde diğerlerinin geride kalması demekti.
 */
 
@@ -31,10 +31,17 @@ export function CoinPill({
   value,
   prefix = "+",
   className = "",
+  unit = true,
 }: {
   value: number;
   prefix?: string;
   className?: string;
+  /**
+   * Birim yazısı ("Token"). Dar yerlerde (görev kutucuğu ızgarası)
+   * kapatılabiliyor; orada ikon zaten birimi anlatıyor ve metin
+   * kutucuğu taşırıyordu.
+   */
+  unit?: boolean;
 }) {
   return (
     <span
@@ -43,6 +50,7 @@ export function CoinPill({
       <Icon name="coins" className="h-3.5 w-3.5" />
       {prefix}
       {value}
+      {unit ? " Token" : null}
     </span>
   );
 }

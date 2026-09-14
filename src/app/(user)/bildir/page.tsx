@@ -27,7 +27,7 @@ export default async function ReportPage() {
       <main className="flex-1 px-4 py-4">
         <p className="mb-4 text-sm text-ink-muted">
           Mahallende gördüğün bir sorunu, bir öneriyi ya da proje fikrini
-          belediyene ilet. Her bildirim +25 XP ve +10 Coin kazandırır.
+          belediyene ilet. Her bildirim +25 XP ve +10 Token kazandırır.
         </p>
 
         <ReportForm userId={user.id} categories={categories} />

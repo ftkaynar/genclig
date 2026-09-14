@@ -32,7 +32,7 @@ export function TaskCardCompact({ task }: { task: TaskRow }) {
 
         <span className="mt-auto flex flex-wrap items-center gap-1.5">
           <XpPill value={task.xp} />
-          <CoinPill value={task.coin} />
+          <CoinPill value={task.coin} unit={false} />
         </span>
       </Link>
     </li>

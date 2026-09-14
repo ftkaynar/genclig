@@ -351,7 +351,7 @@ export function TaskForm({
               />
             </Field>
 
-            <Field label="Takım bonusu Coin">
+            <Field label="Takım bonusu Token">
               <input
                 type="number"
                 min={0}
@@ -372,7 +372,7 @@ export function TaskForm({
           />
         </Field>
 
-        <Field label="Coin">
+        <Field label="Token">
           <input
             type="number"
             value={values.coin}

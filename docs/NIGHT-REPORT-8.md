@@ -77,3 +77,83 @@ D26'daki flip korundu, yeni karta hizalandı:
 Ön yüz VIP kart, arka yüz altı istatın bar kırılımı + "nasıl artar"
 ipuçları + özet sayılar + rozet ızgarası. Altında ön/arka nokta
 göstergesi ve "Ayrıntıları gör" düğmesi.
+
+---
+
+## FAZ R — Rozet görünürlüğü
+
+**Önceki sorun ölçüldü:** kilitli rozette rozetin **kendi ikonu yerine**
+kilit ikonu gösteriliyordu (`name={badge.earned ? badge.icon : "lock"}`).
+Kullanıcı neyi kazanacağını göremiyordu ve bütün kilitliler birbirinin
+aynısıydı.
+
+**Yeni davranış:**
+- **Kazanılan:** altın tonda dolu, `badge-earned` parıltısı, altında
+  kazanım tarihi
+- **Kilitli:** **kendi ikonu duruyor** — soluk ama seçilebilir netlikte —
+  ve sağ alt köşesine küçük kilit rozeti biniyor; altında kriter metni ve
+  varsa ilerleme çubuğu + "3/10"
+
+**İlerleme hesabı** `getBadges` içinde: `total_tasks`, `category_tasks`,
+`problem_reports`, `xp_total` kriterleri için sayaçlar **tek seferde**
+toplanıyor — her rozet için ayrı sorgu, rozet sayısı kadar veritabanı turu
+demekti. Tanınmayan kriter tipinde ilerleme `null`; uydurma bir oran
+göstermek yerine hiç göstermemek doğrusu.
+
+**Rozet detay modalı:** ad, açıklama, "Nasıl kazanılır", ilerleme ya da
+kazanım tarihi, rozet ödülü.
+
+### Kanıt
+
+`/profil` HTML'inde **yedi rozetin de kendi ikonu** render ediliyor:
+
+```
+sparkles 1 · tree-pine 1 · landmark 1 · users 2 · book-open 1
+megaphone 2 · trophy 4
+```
+
+Kilit ikonları ayrıca var (`lucide-lock`), yani ikonun **yerine** değil
+**üstüne** biniyor. Kriter metinleri ve ilerleme sayıları HTML'de:
+"1 görev tamamla", "10 görev tamamla", "5 görev tamamla"…
+
+---
+
+## FAZ T — Coin → Token (yalnızca görünen metin)
+
+**Kod ve veritabanı DEĞİŞMEDİ:** `coin_transactions`, `coin_cost`,
+`coin_bonus`, `total_coin`, RPC adları, değişken adları, `text-coin`
+sınıfları — hepsi aynen duruyor. Migration açılmadı.
+
+Değişen yerler: bakiye barları, HUD hapı, ödül maliyetleri, satın alma
+onayı ("500 Token harcanacak"), eksik bakiye çipi ("120 Token daha"),
+görev ödül hapları, quiz sonuç ekranı, bildir sayfası, kuponlarım boş
+durumu, profil bakiye etiketi, panel/admin form etiketleri ("Token
+bedeli", "Token bonusu", "Takım bonusu Token"), admin hata mesajı.
+
+**`CoinPill`'e `unit` seçeneği eklendi.** Dar yerlerde (görev kutucuğu
+ızgarası, kompakt kart) "Token" metni kutucuğu taşırıyordu; orada ikon
+zaten birimi anlatıyor, birim yazısı kapatıldı. Geniş yerlerde açık.
+
+### Veritabanı mesajı — sapma ve gerekçe
+
+`redeem_reward` fonksiyonunun hata mesajı veritabanında
+**"Yeterli coin'in yok…"** diyor ve bu kullanıcıya görünüyor. Kalıcı
+düzeltme migration gerektiriyor, migration ise bu dilimin DOKUNMA
+listesinde.
+
+Çözüm: metin gösterilmeden hemen önce eylem katmanında çevriliyor
+(`error.message.replace(/coin/gi, "Token")`). Kalıcı çözüm — mesajı
+migration'da değiştirmek — bir sonraki şema dilimine **borç** yazıldı ve
+kod içine yorumla not düşüldü.
+
+### Kanıt (yerel dev sunucu, oturumlu)
+
+```
+rota        "Token" geçişi   kullanıcı metninde "Coin"
+/oduller         12                    0
+/profil           6                    0
+/                10                    0
+```
+
+Kodda kalan `coin` geçişlerinin hepsi kod tanımlayıcısı, yorum ya da
+lucide ikon adı (`coins`) — kullanıcı metni değil.

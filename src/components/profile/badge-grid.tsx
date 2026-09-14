@@ -1,0 +1,210 @@
+"use client";
+
+import { useState } from "react";
+
+import { Icon } from "@/components/ui/icon";
+
+export type BadgeItem = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string | null;
+  earned: boolean;
+  earned_at: string | null;
+  criteriaText: string;
+  progress: { current: number; target: number } | null;
+  xp_bonus: number;
+  coin_bonus: number;
+};
+
+/*
+  Rozet ızgarası.
+
+  ÖNCEKİ SORUN: kilitli rozette rozetin kendi ikonu yerine kilit ikonu
+  gösteriliyordu; kullanıcı neyi kazanacağını göremiyordu ve bütün
+  kilitliler birbirinin aynısıydı.
+
+  Yeni davranış: kilitli rozette de KENDİ ikonu duruyor — soluk ama
+  seçilebilir netlikte (gri-mor) — ve üstüne küçük bir kilit rozeti
+  biniyor. Kazanılan rozet dolu renkte ve hafif parıltılı.
+*/
+function badgeDate(value: string): string {
+  return new Date(value).toLocaleDateString("tr-TR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
+  const [open, setOpen] = useState<BadgeItem | null>(null);
+
+  if (badges.length === 0) {
+    return (
+      <p className="mt-2 text-sm text-ink-muted">Henüz rozet tanımlanmamış.</p>
+    );
+  }
+
+  return (
+    <>
+      <ul className="mt-3 grid grid-cols-3 gap-2.5">
+        {badges.map((badge) => {
+          const ratio = badge.progress
+            ? Math.min(
+                100,
+                Math.round(
+                  (badge.progress.current /
+                    Math.max(1, badge.progress.target)) *
+                    100,
+                ),
+              )
+            : 0;
+
+          return (
+            <li key={badge.id}>
+              <button
+                type="button"
+                onClick={() => setOpen(badge)}
+                className={`flex w-full flex-col items-center rounded-xl border p-2.5 text-center transition-colors ${
+                  badge.earned
+                    ? "border-coin/50 bg-coin/10"
+                    : "border-edge bg-surface hover:border-primary/40"
+                }`}
+              >
+                <span className="relative">
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                      badge.earned
+                        ? "badge-earned bg-coin/20 text-coin"
+                        : "bg-edge/40 text-ink-muted/70"
+                    }`}
+                  >
+                    <Icon name={badge.icon ?? "award"} className="h-6 w-6" />
+                  </span>
+
+                  {/* Kilit rozeti: ikonun üstünde, onu gizlemeden. */}
+                  {!badge.earned ? (
+                    <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-edge bg-card">
+                      <Icon
+                        name="lock"
+                        className="h-2.5 w-2.5 text-ink-muted"
+                      />
+                    </span>
+                  ) : null}
+                </span>
+
+                <span
+                  className={`mt-1.5 line-clamp-2 text-[11px] font-semibold ${
+                    badge.earned ? "text-ink" : "text-ink-muted"
+                  }`}
+                >
+                  {badge.name}
+                </span>
+
+                {/* Kilitliyse kriter + ilerleme; kazanılmışsa tarih. */}
+                {badge.earned ? (
+                  badge.earned_at ? (
+                    <span className="mt-0.5 text-[9px] text-coin">
+                      {badgeDate(badge.earned_at)}
+                    </span>
+                  ) : null
+                ) : (
+                  <>
+                    <span className="mt-0.5 line-clamp-2 text-[9px] leading-tight text-ink-muted">
+                      {badge.criteriaText}
+                    </span>
+                    {badge.progress ? (
+                      <>
+                        <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-edge">
+                          <span
+                            className="brand-gradient block h-full rounded-full"
+                            style={{ width: `${ratio}%` }}
+                          />
+                        </span>
+                        <span className="mt-0.5 text-[9px] font-semibold text-primary">
+                          {badge.progress.current}/{badge.progress.target}
+                        </span>
+                      </>
+                    ) : null}
+                  </>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* --------------------------------------------------- detay modalı */}
+      {open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-brand/80 px-6 backdrop-blur-sm"
+        >
+          <div className="anim-pop w-full max-w-sm rounded-3xl border border-edge bg-card p-6 text-center">
+            <span
+              className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
+                open.earned
+                  ? "badge-earned bg-coin/20 text-coin"
+                  : "bg-edge/40 text-ink-muted/70"
+              }`}
+            >
+              <Icon name={open.icon ?? "award"} className="h-8 w-8" />
+            </span>
+
+            <p className="mt-3 text-lg font-bold text-ink">{open.name}</p>
+            <p className="mt-1 text-sm text-ink-muted">{open.description}</p>
+
+            <p className="mt-3 rounded-xl bg-surface px-3.5 py-2.5 text-xs text-ink-muted">
+              <strong className="text-ink">Nasıl kazanılır:</strong>{" "}
+              {open.criteriaText}
+            </p>
+
+            {open.earned ? (
+              <p className="mt-3 text-sm font-semibold text-coin">
+                {open.earned_at
+                  ? `${badgeDate(open.earned_at)} tarihinde kazandın`
+                  : "Kazanıldı"}
+              </p>
+            ) : open.progress ? (
+              <div className="mt-3">
+                <span className="block h-2 w-full overflow-hidden rounded-full bg-surface">
+                  <span
+                    className="brand-gradient block h-full rounded-full"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.round(
+                          (open.progress.current /
+                            Math.max(1, open.progress.target)) *
+                            100,
+                        ),
+                      )}%`,
+                    }}
+                  />
+                </span>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {open.progress.current} / {open.progress.target}
+                </p>
+              </div>
+            ) : null}
+
+            {open.xp_bonus > 0 || open.coin_bonus > 0 ? (
+              <p className="mt-2 text-xs text-ink-muted">
+                Ödül: +{open.xp_bonus} XP • +{open.coin_bonus} Token
+              </p>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => setOpen(null)}
+              className="mt-5 w-full rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}

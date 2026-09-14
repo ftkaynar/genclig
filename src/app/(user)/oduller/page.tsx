@@ -81,7 +81,7 @@ export default async function RewardsPage() {
           <span className="text-xs text-ink-muted">Bakiyen</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
             <Icon name="coins" className="h-4 w-4" />
-            {formatPoints(points.coin)} Coin
+            {formatPoints(points.coin)} Token
           </span>
         </div>
       </div>

@@ -166,11 +166,11 @@ export async function UserHud({ title }: { title?: string }) {
         <span className="flex shrink-0 items-center gap-1.5">
           <Link
             href="/oduller"
-            aria-label={`${points.coin} coin, Ödüller'e git`}
+            aria-label={`${points.coin} Token, Ödüller'e git`}
             className="inline-flex items-center gap-1 rounded-full bg-coin/15 px-2.5 py-1 text-xs font-bold text-coin"
           >
             <Icon name="coins" className="h-3.5 w-3.5" />
-            {formatPoints(points.coin)}
+            {formatPoints(points.coin)} Token
           </Link>
           <BellRefresher />
           <NotificationBell />

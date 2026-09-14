@@ -250,7 +250,7 @@ export default async function UserHomePage() {
               Şehrin için bildir
             </span>
             <span className="block text-[11px] text-ink-muted">
-              Sorun, öneri ya da proje · +25 XP • +10 Coin
+              Sorun, öneri ya da proje · +25 XP • +10 Token
             </span>
           </span>
           <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />

@@ -213,7 +213,7 @@ export async function upsertRewardAction(input: {
   };
 
   if (payload.coin_cost <= 0) {
-    return { error: "Coin bedeli sıfırdan büyük olmalı." };
+    return { error: "Token bedeli sıfırdan büyük olmalı." };
   }
 
   const { data, error } = input.id

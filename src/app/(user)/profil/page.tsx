@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BadgeGrid } from "@/components/profile/badge-grid";
 import { FlipCard } from "@/components/card/flip-card";
 import { Icon } from "@/components/ui/icon";
 import { LevelPath, type LevelNode } from "@/components/profile/level-path";
@@ -212,7 +213,7 @@ export default async function ProfilePage() {
             <StatTile
               icon="coins"
               value={formatPoints(points.coin)}
-              label="Coin"
+              label="Token"
               tone="text-coin"
             />
             <StatTile
@@ -245,53 +246,20 @@ export default async function ProfilePage() {
             Rozetlerim ({earnedCount}/{badges.length})
           </h2>
 
-          {badges.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-muted">
-              Henüz rozet tanımlanmamış.
-            </p>
-          ) : (
-            <ul className="mt-3 grid grid-cols-3 gap-2.5">
-              {badges.map((badge) => (
-                <li
-                  key={badge.id}
-                  className={
-                    badge.earned
-                      ? "rounded-xl border border-primary/50 bg-primary/5 p-2.5 text-center"
-                      : "rounded-xl border border-edge bg-surface p-2.5 text-center"
-                  }
-                >
-                  <span
-                    className={
-                      badge.earned
-                        ? "mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary"
-                        : "mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-edge/50 text-ink-muted"
-                    }
-                  >
-                    <Icon
-                      name={badge.earned ? badge.icon : "lock"}
-                      className="h-5 w-5"
-                    />
-                  </span>
-
-                  <p
-                    className={
-                      badge.earned
-                        ? "mt-1.5 text-[11px] font-semibold leading-tight text-ink"
-                        : "mt-1.5 text-[11px] font-semibold leading-tight text-ink-muted"
-                    }
-                  >
-                    {badge.name}
-                  </p>
-
-                  {!badge.earned ? (
-                    <p className="mt-0.5 text-[10px] leading-tight text-ink-muted">
-                      {criteriaText(badge.criteria)}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
+          <BadgeGrid
+            badges={badges.map((badge) => ({
+              id: badge.id,
+              name: badge.name,
+              description: badge.description,
+              icon: badge.icon,
+              earned: badge.earned,
+              earned_at: badge.earned_at,
+              criteriaText: criteriaText(badge.criteria),
+              progress: badge.progress,
+              xp_bonus: badge.xp_bonus,
+              coin_bonus: badge.coin_bonus,
+            }))}
+          />
         </section>
 
         <section className="mt-4 rounded-2xl border border-edge bg-card p-4">

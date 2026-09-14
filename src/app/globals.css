@@ -733,6 +733,11 @@
   animation: genclig-node-pulse 2.2s ease-out infinite;
 }
 
+/* Kazanılan rozetin hafif parıltısı. */
+.badge-earned {
+  box-shadow: 0 0 12px color-mix(in oklab, var(--color-coin) 45%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,

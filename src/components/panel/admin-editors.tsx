@@ -33,7 +33,7 @@ export function BadgeCreator() {
           hint: 'Desteklenen tipler: total_tasks, category_tasks, problem_reports, xp_total',
         },
         { name: "xpBonus", label: "XP bonusu", type: "number", defaultValue: "0" },
-        { name: "coinBonus", label: "Coin bonusu", type: "number", defaultValue: "0" },
+        { name: "coinBonus", label: "Token bonusu", type: "number", defaultValue: "0" },
       ]}
       onSubmit={(values) =>
         upsertBadgeAction({
@@ -57,7 +57,7 @@ export function RewardCreator() {
       fields={[
         { name: "title", label: "Başlık" },
         { name: "description", label: "Açıklama", type: "textarea" },
-        { name: "coinCost", label: "Coin bedeli", type: "number", defaultValue: "100" },
+        { name: "coinCost", label: "Token bedeli", type: "number", defaultValue: "100" },
         { name: "minLevel", label: "En az seviye", type: "number", defaultValue: "1" },
         {
           name: "stock",

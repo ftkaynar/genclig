@@ -166,7 +166,7 @@ export function TaskCard({
               etiketi" sütunu gibi okunuyor, göz tek yerde tarıyor. */}
           <span className="flex shrink-0 flex-col items-end justify-center gap-1.5">
             <XpPill value={task.xp} />
-            <CoinPill value={task.coin} />
+            <CoinPill value={task.coin} unit={false} />
             <Icon
               name="chevron-right"
               className="mt-1 h-4 w-4 text-ink-muted transition-transform group-hover:translate-x-0.5"

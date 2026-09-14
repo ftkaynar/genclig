@@ -33,7 +33,7 @@ export default async function MyCouponsPage() {
           <EmptyState
             icon="gift"
             title="Henüz kuponun yok"
-            description="Coin biriktir, ödül havuzundan kupon al."
+            description="Token biriktir, ödül havuzundan kupon al."
             action={
               <Link
                 href="/oduller"

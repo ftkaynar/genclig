@@ -9,6 +9,13 @@ export type BadgeRow = {
   icon: string | null;
   xp_bonus: number;
   coin_bonus: number;
+  /** Kazanıldıysa tarih; kazanılmadıysa null. */
+  earned_at: string | null;
+  /**
+   * Kriterdeki ilerleme. Hesaplanamayan kriter tiplerinde null —
+   * uydurma bir oran göstermek kullanıcıyı yanıltırdı.
+   */
+  progress: { current: number; target: number } | null;
   sort: number;
   earned: boolean;
 };
@@ -94,21 +101,99 @@ export async function getProfile(userId: string): Promise<ProfileData> {
 export async function getBadges(userId: string): Promise<BadgeRow[]> {
   const supabase = await createClient();
 
-  const [{ data: all }, { data: mine }] = await Promise.all([
-    supabase
-      .from("badges")
-      .select("id,slug,name,description,criteria,icon,xp_bonus,coin_bonus,sort")
-      .eq("status", "active")
-      .order("sort"),
-    supabase.from("user_badges").select("badge_id").eq("user_id", userId),
-  ]);
+  /*
+    Rozet ilerlemesi için gereken sayaçlar tek seferde toplanıyor.
+    Her rozet için ayrı sorgu, rozet sayısı kadar veritabanı turu demekti.
+  */
+  const [{ data: all }, { data: mine }, { data: subs }, { count: reportCount }, { data: xpRows }] =
+    await Promise.all([
+      supabase
+        .from("badges")
+        .select("id,slug,name,description,criteria,icon,xp_bonus,coin_bonus,sort")
+        .eq("status", "active")
+        .order("sort"),
+      supabase
+        .from("user_badges")
+        .select("badge_id,earned_at")
+        .eq("user_id", userId),
+      supabase
+        .from("task_submissions")
+        .select("status,tasks(task_categories(slug))")
+        .eq("user_id", userId)
+        .eq("status", "approved"),
+      supabase
+        .from("problem_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId),
+      supabase
+        .from("xp_transactions")
+        .select("amount")
+        .eq("user_id", userId),
+    ]);
 
-  const earned = new Set((mine ?? []).map((row) => row.badge_id));
+  const earnedAt = new Map(
+    (mine ?? []).map((row) => [row.badge_id as string, row.earned_at as string]),
+  );
 
-  return (all ?? []).map((badge) => ({
-    ...(badge as unknown as Omit<BadgeRow, "earned">),
-    earned: earned.has(badge.id),
-  }));
+  const submissions = (subs ?? []) as unknown as {
+    tasks: { task_categories: { slug: string } | null } | null;
+  }[];
+
+  const totalTasks = submissions.length;
+
+  const byCategory = new Map<string, number>();
+  for (const row of submissions) {
+    const slug = row.tasks?.task_categories?.slug;
+    if (slug) byCategory.set(slug, (byCategory.get(slug) ?? 0) + 1);
+  }
+
+  const totalXp = (xpRows ?? []).reduce(
+    (sum, row) => sum + (row.amount as number),
+    0,
+  );
+
+  /*
+    Desteklenen kriter tipleri badges migration'ındakiyle aynı. Tanınmayan
+    bir tip gelirse ilerleme null dönüyor — uydurma bir oran göstermek
+    yerine hiç göstermemek doğrusu.
+  */
+  function progressFor(
+    criteria: Record<string, unknown>,
+  ): { current: number; target: number } | null {
+    const type = criteria?.type;
+
+    if (type === "total_tasks") {
+      return { current: totalTasks, target: Number(criteria.count ?? 0) };
+    }
+    if (type === "category_tasks") {
+      const slug = String(criteria.category ?? "");
+      return {
+        current: byCategory.get(slug) ?? 0,
+        target: Number(criteria.count ?? 0),
+      };
+    }
+    if (type === "problem_reports") {
+      return { current: reportCount ?? 0, target: Number(criteria.count ?? 0) };
+    }
+    if (type === "xp_total") {
+      return { current: totalXp, target: Number(criteria.amount ?? 0) };
+    }
+    return null;
+  }
+
+  return (all ?? []).map((badge) => {
+    const criteria = badge.criteria as Record<string, unknown>;
+    const earned = earnedAt.has(badge.id);
+    return {
+      ...(badge as unknown as Omit<
+        BadgeRow,
+        "earned" | "earned_at" | "progress"
+      >),
+      earned,
+      earned_at: earnedAt.get(badge.id) ?? null,
+      progress: earned ? null : progressFor(criteria),
+    };
+  });
 }
 
 export async function getProfileStats(userId: string): Promise<ProfileStats> {

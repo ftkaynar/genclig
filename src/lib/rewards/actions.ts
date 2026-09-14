@@ -25,9 +25,21 @@ export async function redeemRewardAction(
 
   if (error) {
     const known = ["alınamıyor", "tükendi", "seviyeye", "rozete", "coin"];
+    /*
+      "Coin" → "Token" yeniden adlandırması yalnızca kullanıcıya görünen
+      metinde. `redeem_reward` fonksiyonunun hata mesajı veritabanında
+      "Yeterli coin'in yok…" diyor ve bu dilimde migration yasak
+      (DOKUNMA listesi), bu yüzden metin burada — gösterilmeden hemen
+      önce — çevriliyor.
+
+      Kalıcı çözüm mesajı migration'da değiştirmek; o iş bir sonraki
+      şema dilimine borç yazıldı.
+    */
+    const message = error.message.replace(/coin/gi, "Token");
+
     return {
       error: known.some((needle) => error.message.includes(needle))
-        ? error.message
+        ? message
         : "Ödül alınamadı. Lütfen tekrar dene.",
     };
   }

@@ -84,7 +84,7 @@ export function QuizRunner({
 
           {result.passed ? (
             <p className="mt-2 text-sm font-semibold text-status-success">
-              +{xp} XP • +{coin} Coin hesabına yazıldı.
+              +{xp} XP • +{coin} Token hesabına yazıldı.
             </p>
           ) : (
             <p className="mt-2 text-xs text-ink-muted">

@@ -65,7 +65,7 @@ export default async function PanelTasksPage() {
                 <span className="text-[11px] font-medium text-ink-muted">
                   {TASK_TYPE_LABEL[task.type] ?? task.type} ·{" "}
                   {VERIFICATION_LABEL[task.verification] ?? task.verification} ·{" "}
-                  +{task.xp} XP / +{task.coin} Coin
+                  +{task.xp} XP / +{task.coin} Token
                 </span>
                 <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink">
                   {STATUS_LABEL[task.status] ?? task.status}

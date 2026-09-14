@@ -113,7 +113,7 @@ export function TaskMap({
           <Popup>
             <span className="block text-sm font-semibold">{task.title}</span>
             <span className="block text-xs">
-              +{task.xp} XP • +{task.coin} Coin
+              +{task.xp} XP • +{task.coin} Token
             </span>
             <a
               href={`/gorevler/${task.id}`}

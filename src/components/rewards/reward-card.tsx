@@ -169,7 +169,7 @@ export function RewardCard({
   const costPill = (
     <span className="inline-flex items-center gap-1 rounded-full bg-coin/20 px-3 py-1 text-sm font-bold text-coin">
       <Icon name="coins" className="h-4 w-4" />
-      {reward.coin_cost}
+      {reward.coin_cost} Token
     </span>
   );
 
@@ -196,7 +196,7 @@ export function RewardCard({
         {!affordable ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-status-danger/15 px-2 py-0.5 text-[10px] font-semibold text-status-danger">
             <Icon name="lock" className="h-3 w-3" />
-            {reward.coin_cost - coinBalance} coin daha
+            {reward.coin_cost - coinBalance} Token daha
           </span>
         ) : null}
       </span>
@@ -213,7 +213,7 @@ export function RewardCard({
       {confirming ? (
         <div className="mt-3 rounded-xl border border-edge bg-surface p-3">
           <p className="text-xs text-ink">
-            {reward.coin_cost} coin harcanacak. Onaylıyor musun?
+            {reward.coin_cost} Token harcanacak. Onaylıyor musun?
           </p>
           <div className="mt-2.5 flex gap-2">
             <button
