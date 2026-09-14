@@ -7,6 +7,10 @@ gereken adımlar. Buradaki SQL'ler **Supabase Studio > SQL Editor**'de çalışt
 
 ## 1. İlk süper admin atama
 
+> **Durum: YAPILDI.** `ftkaynar@gmail.com` (id `ca927d96…`) 2026-09-15
+> tarihinde süper admin olarak atandı. Hesap zaten kayıtlı ve doğrulanmıştı;
+> yeni kullanıcı oluşturulmadı. Aşağıdaki yöntem sonraki adminler için geçerli.
+
 Uygulamada hiçbir yerden süper admin atanamaz — yumurta-tavuk sorunu: rol vermek
 için süper admin olmak gerekiyor. İlki veritabanından elle verilir.
 
