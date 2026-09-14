@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatRemaining } from "@/lib/tasks/labels";
+import {
+  formatRemaining,
+  formatStartsIn,
+  taskTimeState,
+  type TaskTimeState,
+} from "@/lib/tasks/labels";
 import { getViewerUser } from "@/lib/auth/viewer";
 
 /*
@@ -39,6 +44,7 @@ export type TaskRow = {
   lat: number | null;
   lng: number | null;
   radius_m: number | null;
+  starts_at: string | null;
   ends_at: string | null;
   capacity: number | null;
   icon: string | null;
@@ -52,19 +58,34 @@ export type TaskRow = {
    * güncellemeye kadar sunucunun gördüğü zamanı gösteriyor.
    */
   remainingLabel: string | null;
+  /**
+   * Zaman durumu ve başlangıç geri sayımının ilk metni — ikisi de
+   * sunucuda hesaplanıyor. Bileşen içinde `Date.now()` çağırmak render'ı
+   * saf olmaktan çıkarıyor (D07 ve D23'te aynı kurala takılmıştık).
+   */
+  timeState: TaskTimeState;
+  startsInLabel: string | null;
 };
 
 const TASK_FIELDS =
-  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,ends_at,capacity,task_categories(slug,name,icon)";
+  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,starts_at,ends_at,capacity,task_categories(slug,name,icon)";
 
 function withRemainingLabel(rows: unknown[]): TaskRow[] {
   const now = Date.now();
-  return (rows as TaskRow[]).map((row) => ({
-    ...row,
-    remainingLabel: row.ends_at
-      ? formatRemaining(new Date(row.ends_at).getTime() - now)
-      : null,
-  }));
+  return (rows as TaskRow[]).map((row) => {
+    const timeState = taskTimeState(row.starts_at, row.ends_at, now);
+    return {
+      ...row,
+      remainingLabel: row.ends_at
+        ? formatRemaining(new Date(row.ends_at).getTime() - now)
+        : null,
+      timeState,
+      startsInLabel:
+        timeState === "upcoming" && row.starts_at
+          ? formatStartsIn(new Date(row.starts_at).getTime() - now)
+          : null,
+    };
+  });
 }
 
 /**
@@ -86,6 +107,8 @@ export async function listFeedTasks(
     .select(TASK_FIELDS)
     .eq("status", "active")
     .in("type", [...FEED_TASK_TYPES])
+    // Süresi dolmuş görevler feed'den düşüyor; başlamamış olanlar
+    // DÜŞMÜYOR — kullanıcı yaklaşan etkinliği önceden görebilmeli.
     .or(`ends_at.is.null,ends_at.gt.${new Date().toISOString()}`)
     .order("created_at", { ascending: true });
 

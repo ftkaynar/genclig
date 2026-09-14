@@ -16,6 +16,7 @@ import {
   SUBMISSION_STATUS_LABEL,
   TASK_TYPE_LABEL,
   VERIFICATION_LABEL,
+  formatDateTime,
 } from "@/lib/tasks/labels";
 import { QuizRunner } from "@/components/quiz/quiz-runner";
 import { SubmitTask } from "@/components/tasks/submit-task";
@@ -74,8 +75,19 @@ export default async function TaskDetailPage({
     denemeyi engellemiyor; kısıt da (task_submissions_open_unique) yalnızca
     beklemedeki ve onaylanmış satırları kapsıyor.
   */
+  /*
+    Sürekli görev tekrarlanabilir: bir teslim incelemedeyken bile yenisi
+    gönderilebiliyor (D24 FAZ R2 — `task_submissions_open_unique` artık
+    continuous'ı dışlıyor). Bu yüzden buton yalnızca diğer tiplerde
+    gizleniyor; sürekli görevde açık teslim varsa bilgi satırı gösteriliyor
+    ama gönderme yolu açık kalıyor.
+  */
   const hasOpenSubmission =
-    submission?.status === "pending" || submission?.status === "approved";
+    task.type !== "continuous" &&
+    (submission?.status === "pending" || submission?.status === "approved");
+
+  const continuousPending =
+    task.type === "continuous" && submission?.status === "pending";
 
   const tone = task.task_categories
     ? (CATEGORY_TONE[task.task_categories.slug] ?? CATEGORY_TONE_FALLBACK)
@@ -163,7 +175,41 @@ export default async function TaskDetailPage({
           </div>
         ) : null}
 
-        {task.ends_at ? (
+        {/*
+          Yaklaşan görevde büyük başlangıç geri sayımı; süreli aktif
+          görevde bitiş geri sayımı. Tarih satırları ikisinde de yazılı —
+          "2 gün" ifadesi tek başına hangi güne denk geldiğini söylemiyor.
+        */}
+        {task.timeState === "upcoming" && task.starts_at ? (
+          <div className="mt-4 rounded-2xl border-2 border-indigo/50 bg-gradient-to-br from-indigo/10 to-primary/10 p-4 text-center">
+            <p className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo">
+              <Icon name="calendar-clock" className="h-4 w-4" />
+              Henüz başlamadı
+            </p>
+            <p className="mt-1.5 text-2xl font-bold text-ink">
+              <Countdown
+                endsAt={task.starts_at}
+                initialLabel={task.startsInLabel ?? ""}
+              />
+            </p>
+            <p className="mt-1 text-xs text-ink-muted">
+              {formatDateTime(task.starts_at)}
+            </p>
+
+            {/*
+              Hatırlatma butonu şimdilik pasif: bildirim altyapısı
+              (push/planlanmış bildirim) borçta. Aktifmiş gibi göstermek,
+              kullanıcıya tutulmayacak bir söz vermek olurdu.
+            */}
+            <button
+              type="button"
+              disabled
+              className="mt-3 w-full cursor-not-allowed rounded-full border border-edge px-4 py-2 text-xs font-medium text-ink-muted opacity-60"
+            >
+              Hatırlat (yakında)
+            </button>
+          </div>
+        ) : task.ends_at ? (
           <p className="mt-3 text-sm font-semibold text-status-warning">
             <Countdown
               endsAt={task.ends_at}
@@ -195,6 +241,12 @@ export default async function TaskDetailPage({
             label="Zorluk"
             value={DIFFICULTY_LABEL[task.difficulty] ?? task.difficulty}
           />
+          {task.starts_at ? (
+            <DetailRow label="Başlangıç" value={formatDateTime(task.starts_at)} />
+          ) : null}
+          {task.ends_at ? (
+            <DetailRow label="Bitiş" value={formatDateTime(task.ends_at)} />
+          ) : null}
           {task.lat !== null && task.lng !== null ? (
             <DetailRow
               label="Hedef konum"
@@ -220,14 +272,35 @@ export default async function TaskDetailPage({
 
         <div className="mt-6">
           {viewer ? (
-            hasOpenSubmission ? (
+            /*
+              Yaklaşan görevde teslim butonu pasif. Sunucu zaten
+              reddediyor (submit_task başlangıç saatini yazıyor), ama
+              tıklanabilir bir buton kullanıcıya "dene" dedirtip hata
+              aldırmak demekti.
+            */
+            task.timeState === "upcoming" ? (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed rounded-full border border-edge px-6 py-3 text-center text-base font-semibold text-ink-muted opacity-60"
+              >
+                Başlamadı
+              </button>
+            ) : hasOpenSubmission ? (
               <p className="rounded-xl border border-edge bg-card px-3.5 py-3 text-center text-sm text-ink-muted">
                 {submission?.status === "approved"
                   ? "Bu görevi tamamladın."
                   : "Teslimin incelemeye alındı."}
               </p>
             ) : (
-              task.verification === "quiz" ? (
+              <>
+              {continuousPending ? (
+                <p className="mb-3 rounded-xl border border-status-warning/40 bg-status-warning/10 px-3.5 py-2.5 text-center text-xs font-medium text-status-warning">
+                  Önceki teslimin incelemede. Bu görevi tekrar
+                  gönderebilirsin.
+                </p>
+              ) : null}
+              {task.verification === "quiz" ? (
                 <QuizRunner
                   taskId={task.id}
                   questions={quiz}
@@ -242,7 +315,8 @@ export default async function TaskDetailPage({
                   xp={task.xp}
                   coin={task.coin}
                 />
-              )
+              )}
+              </>
             )
           ) : (
             <Link

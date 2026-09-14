@@ -86,3 +86,82 @@ export function nextTickDelay(msLeft: number): number | null {
   }
   return msLeft < 60_000 ? 1000 : 60_000;
 }
+
+/**
+ * Görevin zaman durumu.
+ *
+ * Üç durum: henüz başlamamış, açık, bitmiş. Kart ve detay bu değere göre
+ * renk, ikon ve geri sayım yönü seçiyor.
+ *
+ * Neden sorgu katmanında hesaplanıyor: `Date.now()` render içinde
+ * çağrılınca bileşen saf olmaktan çıkıyor ve lint hata veriyor (D07 ve
+ * D23'te aynı kurala takılmıştık).
+ */
+export type TaskTimeState = "upcoming" | "active" | "ended";
+
+export function taskTimeState(
+  startsAt: string | null,
+  endsAt: string | null,
+  now: number,
+): TaskTimeState {
+  if (startsAt && new Date(startsAt).getTime() > now) return "upcoming";
+  if (endsAt && new Date(endsAt).getTime() < now) return "ended";
+  return "active";
+}
+
+/*
+  Zaman durumunun görsel dili.
+
+  Her durum ikon + renkle ayrışıyor; renk tek başına ayırt edici değil
+  (renk körlüğü) ve "yaklaşan" ile "bitmek üzere" karıştırıldığında
+  kullanıcı görevi kaçırıyor.
+*/
+export const TIME_STATE_STYLE: Record<
+  string,
+  { icon: string; chip: string; label: string }
+> = {
+  upcoming: {
+    icon: "calendar-clock",
+    chip: "bg-gradient-to-r from-indigo/20 to-primary/20 text-indigo",
+    label: "Yakında",
+  },
+  instant: {
+    icon: "zap",
+    chip: "bg-gradient-to-r from-amber/20 to-magenta/20 text-amber",
+    label: "Anlık",
+  },
+  continuous: {
+    icon: "activity",
+    chip: "bg-xp/15 text-xp",
+    label: "Sürekli",
+  },
+  ended: {
+    icon: "timer",
+    chip: "bg-surface text-ink-muted",
+    label: "Bitti",
+  },
+};
+
+/** Başlangıca kalan süreyi kullanıcı diliyle yazar. */
+export function formatStartsIn(msLeft: number): string {
+  if (msLeft <= 0) return "Başladı";
+
+  const totalMinutes = Math.floor(msLeft / 60_000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) return `Başlıyor: ${days}g ${hours}s`;
+  if (hours > 0) return `Başlıyor: ${hours}s ${minutes}d`;
+  return `Başlıyor: ${minutes}d`;
+}
+
+/** Tam tarih-saat, Türkiye biçiminde. */
+export function formatDateTime(value: string): string {
+  return new Date(value).toLocaleString("tr-TR", {
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

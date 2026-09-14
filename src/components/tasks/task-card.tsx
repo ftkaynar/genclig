@@ -8,6 +8,7 @@ import {
   CATEGORY_TONE_FALLBACK,
   SUBMISSION_STATUS_LABEL,
   TASK_TYPE_LABEL,
+  TIME_STATE_STYLE,
 } from "@/lib/tasks/labels";
 import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
 
@@ -78,6 +79,13 @@ export function TaskCard({
           {tier.label}
         </span>
 
+        {/* Yaklaşan görevde sol üstte belirgin şerit. */}
+        {task.timeState === "upcoming" ? (
+          <span className="brand-gradient absolute left-0 top-0 rounded-br-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+            Yakında
+          </span>
+        ) : null}
+
         <span className="flex gap-3 p-3.5">
           <IconBadge
             icon={taskIconName(task)}
@@ -98,15 +106,40 @@ export function TaskCard({
               {task.title}
             </span>
 
-            {task.ends_at ? (
-              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-gradient-to-r from-amber/20 to-magenta/20 px-2.5 py-1 text-[11px] font-semibold text-amber">
+            {/*
+              Zaman durumu tek bir hapta: yaklaşan görevde BAŞLANGICA,
+              süreli aktif görevde BİTİŞE geri sayım. İkisi aynı renkte
+              olsaydı kullanıcı "2 saat" ifadesinin başlangıca mı bitişe mi
+              olduğunu ayırt edemezdi.
+            */}
+            {task.timeState === "upcoming" && task.starts_at ? (
+              <span
+                className={`inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${TIME_STATE_STYLE.upcoming.chip}`}
+              >
+                <Icon name="calendar-clock" className="h-3.5 w-3.5" />
+                <Countdown
+                  endsAt={task.starts_at}
+                  initialLabel={task.startsInLabel ?? ""}
+                />
+              </span>
+            ) : task.ends_at ? (
+              <span
+                className={`inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${TIME_STATE_STYLE.instant.chip}`}
+              >
                 <Icon name="timer" className="h-3.5 w-3.5" />
                 <Countdown
                   endsAt={task.ends_at}
                   initialLabel={task.remainingLabel ?? ""}
                 />
               </span>
-            ) : null}
+            ) : (
+              <span
+                className={`inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${TIME_STATE_STYLE.continuous.chip}`}
+              >
+                <Icon name="activity" className="h-3.5 w-3.5" />
+                Sürekli
+              </span>
+            )}
 
             {task.scope === "team" ? (
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-magenta/15 px-2.5 py-1 text-[11px] font-semibold text-magenta">
