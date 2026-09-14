@@ -30,7 +30,7 @@ export async function loadTaskForEdit(
   const { data } = await supabase
     .from("tasks")
     .select(
-      "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,status",
+      "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,daily_submission_limit,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,status",
     )
     .eq("id", id)
     .maybeSingle();
@@ -47,6 +47,10 @@ export async function loadTaskForEdit(
     verification: data.verification ?? "photo",
     difficulty: data.difficulty ?? "easy",
     taskScope: data.scope ?? "individual",
+    dailySubmissionLimit:
+      data.daily_submission_limit !== null
+        ? String(data.daily_submission_limit)
+        : "3",
     minTeamSize: data.min_team_size !== null ? String(data.min_team_size) : "2",
     teamBonusXp: String(data.team_bonus_xp ?? 0),
     teamBonusCoin: String(data.team_bonus_coin ?? 0),

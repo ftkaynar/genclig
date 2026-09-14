@@ -16,6 +16,7 @@ type Input = {
   verification: string;
   difficulty: string;
   taskScope: string;
+  dailySubmissionLimit: string;
   minTeamSize: string;
   teamBonusXp: string;
   teamBonusCoin: string;
@@ -96,6 +97,20 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     sıfır olan takım görevi de anlamsız — takımca tamamlamanın karşılığı
     bireysel ödülle aynı kalırdı.
   */
+  /*
+    Günlük limit yalnızca sürekli görevde yazılıyor; diğer tiplerde null
+    kalıyor ki ileride tip değişirse eski bir limit sessizce devreye
+    girmesin.
+  */
+  const isContinuous = input.type === "continuous";
+  const dailyLimit = toNumberOrNull(input.dailySubmissionLimit);
+
+  if (isContinuous && dailyLimit !== null) {
+    if (dailyLimit < 1 || dailyLimit > 50) {
+      return { error: "Günlük teslim limiti 1 ile 50 arasında olmalı." };
+    }
+  }
+
   const isTeamTask = input.taskScope === "team";
   const minTeamSize = toNumberOrNull(input.minTeamSize);
   const teamBonusXp = toNumberOrNull(input.teamBonusXp) ?? 0;
@@ -142,6 +157,7 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     verification: input.verification,
     difficulty: input.difficulty,
     scope: isTeamTask ? "team" : "individual",
+    daily_submission_limit: isContinuous ? dailyLimit : null,
     min_team_size: isTeamTask ? minTeamSize : null,
     team_bonus_xp: isTeamTask ? teamBonusXp : 0,
     team_bonus_coin: isTeamTask ? teamBonusCoin : 0,

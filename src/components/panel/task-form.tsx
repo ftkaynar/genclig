@@ -20,6 +20,7 @@ export type TaskFormValues = {
   verification: string;
   difficulty: string;
   taskScope: string;
+  dailySubmissionLimit: string;
   minTeamSize: string;
   teamBonusXp: string;
   teamBonusCoin: string;
@@ -45,6 +46,7 @@ export const EMPTY_TASK: TaskFormValues = {
   verification: "photo",
   difficulty: "easy",
   taskScope: "individual",
+  dailySubmissionLimit: "3",
   minTeamSize: "2",
   teamBonusXp: "0",
   teamBonusCoin: "0",
@@ -279,6 +281,25 @@ export function TaskForm({
           <div className="sm:col-span-2">
             <QuizEditor questions={quiz} onChange={setQuiz} />
           </div>
+        ) : null}
+
+        {/*
+          Günlük teslim limiti yalnızca sürekli görevlerde anlamlı:
+          diğer tipler zaten dönemsel tekil (günlük görev günde bir kez).
+        */}
+        {values.type === "continuous" ? (
+          <Field label="Günlük teslim limiti">
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={values.dailySubmissionLimit}
+              onChange={(event) =>
+                set("dailySubmissionLimit", event.target.value)
+              }
+              className={inputClass}
+            />
+          </Field>
         ) : null}
 
         <Field label="Kapsam">

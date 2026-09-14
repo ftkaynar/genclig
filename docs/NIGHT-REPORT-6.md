@@ -113,3 +113,49 @@ Adalar        |            1 |                0 | t
 "Yakınındaki görevler" şeridi tarayıcı konum izni gerektirdiği için
 curl ile doğrulanamıyor; "Konumum" düğmesine basılınca açılıyor (sabah
 turunda elle bakılacak).
+
+---
+
+## FAZ R3 — Sürekli görevde günlük teslim sınırı (D24 borcu)
+
+**Borcun kaynağı:** D24'te sürekli görevlerde açık teslim tekilliği
+kaldırılmıştı (kullanıcı inceleme sürerken tekrar gönderebilsin diye).
+Hiçbir sınır kalmayınca tek kullanıcı aynı görevi arka arkaya defalarca
+gönderip inceleme kuyruğunu doldurabiliyordu. D24 raporunda borç olarak
+yazılmıştı; kapandı.
+
+**Çözüm:** `tasks.daily_submission_limit` (1–50, null → varsayılan 3) +
+`daily_submission_count(task, user)` RPC'si.
+
+**Gün sınırı Europe/Istanbul:** sunucu UTC çalışıyor ve gece yarısından
+sonraki teslimler dünün sayacına düşüyordu — aynı sınıf sorun D09'da
+günlük kazançta ölçülmüştü.
+
+**Reddedilen teslimler sayılmıyor.** Kullanıcı haksız yere reddedilmişse
+günü kapanmamalı; bekleyen ve onaylanan sayılıyor.
+
+**Kolon null bırakıldı,** varsayılan fonksiyonda: mevcut satırları toplu
+güncellemeye gerek kalmıyor ve varsayılanı değiştirmek tek yerden
+yapılabiliyor.
+
+Sınır `submit_task` ve `submit_quiz`'in **ikisinde de** uygulanıyor;
+yalnızca `type = 'continuous'` görevlerde. Diğer tipler zaten dönemsel
+tekil.
+
+**Panel/admin formu:** `type = continuous` seçiliyken "Günlük teslim
+limiti" alanı görünüyor (varsayılan 3). Sunucu 1–50 aralığını doğruluyor
+ve sürekli olmayan görevde alanı `null`'a çekiyor — ileride tip değişirse
+eski bir limit sessizce devreye girmesin diye.
+
+### Kanıtlar (yerel psql)
+
+- Varsayılan 3 → 1., 2., 3. teslim `approved`; **4. teslim** →
+  "Bu görevi bugün için yeterince gönderdin, yarın tekrar dene."
+- **Ertesi gün simülasyonu** (teslimler bir gün geriye alındı) → sayaç
+  `0`, yeni teslim `approved`
+- Görev bazında limit `1` → ikinci teslim reddedildi
+- Teslimler `rejected` yapıldı → sayaç **0** (red sayaç doldurmuyor)
+- **Daily görev etkilenmiyor:** ikinci teslimde "Bu görevi zaten
+  gönderdin." (limit mesajı değil)
+- Kolon kısıtı: `daily_submission_limit = 99` →
+  `tasks_daily_submission_limit_check` ihlali
