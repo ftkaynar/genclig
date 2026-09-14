@@ -19,12 +19,12 @@ import type { DiscoverTask } from "@/lib/discover/queries";
 
 /** Kategori slug'ına göre pin rengi; D04 token değerleri. */
 const CATEGORY_COLOR: Record<string, string> = {
-  environment: "#17B890",
-  social: "#7C5CFC",
-  sports: "#3DDC97",
-  culture: "#0F6E7E",
-  education: "#F5B301",
-  civic: "#0E2A47",
+  environment: "#22C55E",
+  social: "#7C3AED",
+  sports: "#EC4899",
+  culture: "#6366F1",
+  education: "#F59E0B",
+  civic: "#22D3EE",
 };
 
 function pinIcon(color: string) {
@@ -38,7 +38,7 @@ function pinIcon(color: string) {
 
 const USER_ICON = L.divIcon({
   className: "",
-  html: `<span style="display:block;width:14px;height:14px;border-radius:9999px;background:#3DDC97;border:3px solid #0E2A47"></span>`,
+  html: `<span style="display:block;width:14px;height:14px;border-radius:9999px;background:#22D3EE;border:3px solid #0B1220"></span>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
@@ -99,7 +99,7 @@ export function TaskMap({
         <Marker
           key={task.id}
           position={[task.lat, task.lng]}
-          icon={pinIcon(CATEGORY_COLOR[task.categorySlug ?? ""] ?? "#0F6E7E")}
+          icon={pinIcon(CATEGORY_COLOR[task.categorySlug ?? ""] ?? "#6366F1")}
         >
           <Popup>
             <span className="block text-sm font-semibold">{task.title}</span>

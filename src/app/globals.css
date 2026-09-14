@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  Marka tokenları.
+  Marka tokenları — palet v2.
 
   İki katman var:
   1. Ham CSS değişkenleri (aşağıda) — tema bağımlı olanlar html[data-theme]
@@ -12,45 +12,59 @@
   Neden "inline": @theme (inline olmadan) değeri sabitleyip kopyalar ve var()
   zinciri kopar; tema değişince utility'ler eski rengi göstermeye devam eder.
   inline ile utility doğrudan var() referansı kullanır, tema anında geçer.
+
+  v2 değişikliği: yeşil-teal aksan yerine mor-indigo-cyan. Token ADLARI
+  korundu (bg-cta, text-xp gibi yüzlerce kullanım var), yalnızca değerleri
+  değişti. Böylece palet tek dosyadan çevrildi.
 */
 
 /* Açık tema varsayılan değerleri. data-theme="light" da buraya düşer. */
 :root {
   color-scheme: light;
 
-  --surface-bg: #e8eef5;
+  --surface-bg: #eef1f8;
   --surface-card: #ffffff;
-  --surface-border: #c8d6e5;
+  --surface-border: #d6deee;
 
-  --text-strong: #0e2a47;
-  --text-muted: #4a6280;
+  --text-strong: #111a2e;
+  --text-muted: #4a5878;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --surface-bg: #0a1626;
-  --surface-card: #12233b;
-  --surface-border: #1e3550;
+  --surface-bg: #0b1220;
+  --surface-card: #131c2e;
+  --surface-border: #223052;
 
-  --text-strong: #f2f6fb;
-  --text-muted: #9db2cc;
+  --text-strong: #f3f6fc;
+  --text-muted: #97a6c7;
 }
 
 @theme inline {
-  /* Tema bağımsız marka renkleri. */
-  --color-brand: #0e2a47;
-  --color-teal: #0f6e7e;
-  --color-primary: #17b890;
-  --color-cta: #3ddc97;
+  /*
+    Tema bağımsız marka renkleri.
+    brand: koyu lacivert taban. primary ve cta artık mor; ikisi de aynı değer,
+    çünkü v2'de ana eylem rengi ile marka vurgusu aynı.
+  */
+  --color-brand: #0b1220;
+  --color-primary: #7c3aed;
+  --color-cta: #7c3aed;
+  --color-indigo: #6366f1;
+  --color-cyan: #22d3ee;
+  --color-magenta: #ec4899;
+  --color-amber: #f59e0b;
+  --color-teal: #6366f1;
+
+  /* XP cyan, coin sarı. */
+  --color-xp: #22d3ee;
   --color-coin: #f5b301;
-  --color-xp: #7c5cfc;
 
   /*
     Tema bağımlı yüzeyler ve metin.
-    Tailwind adları kısa tutuldu: --text-strong değişkeni Tailwind'de "ink"
-    olarak bağlandı, çünkü --color-text-strong "text-text-strong" gibi
-    okunması zor bir utility üretiyordu.
+    Tailwind adlarında --text-strong yerine "ink" kullanıldı, çünkü
+    --color-text-strong "text-text-strong" gibi okunması zor bir utility
+    üretiyordu.
   */
   --color-surface: var(--surface-bg);
   --color-card: var(--surface-card);
@@ -58,23 +72,29 @@
   --color-ink: var(--text-strong);
   --color-ink-muted: var(--text-muted);
 
-  /* Durum renkleri. Başarı, ana yeşille bilerek aynı. */
-  --color-status-success: #17b890;
-  --color-status-warning: #f5a524;
-  --color-status-danger: #e5484d;
+  --color-status-success: #22c55e;
+  --color-status-warning: #f59e0b;
+  --color-status-danger: #ef4444;
 }
 
 /*
-  Marka gradyanı: lacivert -> teal -> parlak yeşil.
-  İmza öğesi; her yüzeyde değil, tek bir vurgu alanında kullanılır.
+  Marka gradyanı v2: indigo -> mor -> cyan.
+  Hero kartı, CTA kenarları ve podyumda kullanılıyor; yüzeylerin geneline
+  yayılmıyor.
 */
 @utility brand-gradient {
   background-image: linear-gradient(
     135deg,
-    #0e2a47 0%,
-    #0f6e7e 55%,
-    #3ddc97 100%
+    #6366f1 0%,
+    #8b5cf6 52%,
+    #22d3ee 100%
   );
+}
+
+/* Kart kenarında ince gradyan çizgi; vurgulu CTA kartlarında. */
+@utility gradient-ring {
+  background-image: linear-gradient(135deg, #6366f1, #8b5cf6, #22d3ee);
+  padding: 1px;
 }
 
 /*
@@ -91,4 +111,83 @@
 
 :root[data-theme="light"] .when-dark {
   display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Oyun hissi animasyonları
+
+   Hepsi saf CSS. Kütüphane eklenmedi: kutlama ekranı yılda birkaç saniye
+   görünen bir efekt, onun için çalışma zamanına animasyon motoru sokmak
+   bundle'a kalıcı yük bindirirdi.
+   --------------------------------------------------------------------------- */
+
+@keyframes genclig-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes genclig-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes genclig-confetti {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx, 0), var(--dy, 140px)) rotate(var(--rot, 360deg));
+  }
+}
+
+@keyframes genclig-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(124 58 237 / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 28px 6px rgb(34 211 238 / 0.35);
+  }
+}
+
+@utility anim-pop {
+  animation: genclig-pop-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@utility anim-rise {
+  animation: genclig-rise 380ms ease-out both;
+}
+
+@utility anim-glow {
+  animation: genclig-glow 1800ms ease-in-out infinite;
+}
+
+/*
+  Hareket azaltma tercihi olan kullanıcıda kutlama sabit duruyor.
+  Efekt keyfi; erişilebilirlik tercihi ondan önce gelir.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .anim-pop,
+  .anim-rise,
+  .anim-glow {
+    animation: none;
+  }
 }

@@ -29,7 +29,7 @@ const MARK_OUT = path.join(ROOT, "public", "brand", "logo-mark.png");
 const ICON_DIR = path.join(ROOT, "public", "icons");
 
 /** Marka koyu zemini (globals.css --surface-bg, koyu tema). */
-const ICON_BACKGROUND = "#0A1626";
+const ICON_BACKGROUND = "#0B1220";
 
 /** İkon kenarından bırakılan boşluk oranı. Mark, kenarlara yapışmasın diye. */
 const ICON_PADDING_RATIO = 0.16;

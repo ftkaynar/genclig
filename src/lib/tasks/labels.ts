@@ -36,15 +36,15 @@ export const SUBMISSION_STATUS_LABEL: Record<string, string> = {
  * üretiyor, `from-${slug}` gibi kurulmuş bir ad derlemeye hiç girmez.
  */
 export const CATEGORY_TONE: Record<string, string> = {
-  environment: "from-primary to-teal",
-  social: "from-xp to-brand",
-  sports: "from-cta to-primary",
-  culture: "from-teal to-brand",
-  education: "from-coin to-primary",
-  civic: "from-brand to-teal",
+  environment: "from-status-success to-cyan",
+  social: "from-primary to-indigo",
+  sports: "from-magenta to-primary",
+  culture: "from-indigo to-primary",
+  education: "from-coin to-magenta",
+  civic: "from-cyan to-indigo",
 };
 
-export const CATEGORY_TONE_FALLBACK = "from-brand to-teal";
+export const CATEGORY_TONE_FALLBACK = "from-indigo to-primary";
 
 /**
  * Kalan süreyi kullanıcı diliyle yazar.

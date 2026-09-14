@@ -140,7 +140,7 @@ export const FALLBACK_ICON = "list-checks";
 export function Icon({
   name,
   className,
-  strokeWidth = 2,
+  strokeWidth = 2.25,
 }: {
   name: string | null | undefined;
   className?: string;

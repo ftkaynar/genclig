@@ -104,15 +104,17 @@ export function DifficultyDots({
 /** İkonlu yuvarlak görev/kategori amblemi. */
 export function IconBadge({
   icon,
-  tone = "from-brand to-teal",
+  tone = "from-indigo to-primary",
   size = "md",
 }: {
   icon: string | null | undefined;
   tone?: string;
   size?: "sm" | "md" | "lg";
 }) {
+  // v2: chip'ler büyüdü (liste 40px, detay 56px) ve ikon çizgisi kalınlaştı;
+  // küçük ince ikonlar koyu zeminde silik duruyordu.
   const box =
-    size === "lg" ? "h-16 w-16" : size === "sm" ? "h-9 w-9" : "h-12 w-12";
+    size === "lg" ? "h-14 w-14" : size === "sm" ? "h-9 w-9" : "h-10 w-10";
   const glyph =
     size === "lg" ? "h-7 w-7" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
 
@@ -120,7 +122,7 @@ export function IconBadge({
     <span
       className={`flex ${box} shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${tone} text-white`}
     >
-      <Icon name={icon} className={glyph} />
+      <Icon name={icon} className={glyph} strokeWidth={2.25} />
     </span>
   );
 }

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0A1626",
+  themeColor: "#0B1220",
 };
 
 // Neden LayoutProps<"/"> kullanılmıyor: o global tip .next/types altında build
