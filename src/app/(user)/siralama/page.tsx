@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Podium } from "@/components/leaderboard/podium";
+import { ScopeTabs } from "@/components/leaderboard/scope-tabs";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -72,59 +73,18 @@ export default async function LeaderboardPage({
       ? rows.find((row) => row.rank === myRank.rank - 1)
       : undefined;
 
-  const href = (nextScope: string, nextPeriod: string) =>
-    `/siralama?kapsam=${nextScope}&donem=${nextPeriod}`;
-
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Sıralama" />
 
-      <nav aria-label="Kapsam" className="px-4 pt-3">
-        <ul className="flex flex-wrap gap-2">
-          {SCOPES.map((item) => (
-            <li key={item.key}>
-              <Link
-                href={href(item.key, period)}
-                aria-current={item.key === scope ? "page" : undefined}
-                className={
-                  item.key === scope
-                    ? "block rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white"
-                    : "block rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
-                }
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <nav aria-label="Dönem" className="px-4 pt-2">
-        <ul className="flex gap-2">
-          {PERIODS.map((item) => (
-            <li key={item.key}>
-              <Link
-                href={href(scope, item.key)}
-                aria-current={item.key === period ? "page" : undefined}
-                className={
-                  item.key === period
-                    ? "block rounded-full bg-xp/20 px-3 py-1 text-[11px] font-semibold text-xp"
-                    : "block rounded-full border border-edge px-3 py-1 text-[11px] font-medium text-ink-muted hover:text-ink"
-                }
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <ScopeTabs scope={scope} period={period} />
 
       <main className="flex-1 px-4 py-4">
         {isTeams ? (
           teamRows.length === 0 ? (
             <EmptyState
               icon="users"
-              title="Bu dönemde takım puanı yok"
+              title="Bu kategoride henüz sıralama yok"
               description="Bir takım kur ya da kodla katıl, takım görevlerinde puan toplayın."
               action={
                 <Link
@@ -188,7 +148,7 @@ export default async function LeaderboardPage({
         ) : rows.length === 0 ? (
           <EmptyState
             icon="trophy"
-            title="Bu dönemde henüz puan yok"
+            title="Bu kategoride henüz sıralama yok"
             description="İlk görevini tamamla, sıralamada yerini al."
           />
         ) : (

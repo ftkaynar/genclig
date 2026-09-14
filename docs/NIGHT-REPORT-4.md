@@ -164,3 +164,29 @@ Sorular görev kaydından **sonra** yazılıyor: yeni görevde soruların
 bağlanacağı id ancak kayıt dönünce belli oluyor. Kaydetme stratejisi
 sil-ve-yeniden-yaz; teslimler soru satırlarına bağlı değil, bu yüzden
 geçmiş veri bozulmuyor.
+
+---
+
+## FAZ L — Sıralama sekmeleri v2
+
+`src/components/leaderboard/scope-tabs.tsx` — görev ekranıyla aynı dil:
+üstte ikonlu kapsam çipleri (seçilide marka gradyanı), altında dönem
+hapları (Hafta / Ay / Tümü).
+
+**Görev ekranındaki segment anahtarı burada kullanılmadı.** Orada iki
+seçenek vardı ve kayan gösterge okunuyordu; burada **altı** kapsam var ve
+aynı bileşen 360 px genişlikte sıkışıp okunmaz hâle geliyordu. Bunun
+yerine yatay kaydırmalı çip şeridi, seçili çip gradyanla dolduruluyor.
+
+**Kapsam ikonları hiyerarşiyi anlatıyor:** Türkiye `globe`, İl `map-pin`,
+İlçe `compass`, Mahalle `home` (giderek daralan konum katmanları),
+Arkadaşlar `users`, Takımlar `shield`. Altı ikonun hepsi küratörlü kümede
+mevcuttu, yeni ikon eklenmedi.
+
+Kapsam ve dönem URL sorgusunda kalmaya devam ediyor; podyum ve "benim
+sıram" kartı korundu.
+
+**Boş durumlar birleştirildi:** üç ayrı metin ("Bu dönemde henüz puan
+yok", "Bu dönemde takım puanı yok") tek bir dile getirildi —
+**"Bu kategoride henüz sıralama yok"** — ve kapsama uygun eylem butonu
+korundu (takımda "Takımıma git", konum eksikse "Konumunu ayarla").
