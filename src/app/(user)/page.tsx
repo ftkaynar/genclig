@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
 import { QuickAccess } from "@/components/home/quick-access";
 import { BalanceSummary } from "@/components/points/balance-summary";
@@ -10,6 +11,7 @@ import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
+import { getLatestAnnouncement } from "@/lib/announcements/queries";
 import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import { formatPoints, getTodayEarnings, getUserPoints } from "@/lib/points/queries";
@@ -94,15 +96,23 @@ export default async function UserHomePage() {
     );
   }
 
-  const [points, today, allTasks, notifications, myRank, friendRank] =
-    await Promise.all([
-      getUserPoints(viewer.user.id),
-      getTodayEarnings(viewer.user.id),
-      listFeedTasks(),
-      listNotifications(3),
-      getMyRank("ilce", "week"),
-      getMyRank("arkadaslar", "week"),
-    ]);
+  const [
+    points,
+    today,
+    allTasks,
+    notifications,
+    myRank,
+    friendRank,
+    announcement,
+  ] = await Promise.all([
+    getUserPoints(viewer.user.id),
+    getTodayEarnings(viewer.user.id),
+    listFeedTasks(),
+    listNotifications(3),
+    getMyRank("ilce", "week"),
+    getMyRank("arkadaslar", "week"),
+    getLatestAnnouncement(),
+  ]);
 
   const submissions = await getSubmissionMap(allTasks.map((task) => task.id));
 
@@ -144,6 +154,10 @@ export default async function UserHomePage() {
       <UserHud />
 
       <main className="flex-1 px-4 pb-4">
+        {announcement ? (
+          <AnnouncementBanner announcement={announcement} />
+        ) : null}
+
         {/* Hero: selamlama + avatar + seviye halkası. */}
         <section className="brand-gradient mt-3 rounded-3xl px-5 py-5 shadow-lg">
           <div className="flex items-center gap-3">

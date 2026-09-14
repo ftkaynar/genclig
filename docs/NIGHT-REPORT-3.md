@@ -224,3 +224,65 @@ döndürüyor, kimin tamamladığını sızdırmıyor.
 - A teslim → `1`
 - B de teslim → **A da B de `2` görüyor** (RLS'e rağmen takım geneli sayım)
 - `anon` çalıştırma yetkisi → `false`
+
+---
+
+## FAZ D — Duyuru sistemi (M20)
+
+**Migration:** `20260917020000_announcements.sql`
+
+`announcements` (title, body, audience, municipality_id, target_user_id,
+created_by, sent_count) + `notifications.type` check'ine `'announcement'`.
+
+**Hedef tutarlılığı veritabanında:** `announcements_target_matches_audience`
+kısıtı — `audience` ne diyorsa o alan dolu, diğerleri boş. Uygulama
+katmanında kontrol etmek yetmezdi; tek doğruluk kaynağı veritabanı.
+
+**Yetki kuralı** (`send_announcement`): süper admin `all`/`municipality`/
+`user`; personel **yalnızca** `audience='municipality'` ve **yalnızca kendi**
+belediyesi. Personelin `all` gönderebilmesi, tek bir belediyenin tüm ülkeye
+duyuru atması demekti.
+
+`security definer` olmak zorunda: hedef kullanıcıları bulmak için
+`profiles`'ın tamamını okumak gerekiyor, oysa RLS kullanıcıya yalnızca kendi
+satırını gösteriyor. Fonksiyon dışarıya yalnızca gönderilen sayıyı veriyor.
+
+**Kullanıcı için `announcements` select politikası bilerek yok:** duyuruyu
+çanından bildirim olarak alıyor, gönderim kaydını görmesine gerek yok.
+
+**Kanıtlar (yerel psql, 4 kullanıcı + 2 belediye):**
+- Süper admin `all` → **4 gönderildi**, `notifications` 4 satır,
+  `sent_count = 4` (kullanıcı sayısına eşit)
+- Personel **başka** belediyeye → "Bu belediye için duyuru gönderme yetkin
+  yok."
+- Personel `all` → "Yalnızca kendi belediyenin kullanıcılarına duyuru
+  gönderebilirsin."
+- Personel kendi belediyesine → **2 gönderildi**; duy_p ve duy_u aldı,
+  duy_s ve duy_v **almadı** (doğru hedefleme)
+- Tek kullanıcıya → 1 gönderildi, yalnızca duy_v aldı
+- Olmayan kullanıcı → "Kullanıcı bulunamadı."
+- Normal kullanıcı gönderemiyor; `announcements` satırı görmüyor (0),
+  geçmiş boş (0)
+- Personel geçmişi yalnızca kendi belediyesininki (1 satır); süper admin
+  hepsini görüyor (3 satır)
+- **Çan sayacı:** duy_u okunmamış bildirim **2** (genel + belediye duyurusu)
+- Doğrudan insert → `permission denied`; anon gönder/liste/select ve
+  authenticated insert → hepsi `false`
+
+**Yol boyunca çıkan iki hata (ikisi de benim):**
+1. Migration'da rolü `municipality_staff` yazmıştım; şemadaki ad
+   `municipality_operator`. Düzeltildi.
+2. Test betiğinde `\gset` değişkenini `:'MUNI'` diye okudum; psql sütun
+   takma adını küçük harfe çeviriyor, doğrusu `:'muni'`. İlk koşumda
+   senaryoların yarısı sessizce atlanmıştı — düzeltilip yeniden koşuldu.
+
+**UI:** `/admin/duyurular` (hedef seçimi: tümü / belediye / tek kullanıcı),
+`/panel/duyurular` (hedef kendi belediyesinde sabit, belediye seçici hiç
+gösterilmiyor), ana sayfada gradyan kenarlı kapatılabilir duyuru afişi.
+
+Afişin kapatılma bilgisi `localStorage`da: kişisel ve önemsiz bir tercih
+için her kullanıcıya satır açmak ve her ana sayfa yüklemesine bir sorgu
+daha eklemek gereksizdi. Okuma `useSyncExternalStore` ile —
+`useEffect` + `setState` denendi, lint `set-state-in-effect` ile reddetti
+(aynı kurala D05'te de takılmıştık) ve haklıydı: efektle state yazmak
+fazladan bir render turu demek.

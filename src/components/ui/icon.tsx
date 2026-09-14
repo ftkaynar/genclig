@@ -53,6 +53,7 @@ import {
   User,
   Users,
   Waves,
+  X,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -130,6 +131,7 @@ export const ICONS: Record<string, LucideIcon> = {
   "chevron-right": ChevronRight,
   search: Search,
   settings: Settings,
+  x: X,
 };
 
 /** Seçici ekranında gösterilecek adlar. */
