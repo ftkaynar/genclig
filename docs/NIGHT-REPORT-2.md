@@ -387,3 +387,65 @@ Dilim metninde adı geçmeyen, görsel hedefi tamamlamak için eklenenler:
 9. `/kesfet` — kategori çipli işaretçiler (renk + ikon), popup
 10. Karanlık/aydınlık tema geçişi ve `prefers-reduced-motion` ile animasyonsuz
     görünüm
+
+---
+
+## D21.1 — Bekleyen bulut push tamamlandı
+
+FAZ G'de "Bulut push YAPILAMADI" diye kaydedilen engel kapandı.
+
+**Engelin gerçek sebebi:** veritabanı şifresinin sonundaki nokta. Denenen
+`Fatih.58!!` reddediliyordu; doğrusu `Fatih.58!!.` imiş. Şifre rotasyonu
+yokmuş, eksik karakter varmış.
+
+**Push:**
+
+```
+Applying migration 20260916000000_friendships.sql...
+Applying migration 20260916010000_friends_leaderboard.sql...
+Applying migration 20260916020000_teams.sql...
+Applying migration 20260916030000_support.sql...
+```
+
+Dry-run tam olarak bu dördünü listeledi, fazlası yok.
+
+**`db diff --linked` → `No schema changes found`.** Yerel ile bulut birebir.
+
+**Canlı sitedeki 500'ün kök sebebi doğrulandı ve kapandı.** Hata build
+değil çalışma anıydı: `listFeedTasks` `tasks` tablosundan `scope`,
+`min_team_size`, `team_bonus_xp`, `team_bonus_coin` istiyordu, bulutta bu
+kolonlar yoktu. Buluttaki REST'e birebir aynı select atılarak yeniden
+üretildi:
+
+```
+{"code":"42703","message":"column tasks.scope does not exist"}
+```
+
+Push sonrası `/gorevler` 200 döndü ve iki takım görevi canlı feed'de
+görünüyor. Kod tarafında değişiklik gerekmedi.
+
+**Push sonrası REST doğrulaması (anon anahtarla):**
+- `faq_items` → 200, **6 satır** (herkese açık okuma, tasarım gereği)
+- `teams`, `team_members`, `friendships`, `support_tickets`,
+  `ticket_messages` → **401**. Not: beklenen "RLS'li boş liste" değil,
+  bundan daha katı bir sonuç — bu tablolarda anon'un tablo yetkisi hiç yok
+  (`revoke all ... from anon`), RLS'e sıra bile gelmiyor. 404'ten 401'e
+  geçmiş olması tabloların artık var olduğunu gösteriyor.
+- Yeni RPC'ler: doğru argümanlarla çağrıldığında hepsi **401**
+  (`create_team`, `join_team`, `kick_member`, `transfer_captain`,
+  `create_ticket`, `reply_ticket`, `close_ticket`, `send_friend_request`,
+  `respond_friend_request`, `search_users`, `get_profile_card`).
+  PostgREST şema önbelleği yenilenmiş, yetki kapalı.
+  Boş gövdeyle (`{}`) gelen 404'ler eksiklik değil, imza uyuşmazlığıydı.
+- Anon yazma denemeleri: `friendships`, `teams`, `team_members`,
+  `support_tickets`, `ticket_messages`, `faq_items` POST → **401**;
+  `faq_items` PATCH ve DELETE → **401**.
+
+**Canlı rotalar:** `/`, `/gorevler`, `/gorevler?kapsam=team`, `/kesfet`,
+`/giris`, `/kayit` → 200. `/takim`, `/destek`, `/siralama`, `/arkadaslar`
+→ 307 (oturumsuz giriş yönlendirmesi, beklenen).
+
+**`pnpm check:all`** → çıkış kodu 0.
+
+**Hâlâ açık:** panel/admin görev formlarında takım alanları yok; takım
+görevleri yalnızca seed'den geliyor (FAZ D'de bildirildi).
