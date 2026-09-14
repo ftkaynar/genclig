@@ -9,27 +9,41 @@ import type { ReviewItem } from "@/components/panel/review-queue";
 /**
  * Bekleyen teslimler.
  *
- * municipalityId null verilirse global görevlerin kuyruğu döner (süper admin
- * ekranı). Fotoğraflar için imzalı URL üretiliyor; bucket private.
+ * `scope` üç değer alıyor:
+ * - bir belediye kimliği → yalnızca o belediyenin görevleri (panel),
+ * - `"all"` → TÜM belediyeler + global görevler (süper admin),
+ * - `null` → yalnızca global görevler.
+ *
+ * ÖLÇÜLEN HATA (D24 FAZ T): süper admin ekranı `null` çağırıyordu, yani
+ * yalnızca `municipality_id is null` olan global görevlerin teslimlerini
+ * listeliyordu. Bir belediye görevine gönderilen fotoğraf süper adminin
+ * kuyruğunda hiç görünmüyordu; oysa `review_submission` süper admini zaten
+ * tüm görevler için yetkilendiriyor ve `task_submissions_select_super`
+ * politikası satırları gösteriyor. Eksik olan tek şey listeleme
+ * filtresiydi.
+ *
+ * Fotoğraflar için imzalı URL üretiliyor; bucket private.
  */
 export async function listPendingReviews(
-  municipalityId: string | null,
+  scope: string | null | "all",
 ): Promise<ReviewItem[]> {
   const supabase = await createClient();
 
   let query = supabase
     .from("task_submissions")
     .select(
-      "id,created_at,photo_path,distance_m,user_id,tasks!inner(title,municipality_id),profiles(username)",
+      "id,created_at,photo_path,distance_m,user_id,tasks!inner(title,municipality_id,municipalities(name)),profiles(username)",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true })
     .limit(100);
 
-  query =
-    municipalityId === null
-      ? query.is("tasks.municipality_id", null)
-      : query.eq("tasks.municipality_id", municipalityId);
+  if (scope === null) {
+    query = query.is("tasks.municipality_id", null);
+  } else if (scope !== "all") {
+    query = query.eq("tasks.municipality_id", scope);
+  }
+  // "all": filtre yok — RLS zaten yalnızca yetkili olduğu satırları veriyor.
 
   const { data } = await query;
 
@@ -38,7 +52,10 @@ export async function listPendingReviews(
     created_at: string;
     photo_path: string | null;
     distance_m: number | null;
-    tasks: { title: string } | null;
+    tasks: {
+      title: string;
+      municipalities: { name: string } | null;
+    } | null;
     profiles: { username: string | null } | null;
   }[];
 
@@ -56,6 +73,8 @@ export async function listPendingReviews(
       return {
         id: row.id,
         taskTitle: row.tasks?.title ?? "Görev",
+        // Global görevde belediye yok; ekranda "Genel" yazıyor.
+        municipalityName: row.tasks?.municipalities?.name ?? null,
         username: row.profiles?.username ?? null,
         createdAt: row.created_at,
         photoUrl,

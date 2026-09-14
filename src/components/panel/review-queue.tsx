@@ -8,6 +8,8 @@ import { reviewSubmissionAction } from "@/lib/panel/actions";
 export type ReviewItem = {
   id: string;
   taskTitle: string;
+  /** Global görevde null; süper admin ekranında "Genel" gösteriliyor. */
+  municipalityName: string | null;
   username: string | null;
   createdAt: string;
   photoUrl: string | null;
@@ -77,7 +79,12 @@ export function ReviewQueue({ items }: { items: ReviewItem[] }) {
             className="rounded-2xl border border-edge bg-card p-4"
           >
             <p className="text-sm font-semibold text-ink">{item.taskTitle}</p>
-            <p className="mt-0.5 text-xs text-ink-muted">
+            {/* Belediye adı: süper admin kuyruğunda hangi belediyeye ait
+                olduğu görünsün diye. Global görevde "Genel". */}
+            <span className="mt-1 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+              {item.municipalityName ?? "Genel"}
+            </span>
+            <p className="mt-1 text-xs text-ink-muted">
               {item.username ?? "kullanıcı"} ·{" "}
               {new Date(item.createdAt).toLocaleString("tr-TR")}
             </p>
