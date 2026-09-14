@@ -3,12 +3,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { BalanceSummary } from "@/components/points/balance-summary";
-import { TaskCard } from "@/components/tasks/task-card";
+import { TaskCardCompact } from "@/components/tasks/task-card-compact";
+import { Icon } from "@/components/ui/icon";
+import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
 import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
-import { formatPoints, getUserPoints } from "@/lib/points/queries";
+import { formatPoints, getTodayEarnings, getUserPoints } from "@/lib/points/queries";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
@@ -32,11 +34,16 @@ async function loadViewer() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username")
+    .select("username,display_name,avatar_url")
     .eq("id", user.id)
     .maybeSingle();
 
-  return { user, username: profile?.username ?? null };
+  return {
+    user,
+    username: profile?.username ?? null,
+    displayName: profile?.display_name ?? null,
+    avatarUrl: profile?.avatar_url ?? null,
+  };
 }
 
 export default async function UserHomePage() {
@@ -89,63 +96,87 @@ export default async function UserHomePage() {
     );
   }
 
+  const [points, today, allTasks, notifications, myRank] = await Promise.all([
+    getUserPoints(viewer.user.id),
+    getTodayEarnings(viewer.user.id),
+    listFeedTasks(),
+    listNotifications(3),
+    getMyRank("ilce", "week"),
+  ]);
+
+  const submissions = await getSubmissionMap(allTasks.map((task) => task.id));
+
   /*
     Öneri sırası: önce anlık görevler (süresi dolmadan yapılmalı), sonra en
     yeniler. Kullanıcının zaten teslim ettiği görevler öneriden çıkarılıyor;
     "bugün ne yapsam" sorusuna zaten yaptığı işi göstermek işe yaramıyor.
   */
-  const [points, allTasks, notifications, myRank] = await Promise.all([
-    getUserPoints(viewer.user.id),
-    listFeedTasks(),
-    listNotifications(3),
-    getMyRank("turkiye", "week"),
-  ]);
-
-  const submissions = await getSubmissionMap(allTasks.map((task) => task.id));
-
   const suggested = allTasks
     .filter((task) => !submissions.has(task.id))
     .sort((a, b) => {
       if (a.type === b.type) return 0;
       return a.type === "instant" ? -1 : 1;
     })
-    .slice(0, 3);
+    .slice(0, 5);
+
+  const greetingName = viewer.displayName ?? viewer.username;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHeader signedIn />
 
-      <main className="flex-1 px-4 py-4">
-        <section className="brand-gradient rounded-3xl px-5 py-6 shadow-lg">
-          <p className="text-sm text-white/80">Merhaba,</p>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            {viewer.username}
-          </h1>
-          <BalanceSummary points={points} />
+      <main className="flex-1 px-4 pb-4">
+        {/* Hero: selamlama + avatar + seviye halkası. */}
+        <section className="brand-gradient mt-3 rounded-3xl px-5 py-5 shadow-lg">
+          <div className="flex items-center gap-3">
+            {viewer.avatarUrl ? (
+              <Image
+                src={viewer.avatarUrl}
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 rounded-full border-2 border-white/30 object-cover"
+                unoptimized
+              />
+            ) : (
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/30 bg-white/15 text-base font-bold text-white">
+                {(greetingName ?? "?").charAt(0).toUpperCase()}
+              </span>
+            )}
+
+            <div className="min-w-0">
+              <p className="text-xs text-white/70">Merhaba,</p>
+              <p className="truncate text-lg font-bold text-white">
+                {greetingName}
+              </p>
+            </div>
+          </div>
+
+          <BalanceSummary
+            points={points}
+            todayXp={today.xp}
+            todayCoin={today.coin}
+          />
         </section>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Link
-            href="/bildir"
-            className="rounded-2xl border border-primary/50 bg-card px-4 py-3.5 text-center"
-          >
+        {/* Şehrin için bildir — gradyan kenarlı vurgu kartı. */}
+        <Link
+          href="/bildir"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/50 bg-card p-4 transition-colors hover:border-primary active:scale-[0.99]"
+        >
+          <span className="brand-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white">
+            <Icon name="megaphone" className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-ink">
               Şehrin için bildir
             </span>
-            <span className="mt-0.5 block text-[11px] text-ink-muted">
-              +25 XP • +10 Coin
+            <span className="block text-[11px] text-ink-muted">
+              Sorun, öneri ya da proje · +25 XP • +10 Coin
             </span>
-          </Link>
-          <Link
-            href="/kesfet"
-            className="rounded-2xl border border-edge bg-card px-4 py-3.5 text-center"
-          >
-            <span className="block text-sm font-semibold text-ink">Keşfet</span>
-            <span className="mt-0.5 block text-[11px] text-ink-muted">
-              Yakınındaki görevler
-            </span>
-          </Link>
-        </div>
+          </span>
+          <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />
+        </Link>
 
         <section className="mt-5">
           <div className="flex items-center justify-between gap-3">
@@ -154,20 +185,27 @@ export default async function UserHomePage() {
             </h2>
             <Link
               href="/gorevler"
-              className="text-xs font-medium text-primary hover:underline"
+              className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline"
             >
               Tümünü gör
+              <Icon name="chevron-right" className="h-3.5 w-3.5" />
             </Link>
           </div>
 
           {suggested.length === 0 ? (
-            <p className="mt-3 rounded-2xl border border-edge bg-card px-4 py-6 text-center text-sm text-ink-muted">
-              Şu an önerilecek yeni görev yok.
-            </p>
+            <div className="mt-3">
+              <EmptyState
+                icon="list-checks"
+                title="Şimdilik yeni görev yok"
+                description="Açık görevlerin hepsini gönderdin. Yeni görevler eklendiğinde burada görünecek."
+              />
+            </div>
           ) : (
-            <ul className="mt-3 flex flex-col gap-3">
+            // Yatay şerit: mobilde dikey liste ana sayfayı gereğinden uzun
+            // yapıyordu; kaydırmalı şerit üç kartı da ilk ekranda tutuyor.
+            <ul className="mt-3 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
               {suggested.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCardCompact key={task.id} task={task} />
               ))}
             </ul>
           )}
@@ -175,21 +213,22 @@ export default async function UserHomePage() {
 
         {myRank ? (
           <Link
-            href="/siralama"
-            className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-edge bg-card p-3.5"
+            href="/siralama?kapsam=ilce&donem=week"
+            className="mt-5 flex items-center gap-3 rounded-2xl border border-edge bg-card p-4 transition-colors hover:border-primary/60"
           >
-            <span>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-xp/15 text-xp">
+              <Icon name="trophy" className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-ink">
-                Bu haftaki sıram
+                İlçende #{myRank.rank}
               </span>
               <span className="block text-[11px] text-ink-muted">
                 {formatPoints(myRank.total_xp)} XP · {myRank.scope_size} kişi
                 arasında
               </span>
             </span>
-            <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-sm font-bold text-primary">
-              {myRank.rank}.
-            </span>
+            <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />
           </Link>
         ) : null}
 
@@ -209,12 +248,20 @@ export default async function UserHomePage() {
               {notifications.map((item) => (
                 <li
                   key={item.id}
-                  className="rounded-xl border border-edge bg-card px-3.5 py-2.5"
+                  className="flex items-start gap-2.5 rounded-xl border border-edge bg-card px-3.5 py-2.5"
                 >
-                  <p className="text-sm text-ink">{item.title}</p>
-                  <p className="mt-0.5 text-[11px] text-ink-muted">
-                    {relativeTime(item.created_at)}
-                  </p>
+                  <Icon
+                    name="bell"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm text-ink">
+                      {item.title}
+                    </span>
+                    <span className="block text-[11px] text-ink-muted">
+                      {relativeTime(item.created_at)}
+                    </span>
+                  </span>
                 </li>
               ))}
             </ul>

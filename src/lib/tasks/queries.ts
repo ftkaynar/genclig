@@ -17,6 +17,7 @@ export const FEED_TASK_TYPES = ["continuous", "instant"] as const;
 export type TaskCategory = {
   slug: string;
   name: string;
+  icon: string | null;
 };
 
 export type TaskRow = {
@@ -35,6 +36,7 @@ export type TaskRow = {
   radius_m: number | null;
   ends_at: string | null;
   capacity: number | null;
+  icon: string | null;
   task_categories: TaskCategory | null;
   /**
    * Geri sayımın sunucuda hesaplanmış ilk metni.
@@ -48,7 +50,7 @@ export type TaskRow = {
 };
 
 const TASK_FIELDS =
-  "id,type,title,description,instructions,image_url,xp,coin,difficulty,verification,lat,lng,radius_m,ends_at,capacity,task_categories(slug,name)";
+  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,lat,lng,radius_m,ends_at,capacity,task_categories(slug,name,icon)";
 
 function withRemainingLabel(rows: unknown[]): TaskRow[] {
   const now = Date.now();

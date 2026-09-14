@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Icon } from "@/components/ui/icon";
+
 import { getUnreadNotificationCount } from "@/lib/notifications/queries";
 
 /**
@@ -15,9 +17,9 @@ export async function NotificationBell() {
       aria-label={
         unread > 0 ? `Bildirimler, ${unread} okunmamış` : "Bildirimler"
       }
-      className="relative rounded-full border border-edge bg-card px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
+      className="relative flex h-9 w-9 items-center justify-center rounded-full border border-edge bg-card text-ink-muted transition-colors hover:text-ink"
     >
-      <span aria-hidden>🔔</span>
+      <Icon name="bell" className="h-4 w-4" />
       {unread > 0 ? (
         <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-status-danger px-1 text-center text-[10px] font-bold leading-[18px] text-white">
           {unread > 9 ? "9+" : unread}
