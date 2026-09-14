@@ -32,7 +32,8 @@
 delete from auth.users where id in (:'A', :'B', :'C');
 delete from public.provinces where id > 81;
 -- Duyuru senaryosunun test belediyesi (SENARYO 25).
-delete from public.municipalities where slug = 'rls-duyuru-bld';
+delete from public.municipalities where slug in ('rls-duyuru-bld', 'rls-inc-bld');
+delete from public.tasks where title in ('RLS gunluk gorev', 'RLS belediye gorevi', 'Senaryo 9 gunluk gorev');
 select count(*) as kalan_test_kullanicisi from auth.users where id in (:'A', :'B', :'C');
 select count(*) as kalan_test_rolu from public.user_roles where user_id in (:'A', :'B');
 
@@ -184,8 +185,21 @@ rollback;
 
 \echo ''
 \echo '=========================================================='
-\echo 'SENARYO 9: teslim acma ve donemde tek teslim kurali'
+\echo 'SENARYO 9: teslim acma, period_key ezme ve tekillik kurali'
 \echo '=========================================================='
+
+/*
+  D24 R2 NOTU — bu senaryo guncellendi.
+
+  Eskiden ikinci teslim T1 (SUREKLI gorev) uzerinde denenip "unique ihlali
+  bekleniyor" deniyordu. R2 ile surekli gorevlerde acik teslim tekilligi
+  BILEREK kaldirildi; sonuc olarak o iddia sessizce gecmeye basladi ve
+  test yalan soyluyordu (olculdu: toplam ERROR 24 yerine 23 cikti).
+
+  Yerine iki ayri iddia kondu:
+    - surekli gorevde ikinci teslim ACILABILIR,
+    - donemsel (daily) gorevde ayni donemde ikinci teslim ENGELLI.
+*/
 
 begin;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
@@ -196,15 +210,38 @@ values (:'T1', :'C', 'HILE-ANAHTARI', 'ilk teslim');
 \echo '(yukaridaki INSERT 1 olmali)'
 commit;
 
-select task_id, user_id, period_key, status, note
+select task_id, user_id, period_key, status, task_type, note
 from public.task_submissions where user_id = :'C';
 \echo '(period_key HILE-ANAHTARI degil, once olmali: trigger ezdi)'
+\echo '(task_type continuous olmali: trigger denormalize etti)'
+
+\echo ''
+\echo '-- SUREKLI gorevde ikinci teslim ACILABILMELI (D24 R2)'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.task_submissions (task_id, user_id, note)
+values (:'T1', :'C', 'surekli gorevde ikinci teslim');
+\echo '(yukaridaki INSERT 1 olmali -- hata BEKLENMIYOR)'
+rollback;
+
+\echo ''
+\echo '-- DONEMSEL gorevde ayni donemde ikinci teslim ENGELLI'
+insert into public.tasks (id, municipality_id, category_id, type, title,
+  description, xp, coin, verification, status)
+values ('0000f1a5-0000-4000-8000-0000000000d9', null,
+  (select id from public.task_categories limit 1), 'daily',
+  'Senaryo 9 gunluk gorev', 'Donemsel tekillik iddiasi icin gunluk gorev.',
+  10, 5, 'photo', 'active')
+on conflict do nothing;
 
 begin;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
 set local role authenticated;
 insert into public.task_submissions (task_id, user_id, note)
-values (:'T1', :'C', 'ayni donemde ikinci teslim');
+values ('0000f1a5-0000-4000-8000-0000000000d9', :'C', 'gunluk ilk teslim');
+insert into public.task_submissions (task_id, user_id, note)
+values ('0000f1a5-0000-4000-8000-0000000000d9', :'C', 'gunluk ikinci teslim');
 \echo '(yukarida unique ihlali bekleniyor)'
 rollback;
 
@@ -814,6 +851,172 @@ select amount from public.xp_transactions
 select has_function_privilege('anon', 'public.get_task_quiz(uuid)', 'execute') as anon_sorular,
        has_function_privilege('anon', 'public.submit_quiz(uuid, jsonb)', 'execute') as anon_teslim,
        has_table_privilege('anon', 'public.task_quiz_questions', 'select') as anon_ham;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 28: telefon -- bicim ve benzersizlik'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- gecersiz bicim reddedilmeli'
+select public.set_phone('0212 555 44 33');
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- farkli yazimlar ayni degere normalize olmali'
+select public.set_phone('0545 111 22 33') as b_telefon;
+commit;
+select phone as b_kayitli from public.profiles where id = :'B';
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- AYNI numara baska kullanicida reddedilmeli'
+select public.set_phone('+90 545 111 22 33');
+rollback;
+
+\echo '-- dogrudan gecersiz yazma kisita takilmali'
+update public.profiles set phone = '5451112233' where id = :'C';
+\echo '(yukarida check kisiti hatasi bekleniyor)'
+
+\echo '-- anon telefon yazamaz'
+select has_function_privilege('anon', 'public.set_phone(text)', 'execute') as anon_set_phone;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 29: surekli gorevde tekrar teslim, donemsel gorevde engel'
+\echo '=========================================================='
+
+select id as ctsk from public.tasks
+ where type = 'continuous' and verification = 'photo' and status = 'active'
+ order by created_at limit 1 \gset
+
+\echo '-- C ilk teslim (pending)'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.task_submissions (task_id, user_id, status, photo_path)
+values (:'ctsk'::uuid, :'C', 'pending', 'rls/c1.jpg');
+commit;
+
+\echo '-- inceleme surerken IKINCI teslim acilabilmeli'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.task_submissions (task_id, user_id, status, photo_path)
+values (:'ctsk'::uuid, :'C', 'pending', 'rls/c2.jpg');
+commit;
+select count(*) as continuous_acik_teslim from public.task_submissions
+ where task_id = :'ctsk'::uuid and user_id = :'C';
+
+\echo '-- DAILY gorevde ayni donemde ikinci teslim ENGELLI'
+insert into public.tasks (municipality_id, category_id, type, title, description,
+  xp, coin, verification, status)
+values (null, (select id from public.task_categories limit 1), 'daily',
+  'RLS gunluk gorev', 'Donemsel tekillik icin test gorevi metni burada.',
+  10, 5, 'photo', 'active')
+on conflict do nothing;
+select id as dtsk from public.tasks where title = 'RLS gunluk gorev' \gset
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.task_submissions (task_id, user_id, status, photo_path)
+values (:'dtsk'::uuid, :'C', 'pending', 'rls/d1.jpg');
+commit;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.task_submissions (task_id, user_id, status, photo_path)
+values (:'dtsk'::uuid, :'C', 'pending', 'rls/d2.jpg');
+\echo '(yukarida tekillik hatasi bekleniyor)'
+rollback;
+
+\echo '-- iki continuous teslim ayri ayri onaylaninca IKI KEZ puan'
+select id as csub1 from public.task_submissions where photo_path = 'rls/c1.jpg' \gset
+select id as csub2 from public.task_submissions where photo_path = 'rls/c2.jpg' \gset
+update public.task_submissions set status = 'approved' where id in (:'csub1'::uuid, :'csub2'::uuid);
+select public.award_task_points(:'csub1'::uuid);
+select public.award_task_points(:'csub2'::uuid);
+select count(*) as task_xp_satiri from public.xp_transactions
+ where user_id = :'C' and reason = 'task';
+\echo '-- tekrar cagirinca kopya yok'
+select public.award_task_points(:'csub1'::uuid);
+select count(*) as tekrar_sonrasi from public.xp_transactions
+ where user_id = :'C' and reason = 'task';
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 30: super admin TUM belediyelerin teslimlerini gorur'
+\echo '=========================================================='
+
+insert into public.municipalities (name, slug, level, province_id)
+values ('RLS Inceleme Bld', 'rls-inc-bld', 'district', 34)
+on conflict (slug) do nothing;
+select id as incmuni from public.municipalities where slug = 'rls-inc-bld' \gset
+
+insert into public.tasks (municipality_id, category_id, type, title, description,
+  xp, coin, verification, status)
+values (:'incmuni', (select id from public.task_categories limit 1), 'instant',
+  'RLS belediye gorevi', 'Super admin gorunurlugu icin test gorevi metni.',
+  30, 15, 'photo', 'active')
+on conflict do nothing;
+select id as mtsk from public.tasks where title = 'RLS belediye gorevi' \gset
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.task_submissions (task_id, user_id, status, photo_path)
+values (:'mtsk'::uuid, :'C', 'pending', 'rls/m1.jpg');
+commit;
+
+\echo '-- bu belediyeye ait bekleyen teslim (eski liste filtresi'
+\echo '   municipality_id IS NULL aradigi icin bu satiri HIC gormuyordu):'
+select count(*) as belediye_bekleyen_teslim
+from public.task_submissions s
+join public.tasks t on t.id = s.task_id
+where s.status = 'pending' and t.municipality_id = :'incmuni';
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+set local role authenticated;
+\echo '-- super admin RLS altinda belediye teslimini goruyor (>=1):'
+select count(*) as a_gordugu_belediye_teslimi
+from public.task_submissions s
+join public.tasks t on t.id = s.task_id
+where s.status = 'pending' and t.municipality_id = :'incmuni';
+\echo '-- ve onaylayabiliyor:'
+select (public.review_submission(
+  (select id from public.task_submissions where photo_path = 'rls/m1.jpg'),
+  'approve')).status as sonuc;
+commit;
+
+\echo '-- yetkisiz kullanici inceleyemez'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select public.review_submission(
+  (select id from public.task_submissions where photo_path = 'rls/c1.jpg'),
+  'reject', 'olmaz');
+rollback;
+
+\echo ''
+\echo '-- Gorevlerim: kullanici yalniz kendi teslimlerini goruyor'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as b_gordugu_teslim from public.list_my_submissions(null);
+rollback;
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select status, count(*) from public.list_my_submissions(null) group by status order by status;
+rollback;
 
 \echo ''
 \echo '=========================================================='
