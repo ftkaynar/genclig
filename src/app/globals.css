@@ -352,6 +352,33 @@
   transform: rotateY(180deg);
 }
 
+/*
+  Görev kutucuğunun ikon zemini.
+
+  Düz gradyan bu boyutta yassı duruyordu; ince bir ızgara deseni derinlik
+  veriyor. SVG yerine iki çizgisel gradyan: ek ağ isteği yok ve beyazın
+  saydamlığıyla çalıştığı için tema/kategori rengi ne olursa olsun uyuyor.
+*/
+.tile-pattern {
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(255 255 255 / 0.08) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.08) 1px,
+      transparent 1px
+    );
+  background-size: 12px 12px;
+}
+
+/* Kademe rozetinin küçük parıltısı. */
+.tier-glow {
+  box-shadow: 0 0 8px rgb(255 255 255 / 0.35);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-pop,
   .anim-rise,

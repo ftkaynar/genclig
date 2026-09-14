@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { TaskCard } from "@/components/tasks/task-card";
+import { TaskTile } from "@/components/tasks/task-tile";
 import { Icon } from "@/components/ui/icon";
 import {
   ScopeSwitch,
@@ -77,7 +77,12 @@ export default async function TasksPage({
   ]);
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
+    /*
+      Izgara geniş ekranda 3-4 sütuna çıkıyor; kap max-w-md kalsaydı
+      sütunlar hiç genişlemezdi. Diğer ekranlar telefon genişliğinde
+      kalıyor, yalnız görev ızgarası genişliyor.
+    */
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface sm:max-w-3xl lg:max-w-5xl">
       <UserHud title="Görevler" />
 
       {/* Teslim takibi görev listesinin hemen üstünde: kullanıcı görev
@@ -110,9 +115,9 @@ export default async function TasksPage({
               <Icon name="calendar-clock" className="h-4 w-4" />
               Yaklaşan
             </h2>
-            <ul className="flex flex-col gap-3">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {upcoming.map((task) => (
-                <TaskCard
+                <TaskTile
                   key={task.id}
                   task={task}
                   submission={submissions.get(task.id)}
@@ -136,9 +141,9 @@ export default async function TasksPage({
             {upcoming.length > 0 ? (
               <h2 className="mb-2 text-sm font-semibold text-ink">Şimdi açık</h2>
             ) : null}
-            <ul className="flex flex-col gap-3">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {tasks.map((task) => (
-                <TaskCard
+                <TaskTile
                   key={task.id}
                   task={task}
                   submission={submissions.get(task.id)}
