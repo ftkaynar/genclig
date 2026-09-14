@@ -1,3 +1,4 @@
+import { BellRefresher } from "@/components/notifications/bell-refresher";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -21,7 +22,12 @@ export function UserHeader({
         <span />
       )}
       <div className="flex items-center gap-2">
-        {signedIn ? <NotificationBell /> : null}
+        {signedIn ? (
+          <>
+            <BellRefresher />
+            <NotificationBell />
+          </>
+        ) : null}
         <ThemeToggle />
       </div>
     </header>

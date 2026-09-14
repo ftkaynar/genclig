@@ -25,7 +25,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, { data: provinces }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("display_name,avatar_url,province_id,district_id,neighborhood_id")
+      .select("username,display_name,avatar_url,province_id,district_id,neighborhood_id")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("provinces").select("id,name").order("name"),
@@ -48,6 +48,7 @@ export default async function SettingsPage() {
           <ProfileForm
             provinces={provinces ?? []}
             initial={{
+              username: profile?.username ?? "",
               displayName: profile?.display_name ?? "",
               provinceId: profile?.province_id ? String(profile.province_id) : "",
               districtId: profile?.district_id ? String(profile.district_id) : "",

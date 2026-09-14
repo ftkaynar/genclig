@@ -24,6 +24,7 @@ export function ProfileForm({
 }: {
   provinces: Option[];
   initial: {
+    username: string;
     displayName: string;
     provinceId: string;
     districtId: string;
@@ -81,6 +82,14 @@ export function ProfileForm({
     <form action={formAction} className="flex flex-col gap-4">
       {state.error ? <FormAlert>{state.error}</FormAlert> : null}
       {state.notice ? <FormAlert kind="info">{state.notice}</FormAlert> : null}
+
+      <TextField
+        label="Kullanıcı adı"
+        name="username"
+        defaultValue={initial.username}
+        placeholder="ornek_kullanici"
+        hint="3-20 karakter; küçük harf, rakam ve alt çizgi. Sıralamada bu ad görünür."
+      />
 
       <TextField
         label="Görünen ad"

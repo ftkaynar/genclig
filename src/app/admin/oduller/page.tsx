@@ -1,5 +1,6 @@
 import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
 import { RewardCreator } from "@/components/panel/admin-editors";
+import { RewardArchiveButton } from "@/components/panel/archive-controls";
 import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
@@ -51,6 +52,10 @@ export default async function AdminRewardsPage() {
               {reward.stock !== null ? ` · stok ${reward.stock}` : " · sınırsız"} ·{" "}
               {reward.municipality_id ? "belediye" : "global"} · {reward.status}
             </p>
+
+            <div className="mt-2.5">
+              <RewardArchiveButton rewardId={reward.id} />
+            </div>
           </li>
         ))}
       </ul>

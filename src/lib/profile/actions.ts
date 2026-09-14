@@ -28,6 +28,7 @@ export async function updateProfileAction(
     return { error: "Oturumun sona ermiş. Tekrar giriş yap." };
   }
 
+  const username = String(formData.get("username") ?? "").trim().toLowerCase();
   const displayName = String(formData.get("displayName") ?? "").trim();
   const provinceId = String(formData.get("provinceId") ?? "").trim();
   const districtId = String(formData.get("districtId") ?? "").trim();
@@ -37,9 +38,19 @@ export async function updateProfileAction(
     return { error: "Görünen ad en az 2 karakter olmalı." };
   }
 
+  // Kullanıcı adı kuralı onboarding ile aynı; iki yerde ayrışmasın diye
+  // aynı desen kullanılıyor.
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    return {
+      error:
+        "Kullanıcı adı 3-20 karakter olmalı; yalnızca küçük harf, rakam ve alt çizgi.",
+    };
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
+      username,
       display_name: displayName || null,
       province_id: provinceId ? Number(provinceId) : null,
       district_id: districtId ? Number(districtId) : null,
@@ -48,6 +59,10 @@ export async function updateProfileAction(
     .eq("id", user.id);
 
   if (error) {
+    // 23505: unique ihlali. username citext, büyük/küçük harf farkı da çakışma.
+    if (error.code === "23505") {
+      return { error: "Bu kullanıcı adı alınmış. Başka bir tane dene." };
+    }
     return { error: "Profil kaydedilemedi. Lütfen tekrar dene." };
   }
 

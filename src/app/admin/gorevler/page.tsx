@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
 import { TaskStatusControls } from "@/components/panel/task-status-controls";
 import { ADMIN_NAV } from "@/lib/panel/nav";
@@ -28,6 +30,15 @@ export default async function AdminTasksPage() {
       subtitle={`${tasks.length} global görev`}
       nav={ADMIN_NAV}
     >
+      <div className="mb-4">
+        <Link
+          href="/admin/gorevler/yeni"
+          className="inline-block rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-brand"
+        >
+          Yeni global görev
+        </Link>
+      </div>
+
       <ul className="flex flex-col gap-3">
         {tasks.map((task) => (
           <li key={task.id} className="rounded-2xl border border-edge bg-card p-4">

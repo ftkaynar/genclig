@@ -1,5 +1,6 @@
 import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
 import { BadgeCreator } from "@/components/panel/admin-editors";
+import { BadgeStatusButton } from "@/components/panel/archive-controls";
 import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { criteriaText } from "@/lib/profile/queries";
@@ -58,6 +59,10 @@ export default async function AdminBadgesPage() {
               {badge.slug} · {criteriaText(badge.criteria)} · +{badge.xp_bonus} XP
               / +{badge.coin_bonus} Coin
             </p>
+
+            <div className="mt-2.5">
+              <BadgeStatusButton badgeId={badge.id} status={badge.status} />
+            </div>
           </li>
         ))}
       </ul>
