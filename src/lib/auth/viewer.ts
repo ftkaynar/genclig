@@ -39,6 +39,7 @@ export type ViewerProfile = {
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  birth_date: string | null;
   province_id: number | null;
   district_id: number | null;
   neighborhood_id: number | null;
@@ -54,7 +55,7 @@ export const getViewerProfile = cache(
     const { data } = await supabase
       .from("profiles")
       .select(
-        "id,username,display_name,avatar_url,province_id,district_id,neighborhood_id",
+        "id,username,display_name,avatar_url,birth_date,province_id,district_id,neighborhood_id",
       )
       .eq("id", user.id)
       .maybeSingle();

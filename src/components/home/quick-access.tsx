@@ -6,15 +6,18 @@ import { Icon } from "@/components/ui/icon";
   Ana sayfa hızlı erişim ızgarası.
 
   Alt gezinme beş sekmede sabit (mobilde altıncı sekme dokunma hedeflerini
-  parmak genişliğinin altına indiriyordu). Arkadaşlar, Takımım, Ödüller ve
-  Destek buraya alındı: hepsi profil altında gömülüydü ve kullanıcı
-  varlıklarını fark etmiyordu.
+  parmak genişliğinin altına indiriyordu). Bu dört ekran profil altında
+  gömülüydü ve kullanıcı varlıklarını fark etmiyordu.
+
+  D23te Destek yerini Toplulukta bıraktı: sohbet günlük kullanılan bir
+  ekran, destek ise yalnızca sorun çıkınca aranıyor. Destek /profil
+  üzerinden erişilebilir durumda.
 */
 const ITEMS = [
   { href: "/arkadaslar", icon: "users", label: "Arkadaşlar", tone: "text-primary bg-primary/15" },
   { href: "/takim", icon: "shield", label: "Takımım", tone: "text-magenta bg-magenta/15" },
   { href: "/oduller", icon: "gift", label: "Ödüller", tone: "text-coin bg-coin/15" },
-  { href: "/destek", icon: "hand-heart", label: "Destek", tone: "text-xp bg-xp/15" },
+  { href: "/topluluk", icon: "megaphone", label: "Topluluk", tone: "text-xp bg-xp/15" },
 ] as const;
 
 export function QuickAccess() {
