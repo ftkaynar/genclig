@@ -30,7 +30,7 @@ export function FlipCard({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="flip-scene w-full max-w-[300px]">
+      <div className="flip-scene w-[320px] max-w-full">
         <div className={`flip-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ------------------------------------------------------- ön yüz */}
           <div className="flip-face flip-front">
@@ -42,7 +42,13 @@ export function FlipCard({
             className="flip-face flip-back overflow-hidden rounded-2xl border border-edge bg-card p-3"
             /* Kartla aynı en-boy: VIP kart 100/142, arka yüz de öyle
                olmalı yoksa çevrilince yükseklik zıplıyordu. */
-            style={{ aspectRatio: "100 / 142" }}
+            /*
+              Arka yüz kalkan DEĞİL, yuvarlak dikdörtgen: altı istat,
+              ipuçları, özet ve rozetler kalkanın daralan alt yarısına
+              sığmıyordu. Yükseklik ön yüzle aynı tutuluyor ki çevrilince
+              kart zıplamasın.
+            */
+            style={{ aspectRatio: "100 / 152" }}
           >
             <div className="flex h-full flex-col overflow-y-auto">
               <p className="text-[11px] font-bold uppercase tracking-wide text-primary">

@@ -393,14 +393,84 @@
    blok).
 --------------------------------------------------------------------------- */
 
+/*
+  Kalkan silueti.
+
+  D27'de form yuvarlak köşeli dikdörtgendi; D28'de referans görsele göre
+  kalkana çevrildi: üstte iki omuz ve ortada V çentik, yanlar aşağı
+  inerken daralıyor, altta yuvarlatılmış sivri uç.
+
+  `clip-path: polygon()` yüzdelerle yazıldı; `path()` kullanıcı birimi
+  istiyor ve kart boyutu değişince şekil bozuluyordu. Köşe yumuşatması
+  ara noktalarla yapılıyor — clip-path `border-radius`'u ezdiği için
+  yuvarlatma başka türlü mümkün değil.
+
+  Sadece siluet ödünç: referanstaki hiçbir görsel, logo, marka ya da renk
+  paleti kullanılmıyor; yüzeyler ve tipografi GENÇLİG'in kendi v2
+  sisteminden.
+*/
+@utility clip-shield {
+  clip-path: polygon(
+    6% 3%,
+    10% 1%,
+    40% 1%,
+    44% 4%,
+    50% 8%,
+    56% 4%,
+    60% 1%,
+    90% 1%,
+    94% 3%,
+    97% 7%,
+    99% 14%,
+    99% 55%,
+    97% 63%,
+    88% 74%,
+    62% 92%,
+    54% 98%,
+    50% 99%,
+    46% 98%,
+    38% 92%,
+    12% 74%,
+    3% 63%,
+    1% 55%,
+    1% 14%,
+    3% 7%
+  );
+}
+
 .vipcard {
   position: relative;
-  aspect-ratio: 100 / 142;
-  border-radius: 20px;
+  /* Kalkan dikdörtgenden daha uzun: omuz ve uç payı gerekiyor. */
+  aspect-ratio: 100 / 152;
   isolation: isolate;
-  overflow: hidden;
   /* Çerçeve kalınlığı: gradyan kenar bu dolgudan görünüyor. */
-  padding: 3px;
+  padding: 4px;
+  clip-path: polygon(
+    6% 3%,
+    10% 1%,
+    40% 1%,
+    44% 4%,
+    50% 8%,
+    56% 4%,
+    60% 1%,
+    90% 1%,
+    94% 3%,
+    97% 7%,
+    99% 14%,
+    99% 55%,
+    97% 63%,
+    88% 74%,
+    62% 92%,
+    54% 98%,
+    50% 99%,
+    46% 98%,
+    38% 92%,
+    12% 74%,
+    3% 63%,
+    1% 55%,
+    1% 14%,
+    3% 7%
+  );
 }
 
 /* --------------------------------------------------------------- çerçeve */
@@ -413,7 +483,6 @@
   position: absolute;
   inset: 0;
   z-index: -2;
-  border-radius: inherit;
   background-size: 300% 300%;
   background-position: 0% 50%;
 }
@@ -467,9 +536,9 @@
 /* Çerçevenin hemen içindeki ince holografik hat (altın ve efsanede). */
 .vipcard-hololine {
   position: absolute;
-  inset: 3px;
+  inset: 4px;
   z-index: -1;
-  border-radius: 17px;
+  clip-path: inherit;
   padding: 1px;
   background: linear-gradient(
     120deg,
@@ -493,10 +562,15 @@
 
 /* --------------------------------------------------------------- zemin */
 
+/*
+  İç zemin dıştaki kalkanın küçültülmüş kopyası. Yüzde tabanlı polygon
+  daha küçük kutuda orantılı küçüldüğü için çerçeve her yerde eşit
+  kalınlıkta görünüyor.
+*/
 .vipcard-bg {
   position: absolute;
-  inset: 3px;
-  border-radius: 17px;
+  inset: 4px;
+  clip-path: inherit;
   background:
     radial-gradient(
       ellipse 70% 55% at 50% 38%,
@@ -510,8 +584,8 @@
 /* Dokulu ince çizgi deseni. */
 .vipcard-texture {
   position: absolute;
-  inset: 3px;
-  border-radius: 17px;
+  inset: 4px;
+  clip-path: inherit;
   opacity: 0.09;
   background-image: repeating-linear-gradient(
     115deg,
@@ -586,8 +660,8 @@
 /* Üstten geçen ışık süpürmesi. */
 .vipcard-sweep {
   position: absolute;
-  inset: 3px;
-  border-radius: 17px;
+  inset: 4px;
+  clip-path: inherit;
   overflow: hidden;
 }
 

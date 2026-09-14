@@ -3,12 +3,14 @@ import Image from "next/image";
 import { STAT_META, type UserStats } from "@/lib/stats/labels";
 
 /*
-  GENÇLİG Kimlik Kartı — VIP.
+  GENÇLİG Kimlik Kartı — VIP, kalkan siluet.
 
-  TASARIM TAMAMEN ÖZGÜN: hiçbir oyunun, markanın ya da lisanslı ürünün
-  kartı taklit edilmiyor; dış görsel, logo ya da ticari font
-  kullanılmıyor. Form bilerek yuvarlak köşeli dikdörtgen (kalkan silueti
-  değil), tipografi sistem serif'i, yüzeyler saf CSS gradyanı.
+  TASARIM ÖZGÜN: referans olarak verilen ticari karttan yalnızca genel
+  SİLUET ve yerleşim mantığı (sol sütunda genel puan, sağda portre, altta
+  iki sütunlu istat tablosu) alındı — bu düzen spor kartlarının ortak
+  dili. Hiçbir görsel, logo, marka, renk paleti ya da ticari font
+  kullanılmadı; yüzeyler saf CSS gradyanı, tipografi sistem serif'i,
+  bayrak elle çizilmiş SVG.
 
   Kademeler aynı iskeleti paylaşıyor, görsel yoğunluk artıyor:
     bronz   → mat bakır çerçeve, efekt yok
@@ -86,7 +88,50 @@ const TIERS: Record<string, TierVisual> = {
   },
 };
 
-/** Türkiye bayrağı — saf CSS/SVG, dış varlık yok. */
+/*
+  Kalkan siluetinin iç boşlukları.
+
+  Üstteki V çentik ve alttaki sivri uç içeriği kırpıyor; bu yüzden dikey
+  paylar yüzdeyle değil piksel sabitleriyle veriliyor. Yüzde dolgu
+  CSS'te YÜKSEKLİĞE değil GENİŞLİĞE göre çözülüyor ve kalkanın oranı
+  değişince paylar kayıyordu.
+*/
+const BOX = {
+  large: {
+    width: 320,
+    padTop: 54,
+    padBottom: 66,
+    padX: 26,
+    ovr: "text-[52px]",
+    tierLabel: "text-[10px] tracking-[0.2em]",
+    avatar: 104,
+    name: "text-[17px]",
+    nameSpacing: "5px",
+    statValue: "text-[22px]",
+    statLabel: "text-[11px]",
+    flag: 28,
+    district: "text-[9px]",
+    wordmark: "text-[8px] tracking-[0.3em]",
+  },
+  mini: {
+    width: 160,
+    padTop: 27,
+    padBottom: 33,
+    padX: 13,
+    ovr: "text-[26px]",
+    tierLabel: "text-[6px] tracking-[0.12em]",
+    avatar: 52,
+    name: "text-[10px]",
+    nameSpacing: "2px",
+    statValue: "text-[12px]",
+    statLabel: "text-[7px]",
+    flag: 16,
+    district: "text-[6px]",
+    wordmark: "text-[5px] tracking-[0.2em]",
+  },
+} as const;
+
+/** Türkiye bayrağı — elle çizilmiş SVG, dış varlık yok. */
 function FlagTR({ size }: { size: number }) {
   return (
     <svg
@@ -99,10 +144,7 @@ function FlagTR({ size }: { size: number }) {
       <rect width="30" height="20" fill="#E30A17" />
       <circle cx="12" cy="10" r="5" fill="#fff" />
       <circle cx="13.6" cy="10" r="4" fill="#E30A17" />
-      <path
-        d="M18.4 10 l4.6-1.5 -2.85 3.9 0-4.8 2.85 3.9z"
-        fill="#fff"
-      />
+      <path d="M18.4 10 l4.6-1.5 -2.85 3.9 0-4.8 2.85 3.9z" fill="#fff" />
     </svg>
   );
 }
@@ -117,6 +159,7 @@ export function IdentityCard({
   size?: "large" | "mini";
 }) {
   const mini = size === "mini";
+  const box = mini ? BOX.mini : BOX.large;
   const tier = TIERS[stats.tier] ?? TIERS.bronze;
 
   return (
@@ -124,7 +167,8 @@ export function IdentityCard({
       aria-label={`${identity.username} kimlik kartı, genel puan ${stats.ovr}, ${tier.label}`}
       className={`vipcard ${tier.frame} ${
         tier.float && !mini ? "vipcard-float" : ""
-      } ${mini ? "w-[150px]" : "w-full max-w-[300px]"}`}
+      }`}
+      style={{ width: box.width }}
     >
       {/* ------------------------------------------------ katmanlar */}
       <span aria-hidden className="vipcard-frame" />
@@ -146,86 +190,60 @@ export function IdentityCard({
 
       {/* ------------------------------------------------ içerik */}
       <div
-        className={`relative flex h-full flex-col ${
-          mini ? "px-2 py-2" : "px-3.5 py-3"
-        }`}
+        className="relative flex h-full flex-col"
+        style={{
+          paddingTop: box.padTop,
+          paddingBottom: box.padBottom,
+          paddingLeft: box.padX,
+          paddingRight: box.padX,
+        }}
       >
-        {/* Tepe: amblem */}
-        <div className="flex flex-col items-center">
-          <span
-            className={`flex items-center justify-center rounded-full border border-[#d4a02c]/70 bg-black/30 ${
-              mini ? "h-4 w-4" : "h-6 w-6"
-            }`}
-          >
-            <span
-              className={`vip-gold-text font-bold ${
-                mini ? "text-[7px]" : "text-[10px]"
-              }`}
-            >
-              G
-            </span>
-          </span>
-          <span
-            className={`vip-gold-text mt-0.5 font-bold ${
-              mini ? "text-[6px] tracking-[0.2em]" : "text-[9px] tracking-[0.35em]"
-            }`}
-          >
-            GENÇLİG
-          </span>
-        </div>
-
-        {/* Orta bölüm: sol sütun + avatar */}
-        <div
-          className={`flex flex-1 items-center ${mini ? "gap-1" : "gap-2"}`}
-        >
-          {/* Sol sütun */}
+        {/* Üst blok: sol sütun + portre */}
+        <div className={`flex items-start ${mini ? "gap-1" : "gap-2"}`}>
           <div className="flex shrink-0 flex-col items-center">
             <span
-              className={`${tier.text} font-bold leading-none ${
-                mini ? "text-2xl" : "text-[44px]"
-              }`}
+              className={`${tier.text} font-bold leading-none ${box.ovr}`}
             >
               {stats.ovr}
             </span>
 
             <span
-              className={`mt-1 w-full border-y border-[#d4a02c]/40 py-0.5 text-center font-bold ${
+              className={`mt-0.5 w-full text-center font-bold ${
                 tier.holoLabel ? "vip-holo-text" : tier.text
-              } ${mini ? "text-[6px] tracking-[0.1em]" : "text-[9px] tracking-[0.18em]"}`}
+              } ${box.tierLabel}`}
             >
               {tier.label}
             </span>
 
             <span
-              className={`mt-1.5 overflow-hidden rounded-[2px] border border-[#d4a02c]/70 ${
-                mini ? "" : ""
-              }`}
-            >
-              <FlagTR size={mini ? 16 : 24} />
+              aria-hidden
+              className={`vip-rule ${mini ? "my-1" : "my-1.5"} w-full`}
+            />
+
+            <span className="overflow-hidden rounded-[2px] border border-[#d4a02c]/70">
+              <FlagTR size={box.flag} />
             </span>
 
             {identity.district ? (
               <span
-                className={`mt-0.5 max-w-[56px] truncate text-center font-semibold uppercase tracking-wide text-white/70 ${
-                  mini ? "text-[5px]" : "text-[8px]"
-                }`}
+                className={`mt-1 max-w-[70px] truncate text-center font-semibold uppercase tracking-wide text-white/75 ${box.district}`}
               >
                 {identity.district}
               </span>
             ) : null}
           </div>
 
-          {/* Avatar + seviye madalyonu */}
-          <div className="relative flex flex-1 items-center justify-center">
+          {/* Portre + seviye madalyonu */}
+          <div className="relative flex flex-1 justify-center">
             <span
-              className={`relative block overflow-hidden rounded-full border-2 border-[#d4a02c]/80 ${
-                mini ? "h-[52px] w-[52px]" : "h-[92px] w-[92px]"
-              }`}
+              className="relative block overflow-hidden rounded-full border-2 border-[#d4a02c]/80"
               style={{
+                width: box.avatar,
+                height: box.avatar,
                 boxShadow:
                   tier.glow === "none"
                     ? undefined
-                    : "0 0 18px rgb(139 92 246 / 0.55)",
+                    : "0 0 20px rgb(139 92 246 / 0.6)",
               }}
             >
               {identity.avatarUrl ? (
@@ -251,8 +269,8 @@ export function IdentityCard({
             <span
               className={`absolute rounded-full border border-[#d4a02c] bg-[#0a0618] text-center font-bold text-[#f3d27a] ${
                 mini
-                  ? "-bottom-0.5 right-1 px-1 py-[1px] text-[5px]"
-                  : "bottom-0 right-1 px-1.5 py-0.5 text-[8px]"
+                  ? "-bottom-1 right-0 px-1 py-[1px] text-[5px]"
+                  : "-bottom-1.5 right-1 px-2 py-0.5 text-[9px]"
               }`}
             >
               SEVİYE {identity.level}
@@ -260,71 +278,68 @@ export function IdentityCard({
           </div>
         </div>
 
-        {/* Kullanıcı adı: asil serif, geniş harf aralığı, çizgi arasında */}
-        <div className={mini ? "mt-0.5" : "mt-1.5"}>
-          <span aria-hidden className="vip-rule block" />
-          <p
-            className={`vip-gold-text truncate py-1 text-center font-bold uppercase ${
-              mini ? "text-[9px]" : "text-[15px]"
-            }`}
-            style={{
-              fontFamily: "Georgia, 'Times New Roman', serif",
-              letterSpacing: mini ? "2px" : "4.5px",
-            }}
-          >
-            {identity.username}
-          </p>
-          <span aria-hidden className="vip-rule block" />
-        </div>
+        {/* Ad: serif, geniş harf aralığı, altında ayraç */}
+        <p
+          className={`vip-gold-text ${
+            mini ? "mt-2" : "mt-4"
+          } truncate text-center font-bold uppercase ${box.name}`}
+          style={{
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            letterSpacing: box.nameSpacing,
+          }}
+        >
+          {identity.username}
+        </p>
+        <span
+          aria-hidden
+          className={`vip-rule ${mini ? "mt-1" : "mt-1.5"} w-full`}
+        />
 
-        {/* Alt: 6 istat, 2 sütun × 3 satır, ortada dikey ayraç */}
+        {/*
+          İstatlar: iki sütun × üç satır, "94 HIZ" düzeninde — sayı önce,
+          kısaltma sonra. Bar göstergesi bilerek yok: referans düzende
+          sayılar tek başına duruyor ve kalkanın dar alt alanında barlar
+          tabloyu boğuyordu. Bar detayı kartın arka yüzünde duruyor.
+        */}
         <div
-          className={`relative grid grid-cols-2 ${
-            mini ? "mt-1 gap-x-1.5 gap-y-0.5" : "mt-2 gap-x-3 gap-y-1"
+          className={`relative grid flex-1 grid-cols-2 content-center ${
+            mini ? "mt-1.5 gap-x-2" : "mt-3 gap-x-4"
           }`}
         >
           <span
             aria-hidden
-            className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-[#d4a02c]/25"
+            className="absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-[#d4a02c]/30"
           />
 
-          {STAT_META.map((meta) => {
-            const value = stats[meta.key];
-            return (
-              <div key={meta.key} className="min-w-0">
-                <div className="flex items-baseline gap-1">
-                  <span
-                    className={`${tier.text} font-bold tabular-nums ${
-                      mini ? "text-[11px]" : "text-[17px]"
-                    }`}
-                  >
-                    {value}
-                  </span>
-                  <span
-                    className={`font-semibold tracking-wide text-white/65 ${
-                      mini ? "text-[6px]" : "text-[9px]"
-                    }`}
-                  >
-                    {meta.short}
-                  </span>
-                </div>
-
-                {/* İnce dolan bar */}
-                <span
-                  aria-hidden
-                  className={`mt-0.5 block w-full overflow-hidden rounded-full bg-white/12 ${
-                    mini ? "h-[2px]" : "h-[3px]"
-                  }`}
-                >
-                  <span
-                    className="vip-statbar block h-full rounded-full"
-                    style={{ width: `${value}%` }}
-                  />
-                </span>
-              </div>
-            );
-          })}
+          {STAT_META.map((meta) => (
+            <div
+              key={meta.key}
+              className={`flex items-baseline gap-1.5 ${
+                mini ? "justify-center" : "justify-center"
+              }`}
+            >
+              <span
+                className={`${tier.text} font-bold tabular-nums ${box.statValue}`}
+              >
+                {stats[meta.key]}
+              </span>
+              <span
+                className={`font-semibold tracking-wide text-white/75 ${box.statLabel}`}
+              >
+                {meta.short}
+              </span>
+            </div>
+          ))}
         </div>
+
+        {/* Alt: marka yazısı (referanstaki alt logo yerinde) */}
+        <span
+          className={`vip-gold-text ${
+            mini ? "mt-1" : "mt-2"
+          } text-center font-bold ${box.wordmark}`}
+        >
+          GENÇLİG
+        </span>
       </div>
     </article>
   );

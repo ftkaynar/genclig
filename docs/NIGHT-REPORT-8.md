@@ -265,3 +265,80 @@ rota        "Token"   kullanıcı metninde "Coin"
 
 Test kullanıcısı ölçümden sonra **silindi**; buluttaki mevcut satırlara
 dokunulmadı.
+
+---
+
+## Ek istek — kalkan siluet + büyütme
+
+Referans görsel üzerine gelen istek: kart daha büyük olsun ve şekli
+ektekine benzesin.
+
+**Yön değişikliği bildirimi:** D27 metni açıkça "FUT kalkan silueti
+DEĞİL, yuvarlak köşeli dikdörtgen" diyordu ve kart öyle yapılmıştı.
+Referans görsel kalkan siluetinde olduğu için o karar tersine çevrildi;
+kod yorumlarında da eski gerekçe güncellendi.
+
+### Telif sınırı
+
+Referans ticari bir ürün (jogo.com.tr). Alınan yalnızca **genel siluet ve
+yerleşim mantığı** — sol sütunda genel puan, sağda portre, altta iki
+sütunlu istat tablosu; bu düzen spor kartlarının ortak dili. Referanstaki
+hiçbir görsel, logo, marka, filigran, renk paleti ya da ticari font
+kullanılmadı. Yüzeyler saf CSS gradyanı, tipografi sistem serif'i, bayrak
+elle çizilmiş SVG.
+
+### Şekil
+
+`clip-path: polygon()` ile 24 noktalı kalkan: üstte iki omuz + ortada V
+çentik, yanlar aşağı inerken daralıyor, altta yuvarlatılmış sivri uç.
+
+**`path()` denendi ve elendi:** kullanıcı birimi istiyor, kart boyutu
+değişince şekil bozuluyordu. Yüzde tabanlı `polygon()` her boyutta
+orantılı kalıyor. Köşe yumuşatması ara noktalarla yapıldı — `clip-path`
+`border-radius`'u ezdiği için başka yolu yok.
+
+**İç katmanlar** (`vipcard-bg`, `texture`, `sweep`, `hololine`)
+`clip-path: inherit` alıyor ve 4 px içeriden başlıyor; yüzde tabanlı
+poligon küçük kutuda orantılı küçüldüğü için çerçeve her yerde eşit
+kalınlıkta görünüyor.
+
+### Boyut ve yerleşim
+
+- Genişlik 300 → **320 px**, oran 100/142 → **100/152** (kalkan omuz ve uç
+  payı istiyor)
+- Dikey paylar **piksel sabiti**: yüzde dolgu CSS'te yüksekliğe değil
+  **genişliğe** göre çözülüyor ve oran değişince çentik payı kayıyordu
+- OVR 44 → 52 px, istat sayıları 17 → 22 px, portre 92 → 104 px
+- İstat düzeni referanstaki gibi **"35 AKT"** — sayı önce, kısaltma sonra,
+  iki sütun × üç satır, ortada dikey ayraç
+- **İstat barları kaldırıldı:** referans düzende sayılar tek başına duruyor
+  ve kalkanın daralan alt alanında barlar tabloyu boğuyordu. Bar detayı
+  kartın **arka yüzünde** duruyor.
+- Marka yazısı üstten alta taşındı (referanstaki alt logo yerine)
+
+**Arka yüz kalkan değil, yuvarlak dikdörtgen:** altı istat + ipuçları +
+özet + rozetler kalkanın daralan alt yarısına sığmıyordu. Yükseklik ön
+yüzle aynı (100/152) tutuldu ki çevrilince kart zıplamasın.
+
+### Kanıt (yerel dev sunucu, oturumlu)
+
+Derlenmiş CSS'te:
+
+```
+clip-path:polygon(6% 3%,10% 1%,40% 1%,44% 4%,50% 8%,56% 4%,60% 1%,…)
+clip-path:inherit
+aspect-ratio:100/152
+```
+
+Dört kademe, `/profil` HTML'inden:
+
+```
+kademe   genişlik  çerçeve          ışın hale süpürme holo  etiket
+bronze   320px     vipcard-bronze    0    0     0      0    BRONZ
+silver   320px     vipcard-silver    0    1     0      0    GÜMÜŞ
+gold     320px     vipcard-gold      1    1     0      1    ALTIN
+special  320px     vipcard-gold      1    1     1      1    EFSANE
+```
+
+Gerçek istatla iki haneli değerler: `35 · 36 · 12 · 87 · 21 · 13` — altısı
+da 22 px sütunlarda taşmadan diziliyor.
