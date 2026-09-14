@@ -393,3 +393,173 @@ de olsa ayırt ediciliği kaybolurdu.
 `--color-teal` token'ıydı (v2'de indigoya yönlendirilmişti) — artık
 hiçbir yerden okunmuyordu, ölü token olarak silindi. Kullanan son yer
 podyumun 3. basamağıydı, o da bronza geçti.
+
+---
+
+## FAZ Z — Kapanış
+
+### Bulut push
+
+Bu dilimde dört migration buluta gitti:
+
+```
+20260917000000_indexes.sql          (P6 — 12 indeks)
+20260917010000_team_progress.sql    (FAZ G — takım ilerleme sayacı)
+20260917020000_announcements.sql    (FAZ D — M20)
+```
+
+Kapanış kontrolü:
+
+```
+db push --dry-run  → {"upToDate":true,"migrations":[]}
+db diff --linked   → No schema changes found
+```
+
+Yerel ile bulut birebir; bekleyen migration yok.
+
+### `rls_isolation.sql` — SENARYO 25 (duyuru)
+
+Dosya 709 satır. Tam koşumda **17 `ERROR` satırının hepsi beklenen
+reddetme**; beklenmeyen hata yok.
+
+Duyuru senaryosunun doğruladıkları:
+- Normal kullanıcı duyuru gönderemiyor
+- Personel `all` gönderemiyor (yalnızca kendi belediyesi)
+- Süper admin `all` → **3 kullanıcı, 3 bildirim, `sent_count = 3`**
+  (üçü de birbirine eşit — hedefleme doğru)
+- Normal kullanıcı `announcements` satırı görmüyor (0), geçmiş boş (0),
+  doğrudan insert → `permission denied`
+- Çan sayacı arttı: okunmamış duyuru bildirimi 1
+- `provinces` 81, `profiles` 3 — test verisi sızıntısı yok
+
+### `pnpm check:all`
+
+Her fazın sonunda koşuldu, hepsinde çıkış kodu **0**.
+
+### Canlı TTFB — dilim sonu (tüm fazlar yayında)
+
+Deploy sonrası soğuk lambda etkisini geçmek için ısındırma yapıldı, sonra
+rota başına **7 örnek** alınıp **medyan** raporlandı:
+
+```
+rota          medyan
+/api/health    612ms   ← taban: dinamik rota, DB'ye hiç gitmiyor
+/gorevler      738ms
+/profil        773ms
+/              834ms
+/panel         886ms
+/oduller      1093ms
+/siralama     1289ms
+```
+
+Dilim başıyla karşılaştırma (3 örnek ortalaması → 7 örnek medyanı):
+
+```
+rota        dilim başı   dilim sonu   değişim
+/           2332ms       834ms        -64%
+/gorevler   2355ms       738ms        -69%
+/profil     1764ms       773ms        -56%
+/siralama   1635ms      1289ms        -21%
+/oduller    1689ms      1093ms        -35%
+/panel      1269ms       886ms        -30%
+```
+
+**Ölçümün sınırı, açıkça:** bağlantım gürültülü. Aynı rotada ardışık
+örnekler 600 ms ile 1900 ms arasında salınıyor ve bir ölçümde 12 saniyelik
+uç değer görüldü. Bu uç değerlerin uygulama değil ağ kaynaklı olduğunu
+şöyle doğruladım: `/api/health` — hiçbir veritabanı işi yapmayan rota —
+aynı anda aynı salınımı gösteriyor. Sayfa medyanları tabanın 125–680 ms
+üstünde; yani ölçülen sürenin büyük kısmı ağ.
+
+Daha kesin bir rakam için ölçümün Avrupa'daki sabit bir sunucudan
+yapılması gerekir; buradan alınan sayılar yön gösteriyor, mutlak değer
+olarak kullanılmamalı.
+
+**Hedef "< 800 ms":** `/gorevler` (738) ve `/profil` (773) altında,
+`/` (834) ve `/panel` (886) sınırda, `/oduller` (1093) ve `/siralama`
+(1289) üstünde. Taban 612 ms olduğu için hedefin altına inmenin tek
+gerçek yolu hâlâ Supabase projesini Avrupa bölgesine taşımak — P8'de
+gerekçesiyle yazıldı.
+
+### Temizlik
+
+Oturumlu ölçüm için buluta açılan `perfd22test@genclig.com` kullanıcısı
+**silindi**. Bulutta yalnızca gerçek süper admin hesabı kaldı (1 kullanıcı).
+Mevcut satırların hiçbirine dokunulmadı.
+
+### MOCKUP EKLENTİSİ listesi
+
+Dilim metninde adı geçmeyen, görsel hedefi tamamlamak için eklenenler:
+
+1. **`IconBadge` için "card" (44 px) kademesi** — dilimde "44px chip"
+   isteniyordu ama mevcut bileşende yalnızca 36/40/56 vardı.
+2. **Görev kartında kademe adı rozeti** ("Kolay/Orta/Zor") — dilim yalnızca
+   çerçeve rengi istiyordu; renk körlüğünde çerçeve tek başına ayırt edici
+   değil.
+3. **Ödül kartında kademe adı şeridi** ("Bronz/Gümüş/Altın") — aynı gerekçe.
+4. **`/oduller/kuponlarim` ekranının HUD'a geçirilmesi** — bilet görünümü
+   eklenince eski başlık barı tutarsız kalıyordu.
+5. **`team_task_progress` RPC'si** — "Takım · N kişi" bandı için sayının
+   nereden geleceği dilimde yazmıyordu; RLS altında normal sorguyla
+   alınamadığı için definer fonksiyon gerekti.
+6. **`x` ve `crown` ikonlarının küratörlü kümeye eklenmesi** — duyuru
+   afişinin kapatma düğmesi ve podyum tacı için.
+
+### Bilinçli kapsam dışı
+
+- **Supabase bölge taşıma** (P8'de gerekçesiyle): tek başına en büyük
+  kazanç adayı ama proje taşıma işi; dilim kapsamında değil, proje
+  sahibinin kararı.
+- DOKUNMA listesi korundu: çark/çekiliş/rastgele ödül mekaniği **yok**,
+  push notification yok, streak yok, etkinlik domain'i yok, auth
+  değişikliği yok.
+- Ödül kartındaki `flip` animasyonu yalnızca satın alma anında; ayrı bir
+  "kart açma" mekaniği (kasa/çark benzeri) bilerek yapılmadı.
+
+### Sabah görsel turu — bakılacak ekranlar
+
+1. **Alt gezinme** — ortadaki yükseltilmiş Görevler düğmesi, aktif
+   sekmedeki parıltı halkası, basınca yay animasyonu
+2. **HUD** — seviye halkası + avatar, XP çubuğu, coin hapı; oturumsuzda
+   "Giriş yap" hapı
+3. `/` — duyuru afişi (kapatılabilir), hızlı erişim, öne çıkan görev
+4. `/gorevler` — Bireysel|Takım segment anahtarının kayan göstergesi,
+   çiplerdeki sayı rozetleri, Anlık çipindeki yanıp sönen nokta
+5. `/gorevler` kartları — bronz/gümüş/altın çerçeveler ve köşe rozetleri,
+   sağdaki dikey XP/Coin sütunu
+6. **Takım görevi detayı** — üye ilerleme çubuğu
+7. `/oduller` — vitrin afiş kartı, yapışkan bakiye barı, şart çipleri;
+   bir ödül alıp **kart çevirme + kod açılışını** görün
+8. `/oduller/kuponlarim` — bilet görünümü (zımba delikleri, kesikli çizgi)
+9. `/profil` — **Seviye Yolu** dikey yolu ve rozet kesişimleri
+10. `/siralama` — podyumdaki altın/gümüş/bronz ve birincideki taç
+11. `/admin/duyurular` ve `/panel/duyurular` — hedef seçimi; panelde
+    belediye seçicinin hiç görünmediğini doğrulayın
+12. **Panel görev formu** — Takım seçilince eşik ve bonus alanlarının
+    açılması
+13. Yükleme iskeletleri — yavaş bağlantıda shimmer'ı görmek için
+    tarayıcı throttle
+14. Karanlık/aydınlık tema ve `prefers-reduced-motion` (animasyonlar
+    durmalı, kupon kodu yine de görünmeli)
+
+### Dilim özeti
+
+Yedi faz, dokuz commit, hepsi push'landı. Dört migration buluta gitti,
+`db diff --linked` temiz. `check:all` her fazda 0.
+
+**Bulunan ve düzeltilen hatalar (hepsi benim):**
+1. `unstable_cache` içinde `cookies()` okunamıyor → çerezsiz
+   `createPublicClient()`
+2. `revalidateTag` Next 16'da iki argüman istiyor
+3. `AUDIENCE_LABEL` sunucu modülünde durunca client bundle'a `next/headers`
+   sızdı (D21'deki aynı tuzak)
+4. Duyuru migration'ında rol adı `municipality_staff` yazılmıştı; doğrusu
+   `municipality_operator`
+5. Test betiğinde `\gset` değişkeni büyük harfle okundu; psql küçültüyor —
+   ilk koşumda senaryoların yarısı sessizce atlanmıştı
+6. `task-actions.ts` içinde `scope` adı zaten "panel|admin" anlamında
+   kullanılıyordu; yeni alan `taskScope` oldu
+7. `getLevels()` var olmayan `title` kolonunu seçiyordu; hiç çağrılmadığı
+   için FAZ P'de sessiz kalmıştı, FAZ V'de yakalandı
+8. `announcement-banner` ilk sürümü `useEffect` + `setState` kullanıyordu;
+   lint `set-state-in-effect` ile reddetti → `useSyncExternalStore`
