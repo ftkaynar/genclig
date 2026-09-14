@@ -236,3 +236,32 @@ düzeltmek.
 
 Dört faz, üç commit (K+P, R+T, Z), hepsi push'landı. Migration yok,
 `check:all` her fazda 0, RLS suite D26 ile birebir aynı.
+
+---
+
+## Kapanış eki — canlı Token doğrulaması (ölçüm düzeltmesi)
+
+Dilim metni "oturumsuz `/oduller`'de Token kanıtı" diyordu. **Ölçtüm:
+o kanıt bu şekilde alınamıyor.** Oturumsuz `/oduller` HTTP 200 dönüyor ama
+içerik sayfanın kendisi değil, `/giris`'e yönlendirme yükü:
+
+```
+<title>Ödül Havuzu — GençLİG</title>   ← metadata yine de yazılıyor
+içerikte "giris" 3 kez, "Bakiyen" 0 kez
+```
+
+Yani 200 kodu sayfanın render edildiği anlamına gelmiyordu — D25 ve D26'da
+`/oduller -> 200` diye kaydettiğim satırlar da aslında bu yönlendirme
+kabuğuymuş. Sayfanın gerçekten render edildiğini görmek için oturum şart.
+
+Bulutta geçici bir test kullanıcısı açılıp oturumla ölçüldü:
+
+```
+rota        "Token"   kullanıcı metninde "Coin"
+/oduller       12              0
+/profil         6              0
+/               10             0
+```
+
+Test kullanıcısı ölçümden sonra **silindi**; buluttaki mevcut satırlara
+dokunulmadı.
