@@ -157,3 +157,82 @@ rota        "Token" geçişi   kullanıcı metninde "Coin"
 
 Kodda kalan `coin` geçişlerinin hepsi kod tanımlayıcısı, yorum ya da
 lucide ikon adı (`coins`) — kullanıcı metni değil.
+
+---
+
+## FAZ Z — Kapanış
+
+### Bu dilimde migration YOK
+
+Kart, rozet ve metin işi; şema değişmedi.
+
+```
+db push --dry-run → {"upToDate":true,"migrations":[]}
+```
+
+### `rls_isolation.sql` — dokunulmadı, tam koşuldu
+
+Şema değişmediği için dosyaya dokunulmadı; yine de bozulmadığını
+göstermek için tam koşuldu:
+
+```
+TOPLAM ERROR: 28
+D26 koşusuyla diff: FARK YOK
+provinces 81 · profiles 3
+```
+
+D24'ten beri uyguladığım disiplin burada da işledi: sayıya bakmakla
+yetinmeyip önceki koşuyla diff aldım. Sıfır fark, yani kart/rozet/metin
+değişiklikleri hiçbir güvenlik iddiasını etkilememiş.
+
+### `pnpm check:all`
+
+Her fazın sonunda koşuldu, hepsinde çıkış kodu **0**.
+
+### Telif
+
+Kart tasarımı **tamamen özgün**. Hiçbir oyunun, markanın ya da lisanslı
+ürünün kartı taklit edilmedi; dış görsel, logo ya da ticari font
+kullanılmadı. Türkiye bayrağı bile saf SVG olarak çizildi. Yüzeyler CSS
+gradyanı, ikonlar zaten projede olan lucide kümesinden, tipografi sistem
+serif'i.
+
+### Sapmalar ve borçlar
+
+**Sapma:** `redeem_reward`'ın veritabanı hata mesajı hâlâ "coin" diyor.
+Migration bu dilimin DOKUNMA listesinde olduğu için metin eylem katmanında
+çevriliyor. **Borç:** mesajı bir sonraki şema diliminde migration'la
+düzeltmek.
+
+**Duran diğer borçlar:** istat tazelemenin kuyruğa taşınması (D26),
+`/gorevler` kategori filtresi (D25), realtime sohbet ve quiz eşiği kolonu
+(D23).
+
+### Sabah görsel turu
+
+1. **`/profil` kartı** — akan altın çerçeve, koyu radyal zemin, avatar
+   arkasından ışın, merkez hale, üstten geçen süpürme, kartın hafif
+   yüzmesi
+2. **Dört kademe** — `user_stats.tier` değiştirerek: BRONZ (mat, efekt
+   yok) → GÜMÜŞ (hale) → ALTIN (ışın + holo hat + yüzme) → EFSANE
+   (hepsi + süpürme)
+3. **Kart yerleşimi** — sol sütunda OVR + kademe + bayrak + ilçe; serif
+   altın kullanıcı adı çizgiler arasında; altta 6 istat barlı
+4. **Kartı çevir** — arka yüzde istat kırılımı, ipuçları, özet, rozetler;
+   çevirirken yükseklik zıplamamalı
+5. **`prefers-reduced-motion`** — akış, ışın, yüzme, holo durmalı;
+   süpürme tamamen kaybolmalı; kart yine de doğru görünmeli
+6. **Rozetler** — kilitli rozette **kendi ikonu** görünmeli, üstünde
+   küçük kilit; altında kriter ve "3/10" ilerleme
+7. **Rozete dokun** — detay modalı (ad, açıklama, nasıl kazanılır,
+   ilerleme/tarih)
+8. **Token** — HUD hapı "1.250 Token", `/oduller` bakiye barı, ödül
+   maliyeti "500 Token", satın alma onayı "500 Token harcanacak",
+   eksik bakiye "120 Token daha"
+9. **Görev kutucukları** — dar hapta birim yazısı olmamalı (taşmasın)
+10. **Arkadaş kartı** — modalda mini VIP kart
+
+### Dilim özeti
+
+Dört faz, üç commit (K+P, R+T, Z), hepsi push'landı. Migration yok,
+`check:all` her fazda 0, RLS suite D26 ile birebir aynı.
