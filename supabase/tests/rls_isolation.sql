@@ -33,7 +33,7 @@ delete from auth.users where id in (:'A', :'B', :'C');
 delete from public.provinces where id > 81;
 -- Duyuru senaryosunun test belediyesi (SENARYO 25).
 delete from public.municipalities where slug in ('rls-duyuru-bld', 'rls-inc-bld');
-delete from public.tasks where title in ('RLS gunluk gorev', 'RLS belediye gorevi', 'Senaryo 9 gunluk gorev');
+delete from public.tasks where title in ('RLS gunluk gorev', 'RLS belediye gorevi', 'Senaryo 9 gunluk gorev', 'RLS limit gorevi', 'RLS limit gunluk gorev');
 select count(*) as kalan_test_kullanicisi from auth.users where id in (:'A', :'B', :'C');
 select count(*) as kalan_test_rolu from public.user_roles where user_id in (:'A', :'B');
 
@@ -1016,6 +1016,103 @@ begin;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
 set local role authenticated;
 select status, count(*) from public.list_my_submissions(null) group by status order by status;
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 31: surekli gorevde gunluk teslim siniri'
+\echo '=========================================================='
+
+/*
+  GPS dogrulamali surekli gorev: submit_task fotograf/storage kontrolune
+  takilmadan calissin.
+*/
+insert into public.tasks (id, municipality_id, category_id, type, title,
+  description, xp, coin, verification, lat, lng, radius_m, status,
+  daily_submission_limit)
+values ('0000f1a5-0000-4000-8000-0000000000e9', null,
+  (select id from public.task_categories limit 1), 'continuous',
+  'RLS limit gorevi', 'Gunluk teslim siniri senaryosu icin gorev metni.',
+  10, 5, 'gps', 41.0, 29.0, 1000, 'active', 2)
+on conflict (id) do nothing;
+
+\echo '-- limit 2: ilk iki teslim gecmeli'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select (public.submit_task('0000f1a5-0000-4000-8000-0000000000e9'::uuid, 41.0, 29.0)).status as t1;
+select (public.submit_task('0000f1a5-0000-4000-8000-0000000000e9'::uuid, 41.0, 29.0)).status as t2;
+commit;
+
+\echo '-- ucuncu teslim REDDEDILMELI'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select public.submit_task('0000f1a5-0000-4000-8000-0000000000e9'::uuid, 41.0, 29.0);
+rollback;
+
+\echo '-- ertesi gun (teslimler dune tasinir) -> sayac sifirlanmali'
+update public.task_submissions set created_at = now() - interval '1 day'
+ where task_id = '0000f1a5-0000-4000-8000-0000000000e9';
+select public.daily_submission_count(
+  '0000f1a5-0000-4000-8000-0000000000e9'::uuid, :'B') as ertesi_gun_sayaci;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select (public.submit_task('0000f1a5-0000-4000-8000-0000000000e9'::uuid, 41.0, 29.0)).status as ertesi_gun_teslim;
+commit;
+
+\echo '-- reddedilen teslim sayaci doldurmaz'
+update public.task_submissions set status = 'rejected'
+ where task_id = '0000f1a5-0000-4000-8000-0000000000e9'
+   and created_at > now() - interval '1 hour';
+select public.daily_submission_count(
+  '0000f1a5-0000-4000-8000-0000000000e9'::uuid, :'B') as red_sonrasi_sayac;
+
+\echo '-- DONEMSEL gorev limitten etkilenmez (kendi tekilligi devrede)'
+insert into public.tasks (id, municipality_id, category_id, type, title,
+  description, xp, coin, verification, lat, lng, radius_m, status)
+values ('0000f1a5-0000-4000-8000-0000000000ea', null,
+  (select id from public.task_categories limit 1), 'daily',
+  'RLS limit gunluk gorev', 'Donemsel tekillik korunuyor mu senaryosu.',
+  10, 5, 'gps', 41.0, 29.0, 1000, 'active')
+on conflict (id) do nothing;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select (public.submit_task('0000f1a5-0000-4000-8000-0000000000ea'::uuid, 41.0, 29.0)).status as gunluk_t1;
+commit;
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select public.submit_task('0000f1a5-0000-4000-8000-0000000000ea'::uuid, 41.0, 29.0);
+\echo '(yukarida "zaten gonderdin" bekleniyor -- limit mesaji DEGIL)'
+rollback;
+
+\echo '-- anon yetkileri'
+select has_function_privilege('anon', 'public.daily_submission_count(uuid, uuid)', 'execute') as anon_sayac,
+       has_function_privilege('anon', 'public.district_discover_stats()', 'execute') as anon_ilce_istatistik;
+
+\echo ''
+\echo '-- ilce istatistigi: ilcesi OLAN kullanicida satir doner'
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as ilceli_kullanici_satiri from public.district_discover_stats();
+rollback;
+
+\echo '-- ilce istatistigi: ilcesi YOKKEN bos donmeli'
+/*
+  Ilce A da onceki senaryolarda ayarlanmis olabilir; varsaymak yerine
+  islem icinde bilerek null yapilip geri aliniyor.
+*/
+begin;
+update public.profiles set district_id = null where id = :'B';
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as ilcesiz_kullanici_satiri from public.district_discover_stats();
 rollback;
 
 \echo ''

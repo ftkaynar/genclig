@@ -159,3 +159,109 @@ eski bir limit sessizce devreye girmesin diye.
   gönderdin." (limit mesajı değil)
 - Kolon kısıtı: `daily_submission_limit = 99` →
   `tasks_daily_submission_limit_check` ihlali
+
+---
+
+## FAZ Z — Kapanış
+
+### Bulut
+
+```
+20260920000000_limits_and_discover.sql → uygulandı
+db push --dry-run → tam olarak bu tek migration listelendi
+db diff --linked  → No schema changes found
+```
+
+**Bulut REST (anon):** `daily_submission_count` → **401**,
+`district_discover_stats` → **401** (doğru imzayla; boş gövdeyle gelen
+404 imza uyuşmazlığıydı).
+
+### `rls_isolation.sql` — 1123 satır, SENARYO 31
+
+D24'te öğrendiğim dersi uyguladım: toplam ERROR sayısını saymakla
+yetinmeyip **eski koşuyla diff aldım**. Sonuç:
+
+```
+24a25,26
+> ERROR:  Bu görevi bugün için yeterince gönderdin, yarın tekrar dene.
+> ERROR:  Bu görevi zaten gönderdin.
+```
+
+Yalnızca iki **ekleme**; hiçbir eski iddia sessizce kaybolmamış.
+Toplam 24 → 26, hepsi beklenen reddetme.
+
+SENARYO 31 doğrulananlar:
+- Limit 2 → ilk iki teslim `approved`, üçüncü reddedildi
+- Ertesi gün simülasyonu → sayaç `0`, teslim `approved`
+- Reddedilen teslimler sayacı doldurmuyor → `0`
+- Dönemsel görev etkilenmiyor → "Bu görevi zaten gönderdin."
+- anon: `daily_submission_count`, `district_discover_stats` → `false`
+- İlçesi olan kullanıcı 1 satır, ilçesi olmayan **0 satır**
+
+İlçe testinde A'nın ilçesinin önceki senaryolarda ayarlanmış olabileceğini
+**varsaymadım**: işlem içinde bilerek `null` yapıp geri alındı.
+
+`provinces` 81, `profiles` 3 — test verisi sızıntısı yok.
+
+### `pnpm check:all`
+
+Her fazın sonunda koşuldu, hepsinde çıkış kodu **0**.
+
+### Rejim notu
+
+M25 tek migration dosyası hem R3 (günlük limit) hem K2 (ilçe istatistiği)
+parçalarını taşıyor. D24'teki gibi bir dosyayı iki commit'e bölmek mümkün
+değildi; migration K2 commit'ine kondu (önce ona ihtiyaç duyuldu) ve R3
+commit'i yalnızca form/aksiyon değişikliklerini taşıyor. Commit
+mesajlarında belirtildi.
+
+### Bilinçli kapsam dışı
+
+DOKUNMA listesi korundu: SMS doğrulama, SMTP, realtime sohbet, push
+notification, çark/çekiliş, Supabase bölge taşıma, etkinlik ayrı domain —
+hiçbirine dokunulmadı.
+
+**Duran borçlar:**
+- `/gorevler`'de **kategori filtresi yok**; bu yüzden Keşfet'teki kategori
+  şeritlerinde "tümünü gör" bağlantısı da yok. Filtre eklenince derin link
+  konabilir.
+- "Yakınındaki görevler" şeridi tarayıcı konum izni gerektirdiği için
+  otomatik doğrulanamıyor; elle bakılması gerekiyor.
+- Gerçek zamanlı sohbet, quiz eşiğinin görev başına ayarlanması ve kanal
+  kapsamının il/mahalleye genişlemesi (D23'ten) hâlâ açık.
+
+### Sabah görsel turu
+
+1. **`/gorevler`** — 2 sütunlu ızgara; telefonu yatay çevirince /geniş
+   ekranda 3-4 sütuna çıkmalı
+2. **Kutucuk** — kategori gradyanı + ince ızgara deseni, sol üstte zaman
+   çipi, sağ üstte parıltılı kademe rozeti, kenar halkası kademe renginde
+3. **Teslim edilmiş görev** — köşe kurdelesi ("İncelemede" / "Tamamlandı")
+4. **Takım görevi kutucuğu** — alt şeritte "Takım · N/M"
+5. **`/kesfet`** — kompakt harita, üstünde kategori çipleri; bir çipe
+   basınca **hem harita hem tüm şeritler** birlikte süzülmeli
+6. **"Konumum" düğmesi** → "Yakınındaki görevler" şeridi açılmalı,
+   kutucuklarda mesafe rozeti ("1.2 km")
+7. **"İlçende" kartı** — aktif görev / bu hafta tamamlanan sayıları ve
+   "İlçe topluluğuna git"
+8. **İlçesi olmayan hesap** → "Konumunu ayarla" kartı görünmeli
+9. **Panel görev formu** — `Sürekli` seçiliyken "Günlük teslim limiti"
+   alanı çıkmalı, `Anlık`'a geçince kaybolmalı
+10. **Sürekli göreve üst üste teslim** — limite gelince
+    "Bu görevi bugün için yeterince gönderdin, yarın tekrar dene."
+
+### Dilim özeti
+
+Dört faz, dört commit, hepsi push'landı. Bir migration (M25) buluta gitti,
+`db diff --linked` temiz, `check:all` her fazda 0.
+
+**Yol boyunca düzelttiklerim:**
+1. Kutucuktaki zaman çipi kart listesinin stilini kullanıyordu; gradyan
+   zemin üzerinde okunmuyordu → koyu saydam zemin + beyaz metin.
+2. Keşfet kategori şeritlerine `/gorevler?kapsam=` derin linki koymuştum;
+   o parametre kategoriyi süzmüyor → bağlantı kaldırıldı (süzmeyen link
+   kullanıcıya yalan söyler).
+3. `/gorevler` kabı `max-w-md` kalınca ızgara 3-4 sütunda genişlemiyordu →
+   `sm:max-w-3xl lg:max-w-5xl`.
+4. Harita köşe yuvarlatması leaflet kutucuklarını taşırıyordu → kenarlık
+   ve yuvarlatma dış kapsayıcıya taşındı.
