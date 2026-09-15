@@ -304,11 +304,12 @@ export function DiscoverView({
         <section>
           <StripHeader icon="compass" title="Yakınındaki görevler" />
           <Strip>
-            {nearby.map(({ task, distance }) => (
+            {nearby.map(({ task, distance }, i) => (
               <TaskTile
                 key={task.id}
                 task={task}
                 submission={submissions[task.id]}
+                index={i}
                 distanceLabel={formatDistance(distance)}
                 small
               />
@@ -326,11 +327,12 @@ export function DiscoverView({
             href="/gorevler?tip=instant"
           />
           <Strip>
-            {upcoming.map((task) => (
+            {upcoming.map((task, i) => (
               <TaskTile
                 key={task.id}
                 task={task}
                 submission={submissions[task.id]}
+                index={i}
                 small
               />
             ))}
@@ -349,11 +351,12 @@ export function DiscoverView({
           */}
           <StripHeader icon="list-checks" title={group.name} />
           <Strip>
-            {group.rows.map((task) => (
+            {group.rows.map((task, i) => (
               <TaskTile
                 key={task.id}
                 task={task}
                 submission={submissions[task.id]}
+                index={i}
                 small
               />
             ))}

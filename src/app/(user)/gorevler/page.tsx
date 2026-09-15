@@ -115,13 +115,14 @@ export default async function TasksPage({
               <Icon name="calendar-clock" className="h-4 w-4" />
               Yaklaşan
             </h2>
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {upcoming.map((task) => (
+            <ul className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
+              {upcoming.map((task, i) => (
                 <TaskTile
                   key={task.id}
                   task={task}
                   submission={submissions.get(task.id)}
                   teamCount={teamProgress.get(task.id)}
+                  index={i}
                 />
               ))}
             </ul>
@@ -130,10 +131,24 @@ export default async function TasksPage({
 
         {tasks.length === 0 ? (
           upcoming.length === 0 ? (
+            /*
+              Boş durum teşvik edici: "görev yok" bir çıkmaz gibi
+              okunuyordu. Metin kullanıcıyı kartını parlatmaya çağırıyor
+              ve Keşfet'e çıkış veriyor — boş ekran hep bir sonraki
+              adımı göstermeli.
+            */
             <EmptyState
-              icon="list-checks"
-              title="Şu an aktif görev yok"
-              description="Bu filtrede görev bulunmuyor. Diğer sekmelere bakabilirsin."
+              icon="sparkles"
+              title="Burada henüz görev yok"
+              description="İlk görevini tamamla, kartını parlatmaya başla! Keşfet'te yakınındaki görevlere bak."
+              action={
+                <Link
+                  href="/kesfet"
+                  className="btn-chunky bg-cta inline-block rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  Keşfet&apos;e git
+                </Link>
+              }
             />
           ) : null
         ) : (
@@ -141,13 +156,14 @@ export default async function TasksPage({
             {upcoming.length > 0 ? (
               <h2 className="mb-2 text-sm font-semibold text-ink">Şimdi açık</h2>
             ) : null}
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {tasks.map((task) => (
+            <ul className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
+              {tasks.map((task, i) => (
                 <TaskTile
                   key={task.id}
                   task={task}
                   submission={submissions.get(task.id)}
                   teamCount={teamProgress.get(task.id)}
+                  index={i}
                 />
               ))}
             </ul>

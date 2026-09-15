@@ -375,6 +375,130 @@
 }
 
 /* Kademe rozetinin küçük parıltısı. */
+/* ---------------------------------------------------------------------------
+   Görev kartı v3 — mobil oyun yüzeyleri (D28 FAZ G)
+
+   Hepsi saf CSS. Animasyonlar yalnızca `opacity` ve `transform` oynatıyor;
+   hiçbiri layout ya da paint tetiklemiyor. Izgarada onlarca kart aynı anda
+   duruyor, bu yüzden kart başına maliyet sıfıra yakın olmak zorunda.
+   --------------------------------------------------------------------------- */
+
+/*
+  Zorluk kademesinin parlak metal kenarı.
+
+  Renk tek başına ayırt edici değil (renk körlüğü), bu yüzden kenar
+  köşedeki kademe rozetiyle BİRLİKTE kullanılıyor — kenar hissi,
+  rozet bilgiyi veriyor.
+
+  Değişkenle yazıldı: üç kademe aynı gölge/iç çizgi reçetesini
+  paylaşıyor, yalnız iki renk değişiyor. Üç ayrı blok yazmak, birini
+  güncelleyip diğerlerini unutmaya açık kapı bırakıyordu.
+*/
+.tile-edge {
+  border: 1.5px solid var(--tile-edge);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--tile-edge-hi) 45%, transparent),
+    0 3px 12px color-mix(in oklab, var(--tile-edge) 28%, transparent);
+}
+
+.tile-edge-easy {
+  --tile-edge: #b07b4f;
+  --tile-edge-hi: #e0b183;
+}
+
+.tile-edge-medium {
+  --tile-edge: #9aa6b8;
+  --tile-edge-hi: #eef2f7;
+}
+
+.tile-edge-hard {
+  --tile-edge: #d4a02c;
+  --tile-edge-hi: #f7e7a6;
+}
+
+/*
+  Dokunuş hissi: basılınca kart hafifçe çöküyor ve gölgesi azalıyor.
+  Süre kısa (110ms) — mobil oyunlarda geri bildirim anında olmalı,
+  yoksa dokunuş kaydedilmemiş gibi hissettiriyor.
+*/
+.tile-press {
+  transition:
+    transform 110ms ease-out,
+    filter 110ms ease-out;
+}
+
+.tile-press:active {
+  transform: scale(0.97);
+  filter: brightness(1.08);
+}
+
+/*
+  Büyük ikonun oturduğu chip: üstten gelen ışık + iç parıltı.
+  Düz bir ikon bu boyutta yassı duruyordu; chip ikona hacim veriyor.
+*/
+.tile-chip {
+  background: radial-gradient(
+    circle at 34% 26%,
+    rgb(255 255 255 / 0.4),
+    rgb(255 255 255 / 0.06) 62%
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    0 4px 14px rgb(0 0 0 / 0.3);
+}
+
+/*
+  Ödül hapı: dolgun, hafif kabartma. Kazanç kartın en dikkat çeken
+  öğesi olmalı — kullanıcı "ne kazanacağım"ı başlıktan önce görüyor.
+*/
+.reward-pill {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 1px 3px rgb(0 0 0 / 0.22);
+}
+
+/*
+  Izgara girişinde kademeli beliriş.
+
+  Gecikme satır içi `--i` ile veriliyor: her karta ayrı bir sınıf
+  üretmek Tailwind'in tarayıcısından geçmezdi (kurulmuş sınıf adı
+  derlemeye girmiyor). 45ms adım ve 8 kartta tavan — daha uzun bir
+  zincir, listenin altındaki kartları "geç yükleniyor" gibi
+  gösteriyordu.
+*/
+.tile-stagger {
+  animation: genclig-rise 360ms ease-out both;
+  animation-delay: calc(min(var(--i, 0), 8) * 45ms);
+}
+
+/*
+  Süresi işleyen görevin geri sayım hapı: turuncu-magenta, yanında
+  nabız atan nokta. "Şu an açık, süre akıyor" sinyali.
+*/
+.countdown-pill {
+  background: linear-gradient(120deg, #f59e0b, #ec4899);
+  box-shadow: 0 1px 6px rgb(236 72 153 / 0.35);
+}
+
+/* Yaklaşan görev şeridi: mavi-mor, zaman henüz başlamadı. */
+.upcoming-pill {
+  background: linear-gradient(120deg, #6366f1, #7c3aed);
+  box-shadow: 0 1px 6px rgb(124 58 237 / 0.35);
+}
+
+/*
+  Tamamlanan görevin kutlama izi: köşeden yayılan çok hafif bir
+  yeşil parıltı. Konfeti değil — ızgarada onlarca kart varken
+  hareketli kutlama gürültü olurdu.
+*/
+.tile-done-trace {
+  background: radial-gradient(
+    circle at 100% 0%,
+    rgb(34 197 94 / 0.28),
+    transparent 58%
+  );
+}
+
 .tier-glow {
   box-shadow: 0 0 8px rgb(255 255 255 / 0.35);
 }
@@ -829,6 +953,7 @@
   .vipcard-hololine,
   .vipcard-rays,
   .vipcard-float,
+  .tile-stagger,
   .vip-holo-text {
     animation: none;
   }

@@ -7,13 +7,31 @@ import { SUBMISSION_STATUS_LABEL } from "@/lib/tasks/labels";
 import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
 
 /*
-  Zorluk kademesi — kart listesiyle aynı dil (D22 FAZ G).
-  Renk tek başına ayırt edici değil, bu yüzden rozette kademe adı da yazılı.
+  Görev kutucuğu v3 — mobil oyun estetiği (D28 FAZ G).
+
+  ÖNCEKİ SORUN: kart bilgi olarak doğruydu ama "oyunsu" değildi. Ödül
+  küçük iki hapta duruyordu, zorluk kademesi ince bir halkaydı, dokunuşun
+  geri bildirimi yoktu. Kullanıcı kartı okuyordu; istemiyordu.
+
+  v3'ün tek amacı ÖDÜLÜ öne çıkarmak. Başlıktan önce "+80 XP +50 Token"
+  görünüyor; kartın en büyük ikinci öğesi o. Gençleri harekete geçiren
+  şey görevin adı değil, kazancı.
+
+  Yüzeyler globals.css'te (.tile-edge, .tile-chip, .reward-pill,
+  .countdown-pill, .tile-press, .tile-stagger). Burada yalnızca hangi
+  durumda hangisinin takılacağı var.
+*/
+
+/*
+  Zorluk kademesi.
+
+  Renk + rozet birlikte: renk tek başına ayırt edici değil (renk körlüğü),
+  rozetteki metin kademeyi kesin söylüyor. Bu kural D22'den beri aynı.
 */
 const TIER = {
-  easy: { ring: "ring-[#b07b4f]", chip: "bg-[#b07b4f]", label: "Kolay" },
-  medium: { ring: "ring-[#9aa6b8]", chip: "bg-[#9aa6b8]", label: "Orta" },
-  hard: { ring: "ring-[#d4a02c]", chip: "bg-[#d4a02c]", label: "Zor" },
+  easy: { edge: "tile-edge-easy", chip: "bg-[#b07b4f]", label: "KOLAY" },
+  medium: { edge: "tile-edge-medium", chip: "bg-[#9aa6b8]", label: "ORTA" },
+  hard: { edge: "tile-edge-hard", chip: "bg-[#d4a02c]", label: "ZOR" },
 } as const;
 
 function tierOf(difficulty: string) {
@@ -23,7 +41,6 @@ function tierOf(difficulty: string) {
 /**
  * Görev ızgarasının kare kartı.
  *
- * Üst yarı kategori gradyanı + büyük ikon, alt yarı metin ve ödüller.
  * `small` varyantı keşif şeritlerinde kullanılıyor: aynı bileşen iki yerde
  * dursun diye ayrı bir kart yazılmadı — iki kart iki ayrı görsel dil
  * demekti ve biri güncellenince diğeri geride kalıyordu.
@@ -34,6 +51,7 @@ export function TaskTile({
   teamCount,
   distanceLabel,
   small = false,
+  index = 0,
 }: {
   task: TaskRow;
   submission?: SubmissionSummary;
@@ -41,70 +59,71 @@ export function TaskTile({
   /** Keşfet şeridinde mesafe rozeti ("1.2 km"). */
   distanceLabel?: string | null;
   small?: boolean;
+  /** Izgaradaki sıra — kademeli beliriş gecikmesi için. */
+  index?: number;
 }) {
   const tier = tierOf(task.difficulty);
   const done = submission?.status === "approved";
   const pending = submission?.status === "pending";
-
-  /*
-    Zaman çipi burada kart listesindekinden farklı: oradaki çip açık kart
-    yüzeyinde duruyor ve yarı saydam renkli zemin + renkli metin okunuyor.
-    Kutucukta çip kategori gradyanının ÜSTÜNDE; aynı stil okunmuyordu.
-    Bu yüzden koyu saydam zemin + beyaz metin, ikon durumu taşıyor.
-  */
-  const timeChip =
-    task.timeState === "upcoming"
-      ? { icon: "calendar-clock", label: "Yakında" }
-      : task.ends_at
-        ? { icon: "timer", label: "Aktif" }
-        : { icon: "activity", label: "Sürekli" };
+  const upcoming = task.timeState === "upcoming";
+  const timed = !upcoming && Boolean(task.ends_at);
 
   return (
-    <li className={small ? "w-[150px] shrink-0 snap-start" : ""}>
+    <li
+      className={`tile-stagger ${small ? "w-[160px] shrink-0 snap-start" : ""}`}
+      style={{ "--i": index } as React.CSSProperties}
+    >
       <Link
         href={`/gorevler/${task.id}`}
-        className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-edge bg-card ring-1 ring-inset transition-transform duration-150 ease-out active:translate-y-0.5 ${tier.ring}`}
+        className={`tile-press group relative flex h-full flex-col overflow-hidden rounded-2xl bg-card ${tier.edge}`}
         style={{ aspectRatio: small ? undefined : "3 / 4" }}
       >
-        {/* --------------------------------------------- üst yarı: ikon alanı */}
+        {/* --------------------------------------------- üst: kategori alanı */}
         <span
           className={`relative flex ${
-            small ? "h-[84px]" : "h-[46%]"
+            small ? "h-[92px]" : "h-[44%]"
           } items-center justify-center bg-gradient-to-br ${taskTone(task)}`}
         >
-          {/*
-            Hafif ızgara deseni: düz gradyan zemin bu boyutta yassı
-            duruyordu. SVG yerine CSS gradyanı — ek istek yok ve tema
-            değişiminde rengi takip ediyor.
-          */}
           <span aria-hidden className="tile-pattern absolute inset-0" />
 
-          <Icon
-            name={taskIconName(task)}
-            className={small ? "relative h-9 w-9" : "relative h-14 w-14"}
-            strokeWidth={2}
-          />
-
-          {/* Sol üst: zaman durumu */}
+          {/* Büyük ikon, parıltılı chip içinde. */}
           <span
-            className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/35 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm"
+            className={`tile-chip relative flex items-center justify-center rounded-2xl ${
+              small ? "h-12 w-12" : "h-[58px] w-[58px]"
+            }`}
           >
-            <Icon name={timeChip.icon} className="h-2.5 w-2.5" />
-            {timeChip.label}
+            <Icon
+              name={taskIconName(task)}
+              className={small ? "h-6 w-6 text-white" : "h-8 w-8 text-white"}
+              strokeWidth={2.1}
+            />
           </span>
 
-          {/* Sağ üst: zorluk kademesi (küçük parıltı) */}
+          {/* Sağ üst: zorluk kademesi. */}
           <span
-            className={`tier-glow absolute right-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white ${tier.chip}`}
+            className={`tier-glow absolute right-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold tracking-wider text-white ${tier.chip}`}
           >
             {tier.label}
           </span>
+
+          {/* Sol üst: yaklaşan görev şeridi. */}
+          {upcoming ? (
+            <span className="upcoming-pill absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold tracking-wider text-white">
+              <Icon name="calendar-clock" className="h-2.5 w-2.5" />
+              YAKINDA
+            </span>
+          ) : null}
+
+          {/* Tamamlanan görevde hafif kutlama izi. */}
+          {done ? (
+            <span aria-hidden className="tile-done-trace absolute inset-0" />
+          ) : null}
         </span>
 
         {/* ----------------------------------------------- köşe kurdelesi */}
         {done || pending ? (
           <span
-            className={`absolute right-0 top-[44%] rounded-l-md px-2 py-0.5 text-[9px] font-bold text-white ${
+            className={`absolute right-0 top-[42%] z-10 rounded-l-md px-2 py-0.5 text-[9px] font-bold text-white ${
               done ? "bg-status-success" : "bg-status-warning"
             }`}
           >
@@ -115,24 +134,27 @@ export function TaskTile({
           </span>
         ) : null}
 
-        {/* --------------------------------------------- alt yarı: metin */}
+        {/* ------------------------------------------------------ alt: içerik */}
         <span className="flex min-w-0 flex-1 flex-col gap-1.5 p-2.5">
-          <span
-            className={`line-clamp-2 font-semibold leading-snug text-ink ${
-              small ? "text-[11px]" : "text-[13px]"
-            }`}
-          >
-            {task.title}
-          </span>
-
-          <span className="flex flex-wrap items-center gap-1">
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-xp/15 px-1.5 py-0.5 text-[10px] font-bold text-xp">
-              <Icon name="zap" className="h-2.5 w-2.5" />
-              {task.xp}
+          {/*
+            KAZANÇ ÖNİZLEMESİ — başlıktan ÖNCE geliyor.
+            Sıralama bilinçli: göz kartın alt yarısına indiğinde ilk
+            gördüğü şey ne kazanacağı olsun.
+          */}
+          <span className="flex items-center gap-1">
+            <span
+              className={`reward-pill inline-flex items-center gap-0.5 rounded-full bg-xp px-1.5 py-0.5 font-extrabold text-[#06283a] ${
+                small ? "text-[10px]" : "text-[11px]"
+              }`}
+            >
+              <Icon name="zap" className="h-3 w-3" />+{task.xp}
             </span>
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-coin/15 px-1.5 py-0.5 text-[10px] font-bold text-coin">
-              <Icon name="coins" className="h-2.5 w-2.5" />
-              {task.coin}
+            <span
+              className={`reward-pill inline-flex items-center gap-0.5 rounded-full bg-coin px-1.5 py-0.5 font-extrabold text-[#3a2a00] ${
+                small ? "text-[10px]" : "text-[11px]"
+              }`}
+            >
+              <Icon name="coins" className="h-3 w-3" />+{task.coin}
             </span>
             {distanceLabel ? (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-ink-muted">
@@ -142,29 +164,54 @@ export function TaskTile({
             ) : null}
           </span>
 
-          {/* Durum satırı en altta: geri sayım ya da "Sürekli". */}
-          <span className="mt-auto block truncate text-[10px] font-medium text-ink-muted">
-            {task.timeState === "upcoming" && task.starts_at ? (
-              <Countdown
-                endsAt={task.starts_at}
-                initialLabel={task.startsInLabel ?? ""}
-              />
-            ) : task.ends_at ? (
-              <Countdown
-                endsAt={task.ends_at}
-                initialLabel={task.remainingLabel ?? ""}
-              />
+          <span
+            className={`line-clamp-2 font-semibold leading-snug text-ink ${
+              small ? "text-[11px]" : "text-[13px]"
+            }`}
+          >
+            {task.title}
+          </span>
+
+          {/* Zaman durumu en altta. */}
+          <span className="mt-auto block">
+            {upcoming && task.starts_at ? (
+              <span className="upcoming-pill inline-flex max-w-full items-center gap-1 truncate rounded-full px-2 py-0.5 text-[10px] font-bold text-white">
+                <Icon name="calendar-clock" className="h-3 w-3 shrink-0" />
+                <Countdown
+                  endsAt={task.starts_at}
+                  initialLabel={task.startsInLabel ?? ""}
+                />
+              </span>
+            ) : timed && task.ends_at ? (
+              /*
+                Canlı geri sayım: nabız atan nokta "süre AKIYOR" diyor.
+                Nokta yalnızca burada — sürekli görevde yanıp sönen bir
+                şey olması, aciliyet sinyalini değersizleştirirdi.
+              */
+              <span className="countdown-pill inline-flex max-w-full items-center gap-1 truncate rounded-full px-2 py-0.5 text-[10px] font-bold text-white">
+                <span
+                  aria-hidden
+                  className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-white"
+                />
+                <Countdown
+                  endsAt={task.ends_at}
+                  initialLabel={task.remainingLabel ?? ""}
+                />
+              </span>
             ) : (
-              "Sürekli"
+              <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold text-ink-muted">
+                <Icon name="activity" className="h-3 w-3" />
+                Sürekli
+              </span>
             )}
           </span>
         </span>
 
-        {/* Takım şeridi */}
+        {/* Takım şeridi: alt kenarda belirgin. */}
         {task.scope === "team" ? (
-          <span className="flex items-center justify-center gap-1 bg-magenta/15 py-1 text-[10px] font-semibold text-magenta">
+          <span className="flex items-center justify-center gap-1 bg-magenta py-1 text-[10px] font-bold uppercase tracking-wide text-white">
             <Icon name="users" className="h-3 w-3" />
-            Takım · {teamCount ?? 0}/{task.min_team_size ?? 2}
+            Takım · {teamCount ?? 0}/{task.min_team_size ?? 2} kişi
           </span>
         ) : null}
       </Link>
