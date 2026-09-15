@@ -19,6 +19,7 @@ export const NOTIFICATION_LABEL: Record<string, string> = {
   problem_status: "Bildirim durumu",
   reward_redeemed: "Ödül",
   system: "Sistem",
+  stat_decay: "Kart soğuyor",
 };
 
 /** Bildirim türüne göre ikon. */
@@ -29,6 +30,7 @@ export const NOTIFICATION_ICON: Record<string, string> = {
   problem_status: "megaphone",
   reward_redeemed: "gift",
   system: "bell",
+  stat_decay: "activity",
 };
 
 export async function getUnreadNotificationCount(): Promise<number> {

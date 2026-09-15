@@ -181,6 +181,9 @@ export function FriendsView({
                     ovr: card.ovr,
                     tier: card.tier as "bronze" | "silver" | "gold" | "special",
                     computed_at: "",
+                    // Arkadaş kartında soğuma rozeti gösterilmiyor:
+                    // başkasının aktiflik geçmişi bize ait bir bilgi değil.
+                    last_activity_at: null,
                   }}
                 />
               </span>

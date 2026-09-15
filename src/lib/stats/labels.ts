@@ -17,7 +17,33 @@ export type UserStats = {
   ovr: number;
   tier: "bronze" | "silver" | "gold" | "special";
   computed_at: string;
+  /**
+   * Son gerçek eylem (onaylı teslim / bildirim / mesaj / arkadaşlık).
+   * Decay bu tarihe dayanıyor; kart “soğuyor” rozetini buradan
+   * karar veriyor. Hiç eylem yoksa null.
+   */
+  last_activity_at: string | null;
 };
+
+/*
+  Decay eşikleri — M27'deki SQL sabitleriyle AYNI olmak zorunda.
+
+  İki yerde durmasının sebebi: değerleri SQL hesaplıyor, arayüz
+  yalnızca “soğuyor mu” rozetini gösteriyor. Rozeti sunucudan ayrı bir
+  alan olarak döndürmek, her kart okumasına bir kolon daha eklerdi;
+  buradaki tek sayı kopyası daha ucuz. Değişirse ikisi birden.
+*/
+export const DECAY_GRACE_DAYS = 7;
+export const DECAY_WARN_DAYS = 5;
+
+/** Kaç gündür eylemsiz? Hiç eylem yoksa null. */
+export function inactiveDays(lastActivityAt: string | null): number | null {
+  if (!lastActivityAt) {
+    return null;
+  }
+  const ms = Date.now() - new Date(lastActivityAt).getTime();
+  return Math.max(0, Math.floor(ms / 86_400_000));
+}
 
 /**
  * Altı istatın adı, uzun karşılığı ve "nasıl artar" ipucu.

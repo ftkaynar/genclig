@@ -1,6 +1,11 @@
 import Image from "next/image";
 
-import { STAT_META, type UserStats } from "@/lib/stats/labels";
+import {
+  DECAY_GRACE_DAYS,
+  STAT_META,
+  inactiveDays,
+  type UserStats,
+} from "@/lib/stats/labels";
 
 /*
   GENÇLİG Kimlik Kartı — VIP, kalkan siluet.
@@ -162,6 +167,16 @@ export function IdentityCard({
   const box = mini ? BOX.mini : BOX.large;
   const tier = TIERS[stats.tier] ?? TIERS.bronze;
 
+  /*
+    Soğuma rozeti: istatlar düşmeye BAŞLADIYSA görünüyor (7 gün).
+    Küçük ve tek satır — abartılmadı; kart bir ceza ekranı değil,
+    rozet yalnızca "neden düştü" sorusunu peşinen yanıtlıyor.
+    Mini kartta hiç gösterilmiyor: 160px’te okunmuyor ve mini kart
+    çoğunlukla başkasının kartı.
+  */
+  const idle = inactiveDays(stats.last_activity_at);
+  const cooling = !mini && idle !== null && idle > DECAY_GRACE_DAYS;
+
   return (
     <article
       aria-label={`${identity.username} kimlik kartı, genel puan ${stats.ovr}, ${tier.label}`}
@@ -219,6 +234,15 @@ export function IdentityCard({
               aria-hidden
               className={`vip-rule ${mini ? "my-1" : "my-1.5"} w-full`}
             />
+
+            {cooling ? (
+              <span
+                title={`${idle} gündür eylem yok, istatların soğuyor`}
+                className="mb-1 rounded-full bg-[#38bdf8]/20 px-1.5 py-[1px] text-[8px] font-bold tracking-wide text-[#7dd3fc]"
+              >
+                SOĞUYOR
+              </span>
+            ) : null}
 
             <span className="overflow-hidden rounded-[2px] border border-[#d4a02c]/70">
               <FlagTR size={box.flag} />
