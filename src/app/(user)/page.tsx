@@ -286,7 +286,7 @@ export default async function UserHomePage() {
 
             {friendRank && friendRank.scope_size > 1 ? (
               <Link
-                href="/siralama?kapsam=arkadaslar&donem=week"
+                href="/arkadaslar"
                 className="rounded-2xl border border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">

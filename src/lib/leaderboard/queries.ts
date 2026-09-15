@@ -19,7 +19,14 @@ export const SCOPES = [
   { key: "il", label: "İl" },
   { key: "ilce", label: "İlçe" },
   { key: "mahalle", label: "Mahalle" },
-  { key: "arkadaslar", label: "Arkadaşlar" },
+  /*
+    'arkadaslar' sıralama ekranından kaldırıldı (D28 FAZ L): arkadaş
+    listesi çoğu kullanıcıda 0-2 kişi olduğu için sekme boş bir
+    sıralama gösteriyordu. leaderboard_top içindeki kapsam DURUYOR —
+    ana sayfadaki "Arkadaşlarında #N" kartı getMyRank("arkadaslar")
+    ile besleniyor. Bu listeden çıkması ?kapsam=arkadaslar isteğinin
+    varsayılana (Türkiye) düşmesini de sağlıyor.
+  */
   // Takım kapsamı farklı bir satır şekli döndürüyor (kullanıcı değil takım);
   // sayfa bu anahtarda ayrı bir dala giriyor, leaderboard_top çağrılmıyor.
   { key: "takimlar", label: "Takımlar" },

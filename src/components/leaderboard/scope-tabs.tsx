@@ -15,7 +15,7 @@ import { PERIODS, SCOPES } from "@/lib/leaderboard/queries";
 
   Yeni yapı üç katman, görev ekranındaki (task-filters.tsx) kalıbın aynısı:
     1. Bireysel | Takım segment anahtarı — kayan gradyan gösterge
-    2. Alan çipleri (Türkiye / İl / İlçe / Mahalle / Arkadaşlar)
+    2. Alan çipleri (Türkiye / İl / İlçe / Mahalle)
     3. Dönem segmenti (Bu Hafta / Bu Ay / Tümü)
 
   Alan çipleri Takım modunda gizleniyor: takım sıralaması coğrafi kapsam
@@ -27,7 +27,7 @@ import { PERIODS, SCOPES } from "@/lib/leaderboard/queries";
   anahtarı da aynı parametreyi yazıyor.
 
   Kapsam ikonları hiyerarşiyi anlatıyor: Türkiye globe, il/ilçe/mahalle
-  giderek daralan konum katmanları, arkadaşlar users.
+  giderek daralan konum katmanları.
 */
 
 const SCOPE_ICON: Record<string, string> = {
@@ -35,7 +35,6 @@ const SCOPE_ICON: Record<string, string> = {
   il: "map-pin",
   ilce: "compass",
   mahalle: "home",
-  arkadaslar: "users",
   takimlar: "shield",
 };
 
