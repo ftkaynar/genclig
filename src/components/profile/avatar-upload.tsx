@@ -6,9 +6,20 @@ import { useRef, useState } from "react";
 
 import { setAvatarUrlAction } from "@/lib/profile/actions";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage, formatBytes } from "@/lib/upload";
+import {
+  MAX_UPLOAD_MESSAGE,
+  compressToLimit,
+  describeUploadError,
+  formatBytes,
+} from "@/lib/upload";
 
-const MAX_AVATAR_BYTES = 8 * 1024 * 1024;
+/*
+  Ham dosya sinirinin sebebi ayri: 100 KB siniri sikistirmadan SONRAKI
+  dosyaya uygulaniyor (bkz. lib/upload.ts). Buradaki sinir yalnizca
+  tarayiciyi koruyor — 50 MB'lik bir kareyi cozmek telefonda sekmeyi
+  kilitliyor.
+*/
+const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
 
 export function AvatarUpload({
   userId,
@@ -29,14 +40,22 @@ export function AvatarUpload({
     setError(null);
     setSizeNote(null);
 
-    if (file.size > MAX_AVATAR_BYTES) {
+    if (file.size > MAX_SOURCE_BYTES) {
       setError("Görsel 8 MB'tan küçük olmalı.");
       return;
     }
 
     try {
       setStep("Görsel hazırlanıyor...");
-      const prepared = await compressImage(file, 512, 0.8);
+      // 512px avatar için fazlasıyla yeterli; sınıra inene kadar önce
+      // kalite, sonra çözünürlük düşüyor.
+      const { file: prepared, withinLimit } = await compressToLimit(file, 512);
+
+      if (!withinLimit) {
+        setError(MAX_UPLOAD_MESSAGE);
+        return;
+      }
+
       setSizeNote(
         `${formatBytes(file.size)} → ${formatBytes(prepared.size)} olarak küçültüldü.`,
       );
@@ -47,12 +66,19 @@ export function AvatarUpload({
       // kullanıcının kimliğiyle eşleşmesine bakıyor.
       const path = `${userId}/avatar-${Date.now()}.jpg`;
 
+      /*
+        upsert kapalı: yol zaten zaman damgalı, üzerine yazılacak bir satır
+        yok. Açıkken storage isteği `on conflict do update` olarak
+        çalışıyor ve çakışan satırı okumak için SELECT politikası arıyordu;
+        avatars bucket'ında o politika yoktu ve yükleme RLS'e takılıyordu.
+        Politika M28a'da eklendi, bayrak da kaldırıldı — iki taraflı düzeltme.
+      */
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(path, prepared, { upsert: true });
+        .upload(path, prepared, { upsert: false });
 
       if (uploadError) {
-        setError("Görsel yüklenemedi. Tekrar dene.");
+        setError(describeUploadError(uploadError));
         return;
       }
 

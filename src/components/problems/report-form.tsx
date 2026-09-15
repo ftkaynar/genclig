@@ -5,10 +5,20 @@ import { useRef, useState } from "react";
 
 import { submitReportAction } from "@/lib/problems/actions";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage } from "@/lib/upload";
+import {
+  MAX_UPLOAD_MESSAGE,
+  compressToLimit,
+  describeUploadError,
+} from "@/lib/upload";
 import type { ProblemCategory } from "@/lib/problems/queries";
 
-const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+/*
+  Ham dosya sinirinin sebebi ayri: 100 KB siniri sikistirmadan SONRAKI
+  dosyaya uygulaniyor (bkz. lib/upload.ts). Buradaki sinir yalnizca
+  tarayiciyi koruyor — 50 MB'lik bir kareyi cozmek telefonda sekmeyi
+  kilitliyor.
+*/
+const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
 
 const KINDS = [
   { value: "problem", label: "Sorun", hint: "Düzeltilmesi gereken bir durum" },
@@ -88,13 +98,18 @@ export function ReportForm({
 
     try {
       if (file) {
-        if (file.size > MAX_PHOTO_BYTES) {
+        if (file.size > MAX_SOURCE_BYTES) {
           setError("Fotoğraf 8 MB'tan küçük olmalı.");
           return;
         }
 
         setStep("Fotoğraf hazırlanıyor...");
-        const prepared = await compressImage(file);
+        const { file: prepared, withinLimit } = await compressToLimit(file);
+
+        if (!withinLimit) {
+          setError(MAX_UPLOAD_MESSAGE);
+          return;
+        }
 
         setStep("Fotoğraf yükleniyor...");
         // Yol düzeni <user_id>/...: storage politikası ilk klasör adına bakıyor.
@@ -104,7 +119,7 @@ export function ReportForm({
           .upload(path, prepared, { upsert: false });
 
         if (uploadError) {
-          setError("Fotoğraf yüklenemedi. Bağlantını kontrol edip tekrar dene.");
+          setError(describeUploadError(uploadError));
           return;
         }
         photoPath = path;
