@@ -13,6 +13,7 @@ import {
   Check,
   ChevronRight,
   Coins,
+  Copy,
   CalendarClock,
   Compass,
   Crown,
@@ -80,6 +81,8 @@ export const ICONS: Record<string, LucideIcon> = {
   leaf: Leaf,
   recycle: Recycle,
   "trash-2": Trash2,
+  // Davet kartı: kodu panoya kopyalama (D33)
+  copy: Copy,
   droplets: Droplets,
   waves: Waves,
   sun: Sun,

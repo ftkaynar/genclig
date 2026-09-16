@@ -32,10 +32,13 @@ type Option = { id: number; name: string };
 export function OnboardingForm({
   provinces,
   initialUsername = "",
+  initialInviteCode = "",
 }: {
   provinces: Option[];
   /** Telefonu eksik olan mevcut kullanıcıda dolu gelir. */
   initialUsername?: string;
+  /** /kayit?davet=KOD ile gelindiyse önden dolu. */
+  initialInviteCode?: string;
 }) {
   const [state, formAction] = useActionState(completeOnboardingAction, INITIAL);
 
@@ -171,6 +174,24 @@ export function OnboardingForm({
             ? "Bu ilçe için mahalle listesi henüz yok. Bu alanı boş bırakıp devam edebilirsin."
             : "Mahallen listede yoksa boş bırakabilirsin."
         }
+      />
+
+      {/*
+        Davet kodu İSTEĞE BAĞLI ve en altta (D33 FAZ DV).
+
+        Bağlantıyla gelen kullanıcıda önden dolu; elle de girilebiliyor.
+        Zorunlu yapılmadı: kodu olmayan kullanıcıyı kayıt sırasında
+        kod aramaya göndermek, en kırılgan adımda fazladan bir engel.
+
+        Yanlış kod kaydı KESMİYOR — sunucu eylemi hatayı günlüğe
+        yazıp devam ediyor.
+      */}
+      <TextField
+        label="Davet kodu (isteğe bağlı)"
+        name="inviteCode"
+        defaultValue={initialInviteCode}
+        placeholder="ABCD1234"
+        hint="Seni davet eden arkadaşının kodu. İkiniz de kazanırsınız."
       />
 
       <SubmitButton pendingLabel="Kaydediliyor...">Devam et</SubmitButton>

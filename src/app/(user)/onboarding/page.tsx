@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { OnboardingForm } from "@/components/auth/onboarding-form";
@@ -8,7 +9,26 @@ export const metadata = {
   title: "Profilini tamamla — GençLİG",
 };
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ davet?: string }>;
+}) {
+  /*
+    Davet kodu URL'den geliyor (/kayit?davet=KOD → onboarding).
+
+    Büyük harfe çevriliyor: kod alfabesi yalnız büyük harf ve rakam,
+    ama kullanıcı bağlantıyı küçük harfle yazabiliyor.
+  */
+  const params = await searchParams;
+  const jar = await cookies();
+
+  // URL kazanıyor; yoksa kayıt sırasında yazılan çerez okunuyor.
+  const inviteCode = (params.davet ?? jar.get("genclig-invite")?.value ?? "")
+    .trim()
+    .toUpperCase()
+    .slice(0, 8);
+
   const supabase = await createClient();
 
   const {
@@ -55,6 +75,7 @@ export default async function OnboardingPage() {
       <OnboardingForm
         provinces={provinces ?? []}
         initialUsername={profile?.username ?? ""}
+        initialInviteCode={inviteCode}
       />
     </AuthShell>
   );

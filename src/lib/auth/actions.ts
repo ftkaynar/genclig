@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
@@ -71,6 +71,10 @@ export async function signUpAction(
   const email = readString(formData, "email");
   const password = readString(formData, "password");
   const passwordRepeat = readString(formData, "passwordRepeat");
+  const inviteCode = readString(formData, "inviteCode")
+    .trim()
+    .toUpperCase()
+    .slice(0, 8);
 
   if (!email || !password || !passwordRepeat) {
     return { error: "Tüm alanları doldur." };
@@ -94,6 +98,26 @@ export async function signUpAction(
 
   if (error) {
     return { error: translateAuthError(error.message) };
+  }
+
+  /*
+    Davet kodu çereze: e-posta doğrulaması arada olduğu için URL
+    parametresi onboarding'e ulaşmıyor. 30 gün yetiyor — daha uzun
+    tutmak, aylar önce tıklanmış bir bağlantıyı alakasız bir kayda
+    iliştirmek olurdu.
+
+    httpOnly: kod istemci betiğinin işine yaramıyor; yalnız sunucu
+    eylemi okuyor.
+  */
+  if (inviteCode) {
+    const jar = await cookies();
+    jar.set("genclig-invite", inviteCode, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
   }
 
   redirect(`/kayit/dogrulama?email=${encodeURIComponent(email)}`);
@@ -126,6 +150,7 @@ export async function signInAction(
 export async function signOutAction(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
+
   revalidatePath("/", "layout");
   redirect("/");
 }
@@ -139,6 +164,19 @@ export async function completeOnboardingAction(
   const provinceId = readString(formData, "provinceId");
   const districtId = readString(formData, "districtId");
   const neighborhoodId = readString(formData, "neighborhoodId");
+  /*
+    Kod önce formdan; boşsa kayıt sırasında yazılan çerezden.
+    Form alanı kullanıcının elle girdiği değer, çerez ise davet
+    bağlantısından gelen — elle girilen kazanıyor.
+  */
+  const jar = await cookies();
+  const inviteCode = (
+    readString(formData, "inviteCode") ||
+    jar.get("genclig-invite")?.value ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
 
   if (!USERNAME_PATTERN.test(username)) {
     return {
@@ -208,6 +246,29 @@ export async function completeOnboardingAction(
         ? phoneError.message
         : "Telefon kaydedilemedi. Lütfen tekrar dene.",
     };
+  }
+
+  /*
+    Davet kodu EN SONDA ve hatası akışı KESMİYOR (D33 FAZ DV).
+
+    Kod isteğe bağlı bir alan. Yanlış yazılmış bir kod yüzünden
+    kullanıcıyı onboarding'de tutmak, asıl işi (hesabı tamamlamak)
+    ikincil bir alana rehin vermek olurdu. Kod tutmazsa profil yine
+    kaydediliyor; kullanıcı daha sonra da bağlayabilir.
+
+    Kural kontrolleri RPC'nin içinde: kendi kodu, zaten tanımlı,
+    geçersiz kod. Burada tekrar edilmiyor.
+  */
+  if (inviteCode) {
+    const { error: inviteError } = await supabase.rpc(
+      "apply_invite_code",
+      { p_code: inviteCode },
+    );
+
+    if (inviteError) {
+      // Sessizce yutulmuyor: sunucu günlüğünde iz kalıyor.
+      console.warn(`[davet] kod bağlanamadı: ${inviteError.message}`);
+    }
   }
 
   revalidatePath("/", "layout");
