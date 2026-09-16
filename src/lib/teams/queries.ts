@@ -51,11 +51,13 @@ export async function getMyTeamMembers(): Promise<TeamMemberRow[]> {
 
 export async function getTeamLeaderboard(
   period: string,
+  /** Coğrafi kapsam (M33). Takımın yeri = kaptanın profil konumu. */
+  scope = "turkiye",
 ): Promise<TeamLeaderboardRow[]> {
   const supabase = await createClient();
 
   const read = (p: string) =>
-    supabase.rpc("leaderboard_teams", { p_period: p });
+    supabase.rpc("leaderboard_teams", { p_period: p, p_scope: scope });
 
   let { data, error } = await read(period);
 

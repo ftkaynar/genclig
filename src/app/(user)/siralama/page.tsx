@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { RewardFab } from "@/components/rewards/reward-fab";
 import { redirect } from "next/navigation";
 
@@ -38,7 +37,7 @@ export const metadata = {
 export default async function LeaderboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kapsam?: string; donem?: string }>;
+  searchParams: Promise<{ kapsam?: string; donem?: string; mod?: string }>;
 }) {
   const user = await getViewerUser();
 
@@ -46,21 +45,32 @@ export default async function LeaderboardPage({
     redirect("/giris?next=/siralama");
   }
 
-  const { kapsam, donem } = await searchParams;
-  const scope = SCOPES.some((item) => item.key === kapsam)
-    ? (kapsam as string)
-    : "turkiye";
+  const { kapsam, donem, mod } = await searchParams;
+
+  /*
+    MOD ile KAPSAM artık iki ayrı eksen (D34 FAZ ST).
+
+    ÖNCEKİ DURUM: tek `kapsam` parametresi hem modu hem alanı
+    taşıyordu ("takimlar" değeri = takım modu). Bu yüzden takım
+    sekmesinde coğrafi kapsam seçilemiyordu — iki bilgi tek slota
+    sığmıyordu ve Takım sekmesi Bireysel'den daha sığ kalıyordu.
+
+    Eski bağlantılar çalışmaya devam ediyor: `?kapsam=takimlar`
+    takım moduna + Türkiye kapsamına çevriliyor. Paylaşılmış ya da
+    yer imine eklenmiş bir URL'i kırmak, temiz bir parametre şeması
+    uğruna ödenecek bir bedel değil.
+  */
+  const legacyTeams = kapsam === "takimlar";
+  const isTeams = legacyTeams || mod === "takim";
+
+  const scope =
+    !legacyTeams && SCOPES.some((item) => item.key === kapsam)
+      ? (kapsam as string)
+      : "turkiye";
+
   const period = PERIODS.some((item) => item.key === donem)
     ? (donem as string)
     : "week";
-
-  /*
-    Takım kapsamı ayrı dal: leaderboard_teams farklı bir satır şekli
-    döndürüyor ve "benim sıram" bandı kişisel XP'ye dayandığı için takım
-    listesinde anlamsız. Aynı bileşene zorlamak yerine iki liste ayrı
-    render ediliyor.
-  */
-  const isTeams = scope === "takimlar";
 
   /*
     Biten dönemin ödülleri burada dağıtılıyor (tembel yol).
@@ -73,7 +83,8 @@ export default async function LeaderboardPage({
   await settleLeaderboardRewards();
 
   const [teamRows, rewardSettings, season] = await Promise.all([
-    isTeams ? getTeamLeaderboard(period) : Promise.resolve([]),
+    // Takım listesi artık kapsam da alıyor (M33).
+    isTeams ? getTeamLeaderboard(period, scope) : Promise.resolve([]),
     getRewardSettings(scope, period),
     /*
       Sezon ibaresi başlıkta: "Bu Hafta" bir dönem, sezon ise onu
@@ -83,13 +94,20 @@ export default async function LeaderboardPage({
     getActiveSeason(),
   ]);
 
-  const [rows, myRank, profile] = isTeams
-    ? [[] as LeaderboardRow[], null as MyRank, null]
+  /*
+    Profil HER İKİ modda da okunuyor (D34 FAZ ST).
+
+    Önceden takım modunda null bırakılıyordu; artık takım sıralaması
+    da coğrafi kapsam aldığı için "konumun eksik" uyarısı orada da
+    gerekiyor. İstek başına önbellekli, ekstra sorgu açmıyor.
+  */
+  const profile = await getViewerProfile();
+
+  const [rows, myRank] = isTeams
+    ? [[] as LeaderboardRow[], null as MyRank]
     : await Promise.all([
         getLeaderboard(scope, period),
         getMyRank(scope, period),
-        // Profil istek başına önbellekli; bu sayfa için ayrı sorgu açmıyor.
-        getViewerProfile(),
       ]);
 
   // Kapsam için gereken konum bilgisi eksikse liste boş döner; kullanıcıya
@@ -119,7 +137,7 @@ export default async function LeaderboardPage({
         </p>
       ) : null}
 
-      <ScopeTabs scope={scope} period={period} />
+      <ScopeTabs scope={scope} period={period} isTeams={isTeams} />
 
       {/*
         pb-8: "benim sıram" kartı akıştaki yerinden ~28px yukarı kayıyor;
@@ -128,7 +146,28 @@ export default async function LeaderboardPage({
       <main className="flex-1 px-4 pb-8 pt-4 has-bottom-nav">
         <RewardStrip settings={rewardSettings} period={period} />
 
-        {isTeams ? (
+        {/*
+          Konum uyarısı MOD FARK ETMEKSİZİN önce (D34 FAZ ST).
+
+          Takım modunda İl kapsamı seçili ve kullanıcının ili yoksa
+          liste zaten boş dönüyordu ama ekran "bir takım kur ya da
+          kodla katıl" diyordu — yanlış tavsiye. Sebep konum eksikliği,
+          takımsızlık değil.
+        */}
+        {missingLocation ? (
+          <EmptyState
+            icon="map-pin"
+            title="Konumun eksik"
+            description="Bu sıralamayı görmek için il, ilçe ve mahalleni ayarlaman gerekiyor."
+            action={
+              <ButtonLink href="/ayarlar" variant="primary" icon="map-pin">
+                Konumunu ayarla
+              </ButtonLink>
+            }
+          />
+        ) : null}
+
+        {isTeams && !missingLocation ? (
           teamRows.length === 0 ? (
             <EmptyState
               icon="users"
@@ -206,21 +245,7 @@ export default async function LeaderboardPage({
           </div>
         ) : null}
 
-        {isTeams ? null : missingLocation ? (
-          <EmptyState
-            icon="map-pin"
-            title="Konumun eksik"
-            description="Bu sıralamayı görmek için il, ilçe ve mahalleni ayarlaman gerekiyor."
-            action={
-              <Link
-                href="/ayarlar"
-                className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Konumunu ayarla
-              </Link>
-            }
-          />
-        ) : rows.length === 0 ? (
+        {!isTeams && !missingLocation && rows.length === 0 ? (
           <EmptyState
             icon="trophy"
             title="Bu kategoride henüz sıralama yok"
