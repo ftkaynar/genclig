@@ -168,7 +168,7 @@ export default async function UserHomePage() {
         ) : null}
 
         {/* Hero: selamlama + avatar + seviye halkası. */}
-        <section className="brand-gradient mt-3 rounded-3xl px-5 py-5 shadow-lg">
+        <section className="anim-stagger brand-gradient mt-3 rounded-3xl px-5 py-5 shadow-lg" style={{ "--i": 1 } as React.CSSProperties}>
           <div className="flex items-center gap-3">
             {viewer.avatarUrl ? (
               <Image
@@ -204,7 +204,7 @@ export default async function UserHomePage() {
 
         {featured ? <FeaturedTask task={featured} /> : null}
 
-        <section className="mt-5">
+        <section className="anim-stagger mt-5" style={{ "--i": 2 } as React.CSSProperties}>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-ink">
               Bugün için önerilen
@@ -266,7 +266,7 @@ export default async function UserHomePage() {
           yerine arkadaş ekleme daveti gösteriliyor.
         */}
         {myRank || friendRank ? (
-          <section className="mt-5 grid grid-cols-2 gap-2">
+          <section className="anim-stagger mt-5 grid grid-cols-2 gap-2" style={{ "--i": 3 } as React.CSSProperties}>
             {myRank ? (
               <Link
                 href="/siralama?kapsam=ilce&donem=week"
@@ -320,7 +320,7 @@ export default async function UserHomePage() {
         ) : null}
 
         {notifications.length > 0 ? (
-          <section className="mt-5">
+          <section className="anim-stagger mt-5" style={{ "--i": 2 } as React.CSSProperties}>
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-ink">Son bildirimler</h2>
               <Link

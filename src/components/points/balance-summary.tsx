@@ -37,7 +37,7 @@ export function BalanceSummary({
 
           <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/20">
             <div
-              className="h-full rounded-full bg-cyan transition-[width] duration-700 ease-out"
+              className="bar-fill h-full rounded-full bg-cyan"
               style={{ width: `${Math.round(points.progress * 100)}%` }}
             />
           </div>

@@ -104,7 +104,7 @@ export default async function LeaderboardPage({
               {teamRows.map((row) => (
                 <li
                   key={row.team_id}
-                  className="flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
+                  className="press-soft flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
                 >
                   <span className="w-8 shrink-0 text-center text-sm font-bold text-ink-muted">
                     {row.rank}
@@ -162,8 +162,8 @@ export default async function LeaderboardPage({
                 key={row.user_id}
                 className={
                   row.user_id === user.id
-                    ? "flex items-center gap-3 rounded-2xl border border-primary/50 bg-card p-3"
-                    : "flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
+                    ? "press-soft flex items-center gap-3 rounded-2xl border border-primary/50 bg-card p-3"
+                    : "press-soft flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
                 }
               >
                 <span className="w-8 shrink-0 text-center text-sm font-bold text-ink-muted">

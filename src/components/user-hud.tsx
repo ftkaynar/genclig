@@ -157,7 +157,7 @@ export async function UserHud({ title }: { title?: string }) {
           </span>
           <span className="mt-1 block h-1.5 w-full overflow-hidden rounded-full bg-edge">
             <span
-              className="block h-full rounded-full bg-xp"
+              className="bar-fill block h-full rounded-full bg-xp"
               style={{ width: `${Math.round(points.progress * 100)}%` }}
             />
           </span>

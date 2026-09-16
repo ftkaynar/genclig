@@ -149,7 +149,7 @@ export default async function ProfilePage() {
           </section>
         ) : null}
 
-        <section className="rounded-2xl border border-edge bg-card p-4">
+        <section className="anim-stagger rounded-2xl border border-edge bg-card p-4" style={{ "--i": 1 } as React.CSSProperties}>
           <div className="flex items-center gap-4">
             <LevelRing
               level={points.level}
@@ -244,7 +244,7 @@ export default async function ProfilePage() {
           nodes={nodes}
         />
 
-        <section className="mt-4 rounded-2xl border border-edge bg-card p-4">
+        <section className="anim-stagger mt-4 rounded-2xl border border-edge bg-card p-4" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <Icon name="award" className="h-4 w-4 text-primary" />
             Rozetlerim ({earnedCount}/{badges.length})
@@ -267,7 +267,7 @@ export default async function ProfilePage() {
           />
         </section>
 
-        <section className="mt-4 rounded-2xl border border-edge bg-card p-4">
+        <section className="anim-stagger mt-4 rounded-2xl border border-edge bg-card p-4" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <Icon name="trending-up" className="h-4 w-4 text-primary" />
             İstatistiklerim
@@ -288,7 +288,7 @@ export default async function ProfilePage() {
                   </div>
                   <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface">
                     <div
-                      className="h-full rounded-full bg-cyan transition-[width] duration-700 ease-out"
+                      className="bar-fill h-full rounded-full bg-cyan"
                       style={{
                         width: `${Math.round((item.count / maxCategory) * 100)}%`,
                       }}
@@ -304,7 +304,7 @@ export default async function ProfilePage() {
           )}
         </section>
 
-        <section className="mt-4 rounded-2xl border border-edge bg-card p-4">
+        <section className="anim-stagger mt-4 rounded-2xl border border-edge bg-card p-4" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <Icon name="activity" className="h-4 w-4 text-primary" />
             Son aktiviteler

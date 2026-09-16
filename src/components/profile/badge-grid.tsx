@@ -127,7 +127,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                       <>
                         <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-edge">
                           <span
-                            className="brand-gradient block h-full rounded-full"
+                            className="bar-fill brand-gradient block h-full rounded-full"
                             style={{ width: `${ratio}%` }}
                           />
                         </span>
@@ -184,7 +184,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
               <div className="mt-3">
                 <span className="block h-2 w-full overflow-hidden rounded-full bg-surface">
                   <span
-                    className="brand-gradient block h-full rounded-full"
+                    className="bar-fill brand-gradient block h-full rounded-full"
                     style={{
                       width: `${Math.min(
                         100,

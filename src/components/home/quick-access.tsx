@@ -29,7 +29,7 @@ export function QuickAccess() {
           <li key={item.href}>
             <Link
               href={item.href}
-              className="flex flex-col items-center gap-1.5 rounded-2xl border border-edge bg-card px-1 py-3 transition-colors hover:border-primary/60 active:scale-[0.98]"
+              className="press-soft flex flex-col items-center gap-1.5 rounded-2xl border border-edge bg-card px-1 py-3 hover:border-primary/60"
             >
               <span
                 className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.tone}`}

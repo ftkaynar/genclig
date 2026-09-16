@@ -111,7 +111,7 @@ export function FlipCard({
                       </div>
                       <span className="mt-0.5 block h-1.5 w-full overflow-hidden rounded-full bg-surface">
                         <span
-                          className="brand-gradient block h-full rounded-full"
+                          className="bar-fill brand-gradient block h-full rounded-full"
                           style={{ width: `${value}%` }}
                         />
                       </span>
