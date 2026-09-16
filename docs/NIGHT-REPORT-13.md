@@ -355,6 +355,31 @@ düzeltildi.
 
 ## 9. AÇIK İŞ — buluttaki veritabanı güncellenmedi
 
+> **Sonradan eklendi (`0b04851`) — bu dilim üretimi kırdı.**
+>
+> Bu dilimde yazdığım kod, koşmamış migration'lara **sıkı bağımlıydı**.
+> Beş kırılma ölçüldü:
+>
+> 1. `tasks.art_key` yok → `42703` → `listFeedTasks` throw ediyordu;
+>    **ana sayfa ve `/gorevler` 500**.
+> 2. `getTask` hatayı yutuyordu → her görev detayı sessizce 404.
+> 3. `channel_info` yok → `PGRST202` → null → `/topluluk` kendine
+>    redirect ediyordu: **sonsuz yönlendirme döngüsü**.
+> 4. Panel görev kaydı `art_key` yazıyordu → hiçbir görev
+>    kaydedilemiyordu.
+> 5. `leaderboard_top`/`leaderboard_teams` `'year'` reddediyor ve hata
+>    yutuluyordu → "Bu Yıl" hatasız ama bomboş.
+>
+> `src/lib/supabase/schema-guard.ts` eklendi: yeni şemayı önce dener,
+> "yok" hatasında (`42703` / `PGRST202`) eski yola düşer ve hatırlar.
+> İzin, kısıt ve ağ hataları gerçek hata sayılıp yutulmuyor.
+> Uygulama artık şema geride kalsa da **ayakta** — ama aşağıdaki
+> migration'lar uygulanmadan yeni özellikler **çalışmaz**.
+>
+> **Ders:** dağıtım sırası bir kuraldır, tercih değil. Yeni sütun ya da
+> RPC kullanan kod, o nesne yokken de çalışabilmeli; yoksa migration
+> ile deploy arasındaki her an bir kesinti penceresidir.
+
 **İki migration yerelde uygulandı ve test edildi, buluta İTİLEMEDİ:**
 
 - `20260927000000_year_period_and_task_art.sql` (M30)
