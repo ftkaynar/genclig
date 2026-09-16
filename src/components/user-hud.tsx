@@ -155,9 +155,10 @@ export async function UserHud({ title }: { title?: string }) {
                 : `${formatPoints(toNext)} XP kaldı`}
             </span>
           </span>
-          <span className="mt-1 block h-1.5 w-full overflow-hidden rounded-full bg-edge">
+          <span className="xp-track mt-1 block h-1.5 w-full">
             <span
-              className="bar-fill block h-full rounded-full bg-xp"
+              className="xp-fill block"
+              data-empty={points.progress <= 0}
               style={{ width: `${Math.round(points.progress * 100)}%` }}
             />
           </span>

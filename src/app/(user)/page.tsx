@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
 import { QuickAccess } from "@/components/home/quick-access";
+import { RankCard } from "@/components/home/rank-card";
 import { BalanceSummary } from "@/components/points/balance-summary";
 import { HScroll } from "@/components/ui/h-scroll";
 import { TaskTile } from "@/components/tasks/task-tile";
@@ -15,7 +16,7 @@ import { UserHud } from "@/components/user-hud";
 import { getLatestAnnouncement } from "@/lib/announcements/queries";
 import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
-import { formatPoints, getTodayEarnings, getUserPoints } from "@/lib/points/queries";
+import { getTodayEarnings, getUserPoints } from "@/lib/points/queries";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
@@ -111,16 +112,27 @@ export default async function UserHomePage() {
     today,
     allTasks,
     notifications,
-    myRank,
-    friendRank,
+    turkiyeRank,
+    ilRank,
+    ilceRank,
     announcement,
   ] = await Promise.all([
     getUserPoints(viewer.user.id),
     getTodayEarnings(viewer.user.id),
     listFeedTasks(),
     listNotifications(3),
+    /*
+      Üç kapsam birden: Türkiye / İl / İlçe. Tek kapsam "iyi miyim"
+      sorusunun yalnız üçte birini yanıtlıyordu; Türkiye genelinde
+      nerede olduğunu görmeden ilçe sırası bağlamsız.
+
+      Üçü paralel gidiyor, aynı RPC farklı kapsamla — sıralamayı tek
+      sorguda üç kapsam için döndüren bir fonksiyon yazmak yeni bir
+      RPC demekti ve bu dilim GÖRSEL (yeni DB yok).
+    */
+    getMyRank("turkiye", "week"),
+    getMyRank("il", "week"),
     getMyRank("ilce", "week"),
-    getMyRank("arkadaslar", "week"),
     getLatestAnnouncement(),
   ]);
 
@@ -201,6 +213,34 @@ export default async function UserHomePage() {
           />
         </section>
 
+        {/*
+          Sıralaman kartı hızlı erişimin HEMEN ÜSTÜNDE: kullanıcı
+          ekranı kaydırırken önce "neredeyim" sorusunun cevabını
+          görüyor, sonra nereye gideceğini.
+        */}
+        <RankCard
+          scopes={[
+            {
+              key: "turkiye",
+              label: "Türkiye",
+              rank: turkiyeRank?.rank ?? null,
+              size: turkiyeRank?.scope_size ?? 0,
+            },
+            {
+              key: "il",
+              label: "İl",
+              rank: ilRank?.rank ?? null,
+              size: ilRank?.scope_size ?? 0,
+            },
+            {
+              key: "ilce",
+              label: "İlçe",
+              rank: ilceRank?.rank ?? null,
+              size: ilceRank?.scope_size ?? 0,
+            },
+          ]}
+        />
+
         <QuickAccess />
 
         {featured ? <FeaturedTask task={featured} /> : null}
@@ -269,68 +309,6 @@ export default async function UserHomePage() {
           <Icon name="chevron-right" className="h-5 w-5 shrink-0" />
         </Link>
 
-        {/*
-          Sıralama mini: ilçe ve arkadaşlar yan yana. Tek kapsam göstermek
-          kullanıcıya "iyi miyim" sorusunun yalnız yarısını yanıtlıyordu;
-          arkadaş sırası daha küçük ve motive edici bir ölçek.
-
-          Arkadaş kapsamı çağıranın kendisini de içerdiği için arkadaşı
-          olmayan kullanıcı "#1 · 1 kişi" görüyordu; scope_size 1 iken kart
-          yerine arkadaş ekleme daveti gösteriliyor.
-        */}
-        {myRank || friendRank ? (
-          <section className="anim-stagger mt-5 grid grid-cols-2 gap-2" style={{ "--i": 3 } as React.CSSProperties}>
-            {myRank ? (
-              <Link
-                href="/siralama?kapsam=ilce&donem=week"
-                className="rounded-2xl border border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-xp/15 text-xp">
-                  <Icon name="trophy" className="h-4.5 w-4.5" />
-                </span>
-                <span className="mt-2 block text-sm font-semibold text-ink">
-                  İlçende #{myRank.rank}
-                </span>
-                <span className="block text-[11px] text-ink-muted">
-                  {formatPoints(myRank.total_xp)} XP · {myRank.scope_size} kişi
-                </span>
-              </Link>
-            ) : null}
-
-            {friendRank && friendRank.scope_size > 1 ? (
-              <Link
-                href="/arkadaslar"
-                className="rounded-2xl border border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                  <Icon name="users" className="h-4.5 w-4.5" />
-                </span>
-                <span className="mt-2 block text-sm font-semibold text-ink">
-                  Arkadaşlarında #{friendRank.rank}
-                </span>
-                <span className="block text-[11px] text-ink-muted">
-                  {formatPoints(friendRank.total_xp)} XP ·{" "}
-                  {friendRank.scope_size} kişi
-                </span>
-              </Link>
-            ) : (
-              <Link
-                href="/arkadaslar"
-                className="rounded-2xl border border-dashed border-edge bg-card p-3.5 transition-colors hover:border-primary/60"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                  <Icon name="users" className="h-4.5 w-4.5" />
-                </span>
-                <span className="mt-2 block text-sm font-semibold text-ink">
-                  Arkadaş ekle
-                </span>
-                <span className="block text-[11px] text-ink-muted">
-                  Aranızda sıralama açılsın
-                </span>
-              </Link>
-            )}
-          </section>
-        ) : null}
 
         {notifications.length > 0 ? (
           <section className="anim-stagger mt-5" style={{ "--i": 2 } as React.CSSProperties}>

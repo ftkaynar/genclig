@@ -35,9 +35,10 @@ export function BalanceSummary({
               : "En üst seviye"}
           </p>
 
-          <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/20">
+          <div className="xp-track mt-2.5 h-1.5 w-full">
             <div
-              className="bar-fill h-full rounded-full bg-cyan"
+              className="xp-fill"
+              data-empty={points.progress <= 0}
               style={{ width: `${Math.round(points.progress * 100)}%` }}
             />
           </div>

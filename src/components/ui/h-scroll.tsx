@@ -75,26 +75,39 @@ export function HScroll({
         {children}
       </Container>
 
-      {/* Kenar solması: kesilen kart "bitti" değil "devam ediyor" desin. */}
+      {/*
+        Kenar solması: kesilen kart "bitti" değil "devam ediyor" desin.
+        Genişlik 8px'den 12'ye çıktı — 8px'te kesme çizgisi hâlâ keskin
+        görünüyordu.
+      */}
       {showLeft ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-surface to-transparent"
+          className="pointer-events-none absolute inset-y-0 -left-4 w-12 bg-gradient-to-r from-surface via-surface/80 to-transparent"
         />
       ) : null}
       {showRight ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-surface to-transparent"
+          className="pointer-events-none absolute inset-y-0 -right-4 w-12 bg-gradient-to-l from-surface via-surface/80 to-transparent"
         />
       ) : null}
 
+      {/*
+        Oklar: yarı saydam koyu daire + backdrop-blur, içinde beyaz
+        chevron. Önceki sürüm kart zeminiyle aynı renkte kenarlı bir
+        daireydi ve şeridin üstünde yama gibi duruyordu; cam etkisi
+        altındaki kartın devam ettiğini gösteriyor.
+
+        Varsayılan opaklık .75, hover/dokunmada 1: ok her zaman
+        tam parlaklıkta olsaydı içeriğin önüne geçiyordu.
+      */}
       {showLeft ? (
         <button
           type="button"
           onClick={() => nudge(-1)}
           aria-label="Geri kaydır"
-          className="absolute left-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-edge bg-card text-ink shadow-md transition-transform active:scale-90"
+          className="scroll-arrow absolute left-1 top-1/2 -translate-y-1/2"
         >
           <Icon name="chevron-right" className="h-4 w-4 rotate-180" />
         </button>
@@ -105,7 +118,7 @@ export function HScroll({
           type="button"
           onClick={() => nudge(1)}
           aria-label="İleri kaydır"
-          className="absolute right-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-edge bg-card text-ink shadow-md transition-transform active:scale-90"
+          className="scroll-arrow absolute right-1 top-1/2 -translate-y-1/2"
         >
           <Icon name="chevron-right" className="h-4 w-4" />
         </button>

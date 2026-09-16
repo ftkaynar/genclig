@@ -1299,3 +1299,42 @@
 @utility above-bottom-nav {
   bottom: calc(85px + env(safe-area-inset-bottom));
 }
+
+/* ---------------------------------------------------------------------------
+   Yatay şerit okları (D31 FAZ H)
+
+   Yarı saydam koyu daire + backdrop-blur. Önceki sürüm kart zeminiyle
+   aynı renkte kenarlı bir daireydi ve şeridin üstünde yama gibi
+   duruyordu; cam etkisi altındaki kartın devam ettiğini gösteriyor.
+
+   Varsayılan opaklık .75: ok her zaman tam parlaklıkta olsaydı içeriğin
+   önüne geçiyordu. Hover/dokunmada tam.
+   --------------------------------------------------------------------------- */
+.scroll-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  color: #fff;
+  background: rgb(11 18 32 / 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.14),
+    0 4px 14px rgb(0 0 0 / 0.3);
+  opacity: 0.75;
+  transition:
+    opacity var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
+}
+
+.scroll-arrow:hover {
+  opacity: 1;
+}
+
+.scroll-arrow:active {
+  opacity: 1;
+  transform: translateY(-50%) scale(0.9);
+}

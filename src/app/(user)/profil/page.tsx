@@ -286,9 +286,9 @@ export default async function ProfilePage() {
                     <span className="text-ink-muted">{item.name}</span>
                     <span className="font-semibold text-ink">{item.count}</span>
                   </div>
-                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface">
+                  <div className="xp-track mt-1 h-1.5 w-full">
                     <div
-                      className="bar-fill h-full rounded-full bg-cyan"
+                      className="xp-fill"
                       style={{
                         width: `${Math.round((item.count / maxCategory) * 100)}%`,
                       }}
