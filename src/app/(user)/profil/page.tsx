@@ -374,12 +374,22 @@ function ProfileLink({
   label: string;
 }) {
   return (
+    /*
+      ÖNCEKİ DURUM: gri ikon + gri metin, ince kenar. Altı kutucuk
+      da pasif görünüyordu ve tıklanabilir oldukları ancak imleç
+      üstüne gelince anlaşılıyordu.
+
+      Şimdi ikon gradyan chip'te ve metin tam kontrastta; dokunma
+      alanı 40px'in üstünde.
+    */
     <Link
       href={href}
-      className="flex flex-col items-center gap-1 rounded-xl border border-edge px-2 py-2.5 text-center transition-colors hover:border-primary/60"
+      className="press-soft flex min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-xl border border-edge bg-card px-2 py-2.5 text-center hover:border-primary/60"
     >
-      <Icon name={icon} className="h-4 w-4 text-ink-muted" />
-      <span className="text-[11px] font-medium text-ink-muted">{label}</span>
+      <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg text-white">
+        <Icon name={icon} className="h-4 w-4" />
+      </span>
+      <span className="text-[11px] font-semibold text-ink">{label}</span>
     </Link>
   );
 }

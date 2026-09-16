@@ -55,7 +55,7 @@ export function RewardArchiveButton({ rewardId }: { rewardId: string }) {
         type="button"
         onClick={run}
         disabled={pending}
-        className="rounded-full bg-status-danger px-3 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+        className="rounded-full bg-status-danger inline-flex min-h-[40px] items-center px-3.5 text-[12px] font-semibold text-white disabled:opacity-60"
       >
         {pending ? "..." : "Onayla"}
       </button>
@@ -97,7 +97,7 @@ export function BadgeStatusButton({
       type="button"
       onClick={run}
       disabled={pending}
-      className="rounded-full border border-edge px-3 py-1 text-[11px] font-medium text-ink-muted hover:text-ink disabled:opacity-60"
+      className="rounded-full border border-edge inline-flex min-h-[40px] items-center px-3.5 text-[12px] font-medium text-ink-muted hover:text-ink disabled:opacity-60"
     >
       {pending ? "..." : next === "passive" ? "Pasife al" : "Aktif et"}
     </button>

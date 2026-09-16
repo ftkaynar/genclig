@@ -67,7 +67,7 @@ export default async function AdminPage() {
       action={
         <Link
           href="/admin/denetim"
-          className="inline-flex items-center gap-1.5 rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-semibold text-ink-muted transition-colors hover:text-ink"
+          className="press-soft inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-indigo/70 bg-card px-3.5 text-[13px] font-semibold text-white"
         >
           <Icon name="search" className="h-3.5 w-3.5" />
           Tüm denetim izi

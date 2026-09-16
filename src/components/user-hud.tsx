@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/button";
 import Image from "next/image";
 
 import { BellRefresher } from "@/components/notifications/bell-refresher";
@@ -107,12 +108,9 @@ export async function UserHud({ title }: { title?: string }) {
           </span>
         )}
         <span className="flex items-center gap-2">
-          <Link
-            href="/giris"
-            className="btn-chunky brand-gradient rounded-full px-4 py-1.5 text-xs font-semibold text-white"
-          >
+          <ButtonLink href="/giris" size="sm">
             Giriş yap
-          </Link>
+          </ButtonLink>
           <ThemeToggle />
         </span>
       </header>
@@ -168,7 +166,7 @@ export async function UserHud({ title }: { title?: string }) {
           <Link
             href="/oduller"
             aria-label={`${points.coin} Token, Ödüller'e git`}
-            className="inline-flex items-center gap-1 rounded-full bg-coin/15 px-2.5 py-1 text-xs font-bold text-coin"
+            className="press-soft inline-flex min-h-[40px] items-center gap-1 rounded-full bg-coin/15 px-2.5 text-xs font-bold text-coin"
           >
             <Icon name="coins" className="h-3.5 w-3.5" />
             {formatPoints(points.coin)} Token

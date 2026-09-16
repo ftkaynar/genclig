@@ -223,7 +223,7 @@ export function DiscoverView({
             type="button"
             onClick={locate}
             disabled={locating}
-            className="shrink-0 rounded-full border border-edge bg-card px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-ink disabled:opacity-60"
+            className="press-soft inline-flex min-h-[40px] shrink-0 items-center rounded-full border border-indigo/70 bg-card px-3.5 text-[13px] font-semibold text-white disabled:opacity-55"
           >
             {locating ? "Aranıyor..." : "Konumum"}
           </button>
@@ -239,8 +239,8 @@ export function DiscoverView({
                 aria-pressed={activeCategory === ""}
                 className={
                   activeCategory === ""
-                    ? "brand-gradient rounded-full px-3 py-1.5 text-xs font-semibold text-white"
-                    : "rounded-full border border-edge bg-card px-3 py-1.5 text-xs font-medium text-ink-muted"
+                    ? "brand-gradient inline-flex min-h-[40px] items-center rounded-full px-3.5 text-[13px] font-semibold text-white"
+                    : "press-soft inline-flex min-h-[40px] items-center rounded-full border border-edge bg-card px-3.5 text-[13px] font-medium text-ink-muted hover:text-ink"
                 }
               >
                 Tümü
@@ -254,8 +254,8 @@ export function DiscoverView({
                   aria-pressed={activeCategory === category.slug}
                   className={
                     activeCategory === category.slug
-                      ? "brand-gradient rounded-full px-3 py-1.5 text-xs font-semibold text-white"
-                      : "rounded-full border border-edge bg-card px-3 py-1.5 text-xs font-medium text-ink-muted"
+                      ? "brand-gradient inline-flex min-h-[40px] items-center rounded-full px-3.5 text-[13px] font-semibold text-white"
+                      : "press-soft inline-flex min-h-[40px] items-center rounded-full border border-edge bg-card px-3.5 text-[13px] font-medium text-ink-muted hover:text-ink"
                   }
                 >
                   {category.name}

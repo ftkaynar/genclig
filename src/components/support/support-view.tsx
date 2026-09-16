@@ -242,7 +242,7 @@ export function SupportView({
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : item.id)}
                   aria-expanded={isOpen}
-                  className="flex w-full items-center gap-2 p-3.5 text-left"
+                  className="press-soft flex w-full items-center gap-2 rounded-2xl p-3.5 text-left"
                 >
                   <span className="flex-1 text-sm font-semibold text-ink">
                     {item.question}

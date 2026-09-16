@@ -141,7 +141,7 @@ export function ReportList({ reports }: { reports: PanelReportRow[] }) {
                       type="button"
                       onClick={() => apply(report.id, option.value, note)}
                       disabled={pendingId === report.id}
-                      className="rounded-full border border-edge px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-ink disabled:opacity-60"
+                      className="rounded-full border border-edge inline-flex min-h-[40px] items-center px-3.5 text-[13px] font-medium text-ink-muted hover:text-ink disabled:opacity-60"
                     >
                       {option.label}
                     </button>

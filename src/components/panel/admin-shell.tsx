@@ -76,7 +76,7 @@ export async function AdminShell({
                 <Link
                   href="/admin/incelemeler"
                   title={`${badges.reviews} inceleme · ${badges.problems} bildirim · ${badges.moderation} moderasyon · ${badges.support} destek`}
-                  className="inline-flex items-center gap-1 rounded-full bg-status-danger/15 px-2.5 py-1 text-[11px] font-bold text-status-danger"
+                  className="press-soft inline-flex min-h-[40px] items-center gap-1 rounded-full bg-status-danger/15 px-3 text-[12px] font-bold text-status-danger"
                 >
                   <Icon name="bell" className="h-3.5 w-3.5" />
                   {pending}

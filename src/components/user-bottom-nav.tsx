@@ -98,7 +98,7 @@ export function UserBottomNav({ active }: { active: BottomNavKey }) {
               <Link
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className="group flex flex-col items-center gap-0.5 rounded-lg py-1"
+                className="group flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-lg py-1"
               >
                 <span
                   className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-200 ease-out group-active:scale-90 ${

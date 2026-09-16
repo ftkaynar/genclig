@@ -53,13 +53,13 @@ export function LevelEditor({
         type="number"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        className="w-24 rounded-lg border border-edge bg-surface px-2 py-1 text-xs text-ink"
+        className="min-h-[40px] w-24 rounded-lg border border-edge bg-surface px-2.5 text-xs text-ink"
       />
       <button
         type="button"
         onClick={save}
         disabled={pending}
-        className="rounded-full btn-chunky bg-cta px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+        className="rounded-full btn-chunky bg-cta inline-flex min-h-[40px] items-center px-3 text-[12px] font-semibold text-white disabled:opacity-60"
       >
         {pending ? "..." : "Kaydet"}
       </button>

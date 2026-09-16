@@ -68,7 +68,7 @@ export function InlineEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
+        className="rounded-full border border-edge bg-card inline-flex min-h-[40px] items-center px-3.5 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
       >
         {title}
       </button>
