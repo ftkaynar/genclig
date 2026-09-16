@@ -8,6 +8,7 @@ import { RewardBadges } from "@/components/tasks/task-card";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Icon } from "@/components/ui/icon";
+import { getSpotlightTaskId } from "@/lib/spotlight/queries";
 import { getTaskQuiz } from "@/lib/quiz/queries";
 import { getTeamTaskProgress } from "@/lib/teams/queries";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -54,6 +55,9 @@ export default async function TaskDetailPage({
 
   const viewer = await getViewer();
   const submissions = await getSubmissionMap([task.id]);
+
+  // Bugünün vitrin görevi mi: ödül haplarında 2x gösterilecek.
+  const isSpotlight = (await getSpotlightTaskId()) === task.id;
 
   /*
     Takım ilerlemesi definer RPC'den: RLS takım arkadaşlarının teslimlerini
@@ -143,7 +147,11 @@ export default async function TaskDetailPage({
         <p className="mt-2 text-sm text-ink-muted">{task.description}</p>
 
         <div className="mt-4">
-          <RewardBadges xp={task.xp} coin={task.coin} />
+          <RewardBadges
+            xp={task.xp}
+            coin={task.coin}
+            spotlight={isSpotlight}
+          />
         </div>
 
         {task.scope === "team" ? (

@@ -959,6 +959,7 @@
   .reward-shine::after,
   .confetti-bit,
   .repeat-pill,
+  .spotlight-frame,
   .vip-holo-text {
     animation: none;
   }
@@ -1656,4 +1657,55 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.3),
     0 6px 18px rgb(0 0 0 / 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   Günün Görevi bandı (D33 FAZ GG)
+
+   Altın çerçeve yavaşça kayıyor: bandın "bugüne özel" olduğunu hareket
+   söylüyor. Sabit altın kenar denendi ve elendi — sayfadaki diğer
+   gradyan kenarlı kartlarla (öne çıkan görev) aynı ağırlığa iniyordu
+   ve vitrin sıradanlaşıyordu.
+
+   Hareket yavaş (6s) ve yalnız renk kaydırıyor; düzen oynatmıyor.
+   --------------------------------------------------------------------------- */
+.spotlight-frame {
+  background-image: linear-gradient(
+    110deg,
+    #f5b301 0%,
+    #ffd977 25%,
+    #d97706 50%,
+    #ffd977 75%,
+    #f5b301 100%
+  );
+  background-size: 300% 100%;
+  animation: spotlight-sheen 6s linear infinite;
+}
+
+@keyframes spotlight-sheen {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 300% 0;
+  }
+}
+
+.spotlight-badge {
+  background-image: linear-gradient(135deg, #ffd977, #f5b301);
+}
+
+.spotlight-dial {
+  background-image: linear-gradient(135deg, #ffd977, #d97706);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+/*
+  Feed kartındaki vitrin kurdelesi. Kart zaten kalabalık; kurdele
+  metinsiz olamaz (renk tek başına ayırt edici değil) ama iki kelimeden
+  uzun da olamaz.
+*/
+.spotlight-ribbon {
+  background-image: linear-gradient(135deg, #ffd977, #f5b301);
+  box-shadow: 0 2px 8px rgb(217 119 6 / 0.45);
 }

@@ -12,6 +12,7 @@ import {
 import { EmptyState } from "@/components/ui/pills";
 import { UserHud } from "@/components/user-hud";
 import { UserBottomNav } from "@/components/user-bottom-nav";
+import { getSpotlightTaskId } from "@/lib/spotlight/queries";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import { getTeamTaskProgress } from "@/lib/teams/queries";
 
@@ -72,9 +73,11 @@ export default async function TasksPage({
     .filter((task) => task.scope === "team")
     .map((task) => task.id);
 
-  const [submissions, teamProgress] = await Promise.all([
+  const [submissions, teamProgress, spotlightId] = await Promise.all([
     getSubmissionMap(filtered.map((task) => task.id)),
     getTeamTaskProgress(teamTaskIds),
+    // Kurdele için yalnız kimlik yeter; görevin kendisi zaten listede.
+    getSpotlightTaskId(),
   ]);
 
   return (
@@ -124,6 +127,7 @@ export default async function TasksPage({
                   submission={submissions.get(task.id)}
                   teamCount={teamProgress.get(task.id)}
                   index={i}
+                  spotlight={task.id === spotlightId}
                 />
               ))}
             </ul>
@@ -165,6 +169,7 @@ export default async function TasksPage({
                   submission={submissions.get(task.id)}
                   teamCount={teamProgress.get(task.id)}
                   index={i}
+                  spotlight={task.id === spotlightId}
                 />
               ))}
             </ul>

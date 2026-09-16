@@ -13,11 +13,51 @@ import {
 import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
 
 /** XP ve coin rozetleri; ortak hap bileşenlerini kullanır. */
-export function RewardBadges({ xp, coin }: { xp: number; coin: number }) {
+/**
+ * Görevin ödül hapları.
+ *
+ * `spotlight` verildiğinde değerler ÇİFT gösteriliyor ve normal değer
+ * üstü çizili yanında duruyor (D33 FAZ GG). Yalnız çift değeri
+ * göstermek "bu görev zaten böyle değerliymiş" diye okunuyordu;
+ * kullanıcının bugüne özel bir fırsat olduğunu görmesi gerekiyor.
+ *
+ * Çarpanı arayüz UYGULAMIYOR, yalnız gösteriyor: puanı
+ * award_task_points yazıyor (rule: iş mantığı client'ta olmaz).
+ */
+export function RewardBadges({
+  xp,
+  coin,
+  spotlight = false,
+}: {
+  xp: number;
+  coin: number;
+  spotlight?: boolean;
+}) {
+  if (!spotlight) {
+    return (
+      <div className="flex items-center gap-2">
+        <XpPill value={xp} />
+        <CoinPill value={coin} />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      <XpPill value={xp} />
-      <CoinPill value={coin} />
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="spotlight-badge inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-wide text-[#3a2a00]">
+        <Icon name="star" className="h-3 w-3" />
+        GÜNÜN GÖREVİ · 2X ÖDÜL
+      </span>
+      <span className="flex items-center gap-2">
+        <XpPill value={xp * 2} />
+        <CoinPill value={coin * 2} />
+      </span>
+      <span className="text-[11px] text-ink-muted">
+        normal:{" "}
+        <s>
+          +{xp} XP • +{coin} Token
+        </s>
+      </span>
     </div>
   );
 }

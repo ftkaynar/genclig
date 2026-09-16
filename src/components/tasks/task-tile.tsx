@@ -56,6 +56,7 @@ export function TaskTile({
   distanceLabel,
   small = false,
   index = 0,
+  spotlight = false,
 }: {
   task: TaskRow;
   submission?: SubmissionSummary;
@@ -65,6 +66,8 @@ export function TaskTile({
   small?: boolean;
   /** Izgaradaki sıra — kademeli beliriş gecikmesi için. */
   index?: number;
+  /** Bugünün vitrin görevi mi (2x ödül)? */
+  spotlight?: boolean;
 }) {
   const tier = tierOf(task.difficulty);
   const upcoming = task.timeState === "upcoming";
@@ -146,6 +149,20 @@ export function TaskTile({
               strokeWidth={2.1}
             />
           </span>
+
+          {/*
+            Vitrin kurdelesi (D33 FAZ GG).
+
+            Alt kenarda, tam genişlikte: zorluk rozeti sağ üstte,
+            durum mührü sol üstte. Üçüncü bir köşe rozeti kapak
+            alanını rozet tarlasına çeviriyordu.
+          */}
+          {spotlight ? (
+            <span className="spotlight-ribbon absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 py-0.5 text-[9px] font-extrabold tracking-wide text-[#3a2a00]">
+              <Icon name="star" className="h-2.5 w-2.5" />
+              GÜNÜN GÖREVİ · 2X
+            </span>
+          ) : null}
 
           {/* Sağ üst: zorluk kademesi. */}
           <span

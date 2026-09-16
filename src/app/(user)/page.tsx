@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
+import { SpotlightBand } from "@/components/home/spotlight-band";
 import { QuickAccess } from "@/components/home/quick-access";
 import { RankCard } from "@/components/home/rank-card";
 import { Arrival } from "@/components/game/arrival";
@@ -22,6 +23,7 @@ import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import { getTodayEarnings, getUserPoints } from "@/lib/points/queries";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { getSpotlightTask } from "@/lib/spotlight/queries";
 import { taskCardState } from "@/lib/tasks/labels";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
@@ -142,6 +144,13 @@ export default async function UserHomePage() {
     getMyRank("ilce", "week"),
     getLatestAnnouncement(),
   ]);
+
+  /*
+    Günün Görevi ayrı bir çağrı: kayıt yoksa seçimi tetikliyor ve
+    yukarıdaki Promise.all'a koymak, her ana sayfa yüklemesinde
+    seçim yazmayı kritik yola sokardı. Vitrin yoksa band çizilmiyor.
+  */
+  const spotlight = await getSpotlightTask();
 
   const submissions = await getSubmissionMap(allTasks.map((task) => task.id));
 
@@ -294,6 +303,9 @@ export default async function UserHomePage() {
 
         <QuickAccess />
 
+        {/* GÜNÜN GÖREVİ — hero'nun hemen altında, öne çıkandan önce. */}
+        {spotlight ? <SpotlightBand task={spotlight} /> : null}
+
         {featured ? <FeaturedTask task={featured} /> : null}
 
         <section className="anim-stagger mt-5" style={{ "--i": 2 } as React.CSSProperties}>
@@ -330,7 +342,13 @@ export default async function UserHomePage() {
             */
             <HScroll as="ul" className="mt-3" ariaLabel="Önerilen görevler">
               {suggested.map((task, i) => (
-                <TaskTile key={task.id} task={task} index={i} small />
+                <TaskTile
+                  key={task.id}
+                  task={task}
+                  index={i}
+                  small
+                  spotlight={task.id === spotlight?.id}
+                />
               ))}
             </HScroll>
           )}
