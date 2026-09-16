@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { signOutAction } from "@/lib/auth/actions";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
@@ -54,6 +55,17 @@ export default async function SettingsPage() {
                 ? String(profile.neighborhood_id)
                 : "",
             }}
+          />
+        </section>
+
+        {/*
+          Bildirim izni burada isteniyor, sayfa açılır açılmaz değil:
+          tarayıcılar kullanıcı jesti olmadan yapılan izin isteklerini
+          sessizce reddediyor ve izin bir daha sorulmuyor.
+        */}
+        <section className="mt-4">
+          <PushToggle
+            publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null}
           />
         </section>
 

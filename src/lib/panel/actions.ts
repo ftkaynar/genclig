@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendPushToUser } from "@/lib/push/send";
 
 export type PanelActionState = { error?: string; notice?: string };
 
@@ -19,6 +20,18 @@ export async function reviewSubmissionAction(
 ): Promise<PanelActionState> {
   const supabase = await createClient();
 
+  /*
+    Teslim sahibini ve ödülü ÖNCEDEN okuyoruz: onaydan sonra satır
+    hâlâ okunabilir ama push metninde XP/Token yazmak için görevin
+    ödülü gerekiyor ve bunu ikinci bir sorguyla almak yerine tek
+    seferde alıyoruz.
+  */
+  const { data: sub } = await supabase
+    .from("task_submissions")
+    .select("user_id,tasks(title,xp,coin)")
+    .eq("id", submissionId)
+    .maybeSingle();
+
   const { error } = await supabase.rpc("review_submission", {
     p_submission_id: submissionId,
     p_action: action,
@@ -27,6 +40,32 @@ export async function reviewSubmissionAction(
 
   if (error) {
     return { error: error.message };
+  }
+
+  /*
+    Push YALNIZCA başarılı RPC'den sonra. Hata durumunda bildirim
+    göndermek, olmayan bir onayı duyurmak olurdu.
+
+    sendPushToUser asla fırlatmıyor; push bir yan etki ve onay
+    akışını kırmamalı.
+  */
+  const target = sub as unknown as
+    | { user_id: string; tasks: { title: string; xp: number; coin: number } | null }
+    | null;
+
+  if (target?.user_id) {
+    await sendPushToUser(target.user_id, {
+      title:
+        action === "approve"
+          ? "Görevin onaylandı!"
+          : "Teslimin reddedildi",
+      body:
+        action === "approve"
+          ? `${target.tasks?.title ?? "Görev"} · +${target.tasks?.xp ?? 0} XP +${target.tasks?.coin ?? 0} Token`
+          : (reason ?? "Ayrıntı için Görevlerim ekranına bak."),
+      url: "/gorevlerim",
+      tag: "submission",
+    });
   }
 
   revalidatePath("/panel/incelemeler");

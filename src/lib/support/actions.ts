@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendPushToUser } from "@/lib/push/send";
 import type { TicketMessage } from "@/lib/support/labels";
 import { listTicketMessages } from "@/lib/support/queries";
 
@@ -54,12 +55,39 @@ export async function replyTicketAction(
   body: string,
 ): Promise<SupportState> {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: ticket } = await supabase
+    .from("support_tickets")
+    .select("user_id,subject")
+    .eq("id", ticketId)
+    .maybeSingle();
+
   const { error } = await supabase.rpc("reply_ticket", {
     p_ticket: ticketId,
     p_body: body.trim(),
   });
 
   if (error) return { error: translate(error.message) };
+
+  /*
+    Push yalnızca KARŞI TARAFA — kendi yanıtına kendine bildirim
+    gitmemeli. Aynı kural reply_ticket içinde de var (M29a); burada
+    tekrar bakılmasının sebebi push'un ayrı bir yol olması: DB
+    bildirimi düşmediği hâlde push gitseydi sayaç ile bildirim
+    birbirini tutmazdı.
+  */
+  if (ticket?.user_id && user?.id && ticket.user_id !== user.id) {
+    await sendPushToUser(ticket.user_id, {
+      title: "Destek talebine yanıt geldi",
+      body: ticket.subject ?? "",
+      url: `/destek?talep=${ticketId}`,
+      tag: "support",
+    });
+  }
 
   refresh();
   return { notice: "Mesajın gönderildi." };
