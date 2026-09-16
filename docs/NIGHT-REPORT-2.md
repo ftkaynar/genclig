@@ -395,7 +395,7 @@ Dilim metninde adı geçmeyen, görsel hedefi tamamlamak için eklenenler:
 FAZ G'de "Bulut push YAPILAMADI" diye kaydedilen engel kapandı.
 
 **Engelin gerçek sebebi:** veritabanı şifresinin sonundaki nokta. Denenen
-`Fatih.58!!` reddediliyordu; doğrusu `Fatih.58!!.` imiş. Şifre rotasyonu
+`***ŞİFRE — RAPORA YAZILMAMALIYDI***` reddediliyordu; doğrusu `***ŞİFRE — RAPORA YAZILMAMALIYDI***` imiş. Şifre rotasyonu
 yokmuş, eksik karakter varmış.
 
 **Push:**

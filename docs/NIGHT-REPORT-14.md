@@ -223,7 +223,92 @@ Hepsi ölçümle bulundu, tahminle değil:
 
 ---
 
-## 9. AÇIK İŞ — bulut veritabanı hâlâ güncellenmedi
+## 9. BULUT PUSH — TAMAMLANDI
+
+Yedi migration buluta uygulandı ve doğrulandı.
+
+### Dry-run
+
+```
+Would push these migrations:
+ • 20260927000000_year_period_and_task_art.sql
+ • 20260928000000_task_day_window.sql
+ • 20260929000000_d33_common.sql
+ • 20260929010000_daily_spotlight.sql
+ • 20260929020000_task_chains.sql
+ • 20260929030000_referrals.sql
+ • 20260929040000_seasons.sql
+```
+
+Yedisi de `Applying migration ...` ile uygulandı, hata yok.
+
+**Not — erişim yolu:** verilen `sb_publishable_...` anahtarı bir
+*publishable key*, kişisel erişim belirteci (`sbp_...`) değil. CLI onu
+reddetti (`LegacyInvalidAccessTokenError`). Push, Management API yerine
+`--db-url` ile **doğrudan Postgres bağlantısı** üzerinden yapıldı;
+bu yol yalnız DB şifresi istiyor. `db.<ref>.supabase.co` yalnız IPv6
+çözüyor — host üzerinden erişilebildi, Docker konteynerinden
+erişilemedi (`Network is unreachable`), bu yüzden tüm doğrulamalar
+host'tan yapıldı.
+
+### Şema farkı
+
+`db diff` **şema olarak temiz**. Tek fark, bulutta olup yerel gölge
+veritabanında olmayan `pg_cron` eklentisi ve üç iş — yerelde pg_cron
+kurulu değil (ölçüldü). Yani bu fark beklenen ve aslında cron
+işlerinin kurulduğunun kanıtı:
+
+```
+SELECT cron.schedule_in_database('genclig-daily-spotlight',    '5 21 * * *', ..., true);
+SELECT cron.schedule_in_database('genclig-leaderboard-settle', '10 21 * * *', ..., true);
+SELECT cron.schedule_in_database('genclig-season-settle',      '20 21 * * *', ..., true);
+```
+
+Üçü de `active = true`. (`cron.job` tablosu eklenti üyesi olduğu için
+`pg_dump`'a girmiyor; bu yüzden kanıt `db diff`'in buluttan okuduğu
+çıktı, doğrudan `select * from cron.job` değil.)
+
+### REST doğrulaması (anon anahtar)
+
+| tablo | push ÖNCESİ | push SONRASI |
+| --- | --- | --- |
+| `daily_spotlight` | 404 | **200** `[]` |
+| `task_chains` | 404 | **200** `[]` |
+| `chain_steps` | 404 | **200** `[]` |
+| `chain_awards` | 404 | **200** `[]` |
+| `referral_settings` | 404 | **200** `[]` |
+| `referral_awards` | 404 | **200** `[]` |
+| `seasons` | 404 | **200** `[]` |
+| `tasks.art_key` | `42703 does not exist` | **`null` döndü** |
+
+Boş dizi doğru sonuç: politikalar `to authenticated`, anon satır
+görmüyor. RPC'ler (`spotlight_task_id`, `my_chains`, `my_invite`,
+`active_season`, `settle_season_badges`) anon'a **401** veriyor —
+yani tanımlılar ama yetki istiyorlar. Eksik olsalardı 404/PGRST202
+dönerlerdi.
+
+### Tohum verisi (buluttan okundu)
+
+- `seasons`: `Sezon 1`, 2026-06-30 → 2026-09-30, tema `violet`, aktif
+- `referral_settings`: id=1, 100/100 ve 50/50, aktif
+- `task_chains`: `Kültür Kaşifi`, +150 XP / +100 Token
+- `chain_steps`: **3 adım** (sort 0,1,2)
+- `profiles`: 2 profilin **ikisinde de** davet kodu dolu (backfill)
+
+### Canlı dağıtım (genclig.vercel.app)
+
+Tümü 200: `/`, `/giris`, `/gorevler`, `/zincirler/<id>`,
+`/admin/zincirler`, `/admin/sezonlar`, `/admin/gunun-gorevi`,
+`/admin/davet`.
+
+Kontrol testi — 200'lerin catch-all olmadığı doğrulandı:
+`/boyle-bir-sayfa-yok`, `/admin/olmayan` ve `/zincirler` (id'siz) **404**.
+Zincir rotası `/zincirler/[id]`; id'siz `/zincirler` diye bir sayfa yok.
+
+Oturumsuz istekte `/zincirler/<id>` girişe yönleniyor ve `/admin/*`
+`NoAccess` basıyor — ikisi de 200 döner, beklenen davranış.
+
+## 9b. Eski açık iş kaydı (kapandı)
 
 **Altı migration yerelde uygulandı ve test edildi, buluta itilemedi:**
 
@@ -275,6 +360,24 @@ dağıtılabiliyor.
 
 ---
 
+## 9c. GÜVENLİK BULGUSU — şifre repoda açık metindi
+
+Push sırasında repoda kimlik bilgisi taraması yaptım ve
+`docs/NIGHT-REPORT-2.md` satır 398'de **veritabanı şifresi açık metin**
+olarak duruyordu — üstelik "denenen yanlış şifre" ve "doğrusu" diye iki
+kez. Kural 9'un ("Secret'lar repoya girmez") ihlali; o raporu yazarken
+yapılmış bir hata.
+
+Dosyada maskelendi. **Ama bu yetmez:** değer git geçmişinde duruyor ve
+depo GitHub'da. Şifrenin **döndürülmesi şart**:
+
+Supabase Dashboard → Project Settings → Database → Reset database
+password. Sonrasında Vercel'de veritabanı bağlantı dizesi kullanan bir
+ortam değişkeni varsa güncellenmeli (uygulama PostgREST üzerinden
+çalıştığı için muhtemelen yok, ama kontrol edilmeli).
+
+---
+
 ## 10. BORÇLAR
 
 ### Bu dilimde bilinçli bırakılanlar
@@ -321,5 +424,5 @@ Supabase bölge taşıma, panelde "Kullanıcı" yazması,
 7. **Panel:** İçerik grubunda dört yeni giriş — Günün Görevi, Zincirler,
    Davet, Sezonlar.
 
-**Not:** 1-7 arası maddelerin hepsi bulut migration'ı uygulanana kadar
-**canlıda görünmez** (yerelde çalışıyor). Bkz. bölüm 9.
+**Not:** Bulut migration'ları uygulandı (bölüm 9), yani bu maddelerin
+hepsi artık **canlıda da** çalışıyor.
