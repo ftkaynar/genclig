@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Podium } from "@/components/leaderboard/podium";
+import { Podium, type PodiumEntry } from "@/components/leaderboard/podium";
+import { RewardStrip } from "@/components/leaderboard/reward-strip";
+import {
+  getRewardSettings,
+  settleLeaderboardRewards,
+} from "@/lib/leaderboard/rewards";
 import { ScopeTabs } from "@/components/leaderboard/scope-tabs";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
@@ -50,7 +55,20 @@ export default async function LeaderboardPage({
   */
   const isTeams = scope === "takimlar";
 
-  const teamRows = isTeams ? await getTeamLeaderboard(period) : [];
+  /*
+    Biten dönemin ödülleri burada dağıtılıyor (tembel yol).
+
+    pg_cron bulutta kurulu ve günlük iş zamanlandı; bu çağrı EMNİYET
+    AĞI — sessizce düşen bir cron'u fark etmek zor, kullanıcı ziyareti
+    ise her gün gerçekleşiyor. Fonksiyon idempotent, iki yol aynı anda
+    çalışsa da ikinci yazım UNIQUE kısıtına takılıyor.
+  */
+  await settleLeaderboardRewards();
+
+  const [teamRows, rewardSettings] = await Promise.all([
+    isTeams ? getTeamLeaderboard(period) : Promise.resolve([]),
+    getRewardSettings(scope, period),
+  ]);
 
   const [rows, myRank, profile] = isTeams
     ? [[] as LeaderboardRow[], null as MyRank, null]
@@ -84,6 +102,8 @@ export default async function LeaderboardPage({
         bu pay olmadan listenin son satırı kartın altında kalıyordu.
       */}
       <main className="flex-1 px-4 pb-8 pt-4">
+        <RewardStrip settings={rewardSettings} period={period} />
+
         {isTeams ? (
           teamRows.length === 0 ? (
             <EmptyState
@@ -100,8 +120,26 @@ export default async function LeaderboardPage({
               }
             />
           ) : (
+            <>
+              {/* Takım sıralamasında da aynı podyum düzeni. */}
+              <div className="mb-3">
+                <Podium
+                  entries={teamRows
+                    .filter((row) => row.rank <= 3)
+                    .map<PodiumEntry>((row) => ({
+                      rank: row.rank,
+                      id: row.team_id,
+                      name: row.team_name,
+                      subtitle: `${row.member_count} üye`,
+                      totalXp: row.total_xp,
+                      icon: row.icon,
+                    }))}
+                  currentId=""
+                />
+              </div>
+
             <ol className="flex flex-col gap-2">
-              {teamRows.map((row) => (
+              {teamRows.filter((row) => row.rank > 3).map((row) => (
                 <li
                   key={row.team_id}
                   className="press-soft flex items-center gap-3 rounded-2xl border border-edge bg-card p-3"
@@ -126,12 +164,24 @@ export default async function LeaderboardPage({
                 </li>
               ))}
             </ol>
+            </>
           )
         ) : null}
 
         {!isTeams && !missingLocation && rows.length > 0 ? (
           <div className="mb-3">
-            <Podium rows={rows} currentUserId={user.id} />
+            <Podium
+              entries={rows
+                .filter((row) => row.rank <= 3)
+                .map<PodiumEntry>((row) => ({
+                  rank: row.rank,
+                  id: row.user_id,
+                  name: row.username,
+                  subtitle: `Seviye ${row.level}`,
+                  totalXp: row.total_xp,
+                }))}
+              currentId={user.id}
+            />
           </div>
         ) : null}
 

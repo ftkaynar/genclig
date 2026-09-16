@@ -78,6 +78,11 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { href: "/admin/rozetler", label: "Rozetler", icon: "award" },
       { href: "/admin/kategoriler", label: "Kategoriler", icon: "palette" },
       { href: "/admin/seviyeler", label: "Seviyeler", icon: "star" },
+      {
+        href: "/admin/siralama-odulleri",
+        label: "Sıralama Ödülleri",
+        icon: "trophy",
+      },
     ],
   },
   {

@@ -121,7 +121,12 @@ export function ScopeTabs({
                   <Link
                     href={href(item.key, period)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    /*
+                      py-2.5 + text-[13px]: dokunma alani 40px ustune
+                      cikiyor. Onceki py-1.5 ile cipler 30px kaliyordu ve
+                      parmakla isabet ettirmek zordu.
+                    */
+                    className={`press-soft flex items-center gap-1.5 rounded-full border px-3.5 py-2.5 text-[13px] font-medium ${
                       isActive
                         ? "border-primary bg-primary/15 text-primary"
                         : "border-edge bg-card text-ink-muted hover:text-ink"
@@ -129,7 +134,7 @@ export function ScopeTabs({
                   >
                     <Icon
                       name={SCOPE_ICON[item.key] ?? "trophy"}
-                      className="h-3.5 w-3.5"
+                      className="h-4 w-4"
                     />
                     {item.label}
                   </Link>
