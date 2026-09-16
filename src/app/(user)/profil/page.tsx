@@ -31,6 +31,11 @@ import {
 import { getMyStats } from "@/lib/stats/queries";
 import { listFriends } from "@/lib/social/queries";
 import { listMyReports } from "@/lib/problems/queries";
+import {
+  SEASON_STRIPE,
+  getActiveSeason,
+  seasonAccent,
+} from "@/lib/seasons/queries";
 import { ACCENT_CHIP, ACCENT_EDGE, accentFor } from "@/lib/ui/accents";
 
 export const metadata = {
@@ -56,6 +61,7 @@ export default async function ProfilePage() {
     friends,
     reports,
     rewardMilestones,
+    season,
   ] = await Promise.all([
     getProfile(user.id),
     getUserPoints(user.id),
@@ -68,6 +74,8 @@ export default async function ProfilePage() {
     listFriends(),
     listMyReports(),
     getRewardMilestones(),
+    // Sezon etiketi karta geçiyor; yoksa etiket hiç çizilmiyor.
+    getActiveSeason(),
   ]);
 
   /*
@@ -184,6 +192,14 @@ export default async function ProfilePage() {
                 reports: reports.length,
                 friends: friends.length,
               }}
+              season={
+                season
+                  ? {
+                      name: season.name,
+                      stripe: SEASON_STRIPE[seasonAccent(season.theme)],
+                    }
+                  : null
+              }
             />
           </section>
         ) : null}

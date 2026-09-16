@@ -163,10 +163,20 @@ export function IdentityCard({
   identity,
   stats,
   size = "large",
+  season = null,
 }: {
   identity: CardIdentity;
   stats: UserStats;
   size?: "large" | "mini";
+  /**
+   * Aktif sezon etiketi (D33 FAZ SZ).
+   *
+   * VIP tasarımına DOKUNULMUYOR: yalnız alt köşede ince bir şerit.
+   * Kart bu ürünün en çok emek verilmiş görseli; sezonu büyük bir
+   * rozetle duyurmak onu bozardı. Mini kartta hiç gösterilmiyor —
+   * 160px'te okunmuyor.
+   */
+  season?: { name: string; stripe: string } | null;
 }) {
   const mini = size === "mini";
   const box = mini ? BOX.mini : BOX.large;
@@ -404,6 +414,15 @@ export function IdentityCard({
         >
           GENÇLİG
         </span>
+
+        {/* Sezon şeridi: alt köşede, tek satır, minimal. */}
+        {season && !mini ? (
+          <span
+            className={`absolute bottom-1.5 right-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${season.stripe}`}
+          >
+            {season.name}
+          </span>
+        ) : null}
       </div>
     </article>
   );

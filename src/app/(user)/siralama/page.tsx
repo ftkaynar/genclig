@@ -9,6 +9,11 @@ import {
   settleLeaderboardRewards,
 } from "@/lib/leaderboard/rewards";
 import { ScopeTabs } from "@/components/leaderboard/scope-tabs";
+import {
+  SEASON_STRIPE,
+  getActiveSeason,
+  seasonAccent,
+} from "@/lib/seasons/queries";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
@@ -67,9 +72,15 @@ export default async function LeaderboardPage({
   */
   await settleLeaderboardRewards();
 
-  const [teamRows, rewardSettings] = await Promise.all([
+  const [teamRows, rewardSettings, season] = await Promise.all([
     isTeams ? getTeamLeaderboard(period) : Promise.resolve([]),
     getRewardSettings(scope, period),
+    /*
+      Sezon ibaresi başlıkta: "Bu Hafta" bir dönem, sezon ise onu
+      kapsayan çerçeve. İkisini birlikte görmek, haftanın hangi sezona
+      ait olduğunu söylüyor.
+    */
+    getActiveSeason(),
   ]);
 
   const [rows, myRank, profile] = isTeams
@@ -96,6 +107,17 @@ export default async function LeaderboardPage({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Sıralama" />
+
+      {season ? (
+        <p className="px-4 pt-2">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider ${SEASON_STRIPE[seasonAccent(season.theme)]}`}
+          >
+            <Icon name="trophy" className="h-3 w-3" />
+            {season.name}
+          </span>
+        </p>
+      ) : null}
 
       <ScopeTabs scope={scope} period={period} />
 

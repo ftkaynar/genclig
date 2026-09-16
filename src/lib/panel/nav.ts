@@ -81,6 +81,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       },
       { href: "/admin/zincirler", label: "Zincirler", icon: "list-checks" },
       { href: "/admin/davet", label: "Davet", icon: "users" },
+      { href: "/admin/sezonlar", label: "Sezonlar", icon: "calendar-clock" },
       { href: "/admin/oduller", label: "Ödüller", icon: "gift" },
       { href: "/admin/rozetler", label: "Rozetler", icon: "award" },
       { href: "/admin/kategoriler", label: "Kategoriler", icon: "palette" },

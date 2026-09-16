@@ -20,11 +20,14 @@ export function FlipCard({
   stats,
   badges,
   totals,
+  season = null,
 }: {
   identity: CardIdentity;
   stats: UserStats;
   badges: { id: string; name: string; icon: string | null }[];
   totals: { tasks: number; reports: number; friends: number };
+  /** Aktif sezon etiketi; ön yüze geçiyor (D33 FAZ SZ). */
+  season?: { name: string; stripe: string } | null;
 }) {
   const [flipped, setFlipped] = useState(false);
 
@@ -108,7 +111,7 @@ export function FlipCard({
         <div className={`flip-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ------------------------------------------------------- ön yüz */}
           <div className="flip-face flip-front">
-            <IdentityCard identity={identity} stats={stats} />
+            <IdentityCard identity={identity} stats={stats} season={season} />
           </div>
 
           {/* ------------------------------------------------------ arka yüz */}
