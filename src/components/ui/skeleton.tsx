@@ -6,8 +6,18 @@
   `prefers-reduced-motion` altında parıltı durur, iskelet düz kalır.
 */
 
-export function SkeletonBlock({ className = "" }: { className?: string }) {
-  return <span aria-hidden className={`skeleton block ${className}`} />;
+export function SkeletonBlock({
+  className = "",
+  style,
+}: {
+  className?: string;
+  /* En-boy oranı gibi satır içi ölçüler için; iskeletin gerçek
+     kutucukla aynı yüksekliği kaplaması gerekiyor. */
+  style?: React.CSSProperties;
+}) {
+  return (
+    <span aria-hidden className={`skeleton block ${className}`} style={style} />
+  );
 }
 
 /** Görev/ödül listelerindeki satır kartının iskeleti. */

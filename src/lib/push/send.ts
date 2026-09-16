@@ -21,6 +21,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 */
 
 let configured = false;
+let warned = false;
 
 /** VAPID yapılandırması eksikse push sessizce devre dışı. */
 function ensureConfigured(): boolean {
@@ -29,6 +30,18 @@ function ensureConfigured(): boolean {
   const subject = process.env.VAPID_SUBJECT;
 
   if (!publicKey || !privateKey || !subject) {
+    /*
+      TEK uyarı: her gönderim denemesinde yazsaydı log gürültüye
+      dönerdi. Sessizce kapalı kalmak da yanlış — ortam değişkenlerini
+      eklemeyi unutan geliştirici hiçbir iz göremiyordu (D32 FAZ D3).
+    */
+    if (!warned) {
+      warned = true;
+      console.warn(
+        "[push] VAPID ortam değişkenleri eksik; bildirim gönderimi kapalı. " +
+          "Gerekenler: NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT.",
+      );
+    }
     return false;
   }
 

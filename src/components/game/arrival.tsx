@@ -46,30 +46,57 @@ function writeSeen(value: Seen) {
 }
 
 /*
-  "Son görülen durum" bir DIŞ DEPO olarak okunuyor, effect içinde
-  setState ile değil (`react-hooks/set-state-in-effect`; aynı kurala
-  D22, D29 ve D30'da takıldık).
+  ÖLÇÜLEN HATA (D32 FAZ D2): seviye atlama pop-up'ı kullanıcıda HİÇ
+  görünmedi. Karar mantığı bire bir taklit edilip dört senaryoda
+  koşuldu:
 
-  Değer oturum boyunca DEĞİŞMİYOR: sayfa açıldığındaki durum
-  kutlamanın dayanağı ve sonradan yazılan yeni değer bu render'ı
-  etkilememeli — aksi hâlde kutlama kendi yazdığı değeri okuyup
-  anında kayboluyordu. Bu yüzden anlık görüntü modül düzeyinde bir kez
-  önbelleğe alınıyor ve abone hiç tetiklenmiyor.
+    1. ilk açılış, sonra TAM YENİLEME ile seviye atlama -> POPUP ✓
+    2. ilk açılış, sonra İSTEMCİ TARAFI gezinme ile dönüş -> HİÇBİR ŞEY
+    3. uygulamada kalarak router.refresh ile atlama    -> HİÇBİR ŞEY
+    4. Arrival yalnız ana sayfada                      -> profilde yok
 
-  useSyncExternalStore anlık görüntüyü Object.is ile karşılaştırıyor;
-  her çağrıda yeni nesne dönseydi sonsuz render döngüsü olurdu.
+  Sebep: "son görülen durum" MODÜL düzeyinde bir kez önbelleğe
+  alınıyordu (`cachedSeen`) ve oturum boyunca asla tazelenmiyordu.
+  İlk açılışta null okunuyor (baseline yok, doğru), ama kullanıcı
+  görevi tamamlayıp ana sayfaya İSTEMCİ TARAFI gezinmeyle döndüğünde
+  modül hâlâ yüklü ve önbellek hâlâ null — pop-up asla çıkmıyordu.
+  Yalnızca tam sayfa yenilemesi modülü yeniden yükleyip baseline'ı
+  okuyordu; kullanıcı normalde tam yenileme yapmıyor.
+
+  DÜZELTME: önbellek BİLEŞEN ÖRNEĞİ düzeyine indi (useRef). Her
+  mount taze okuyor; aynı örnek içinde sabit kalıyor (kutlama kendi
+  yazdığı değeri okuyup anında kaybolmasın).
+
+  `clientReady` hydration için: sunucuda localStorage yok, ilk render
+  her zaman boş. useSyncExternalStore sunucu anlık görüntüsünü ayrı
+  verdiği için uyuşmazlık çıkmıyor ve effect içinde setState
+  gerekmiyor (`react-hooks/set-state-in-effect`; aynı kurala D22,
+  D29 ve D30'da takıldık).
 */
-let cachedSeen: Seen | null | undefined;
+/*
+  Bileşen ÖRNEĞİNE ait küçük depo.
 
-function subscribeSeen() {
-  return () => {};
-}
+  Denenen ve elenen iki alternatif:
+    - useRef ile render sırasında okumak: `react-hooks/refs` kuralı
+      render sırasında ref okumayı hiç kabul etmiyor (11 hata).
+    - useState(() => readSeen()): sunucu null, istemci dolu döner ve
+      hydration uyuşmazlığı çıkarır.
 
-function seenSnapshot(): Seen | null {
-  if (cachedSeen === undefined) {
-    cachedSeen = readSeen();
-  }
-  return cachedSeen;
+  useSyncExternalStore sunucu anlık görüntüsünü ayrı alıyor, depo da
+  useState ile ÖRNEK BAŞINA bir kez kuruluyor: her mount taze okuyor,
+  aynı örnek içinde sabit kalıyor.
+*/
+function createSeenStore() {
+  let snapshot: Seen | null | undefined;
+  return {
+    subscribe: () => () => {},
+    get: (): Seen | null => {
+      if (snapshot === undefined) {
+        snapshot = readSeen();
+      }
+      return snapshot;
+    },
+  };
 }
 
 /** Sayıyı hedefe doğru sayarak artıran küçük bileşen. */
@@ -124,12 +151,14 @@ export function Arrival({
   /** Bu seviyede açılan ödül/rozet adları. */
   unlocked: string[];
 }) {
+  const [store] = useState(createSeenStore);
   const seen = useSyncExternalStore(
-    subscribeSeen,
-    seenSnapshot,
+    store.subscribe,
+    store.get,
     // Sunucuda localStorage yok; kutlama yalnız istemcide çiziliyor.
     () => null,
   );
+
   const [closed, setClosed] = useState(false);
 
   /*

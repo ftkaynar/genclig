@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+
+import { Arrival } from "@/components/game/arrival";
 import { redirect } from "next/navigation";
 
 import { BadgeGrid } from "@/components/profile/badge-grid";
@@ -116,6 +118,20 @@ export default async function ProfilePage() {
       <UserHud title="Profil" />
 
       <main className="flex-1 px-4 py-4 has-bottom-nav">
+        {/*
+          Kutlama ana sayfa DIŞINDA da tetikleniyor: kullanıcı görevi
+          tamamlayıp doğrudan profile gidiyorsa seviye atlamasını orada
+          da görmeli. İki ekran da aynı localStorage anahtarını
+          kullandığı için kutlama yalnız BİR kez çıkıyor.
+        */}
+        <Arrival
+          xp={points.xp}
+          coin={points.coin}
+          level={points.level}
+          badges={badges.filter((b) => b.earned).length}
+          unlocked={[]}
+        />
+
         {/*
           GENÇLİG Kimlik Kartı profilin merkezinde ve ortalı. İstatlar
           hesaplanamadıysa (yeni hesap, hiç davranış yok) kart

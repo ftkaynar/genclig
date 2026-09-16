@@ -6,7 +6,10 @@ import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
 import { QuickAccess } from "@/components/home/quick-access";
 import { RankCard } from "@/components/home/rank-card";
+import { Arrival } from "@/components/game/arrival";
 import { BalanceSummary } from "@/components/points/balance-summary";
+import { PushNudge } from "@/components/notifications/push-nudge";
+import { createClient } from "@/lib/supabase/server";
 import { HScroll } from "@/components/ui/h-scroll";
 import { TaskTile } from "@/components/tasks/task-tile";
 import { Icon } from "@/components/ui/icon";
@@ -138,6 +141,16 @@ export default async function UserHomePage() {
 
   const submissions = await getSubmissionMap(allTasks.map((task) => task.id));
 
+  /*
+    Rozet SAYISI (liste değil): giriş kutlaması yalnızca "yeni rozet
+    var mı" sorusunu soruyor. Rozet listesini çekmek ana sayfaya
+    gereksiz bir sorgu eklerdi.
+  */
+  const { count: badgeCount } = await (await createClient())
+    .from("user_badges")
+    .select("badge_id", { count: "exact", head: true })
+    .eq("user_id", viewer.user.id);
+
   const open = allTasks.filter((task) => !submissions.has(task.id));
 
   /*
@@ -205,6 +218,24 @@ export default async function UserHomePage() {
               </p>
             </div>
           </div>
+
+          {/*
+            Giriş anı: son görülen duruma göre kazanç sayacı ya da
+            seviye/rozet kutlaması. Delta yoksa hiçbir şey basmıyor.
+
+            D30'da bu bileşen yazıldı ama BURAYA HİÇ BAĞLANMAMIŞTI —
+            "seviye atlama pop-up'ı hiç görünmedi" şikâyetinin asıl
+            sebebi buydu (D32 FAZ D2'de ölçüldü).
+          */}
+          <PushNudge />
+
+          <Arrival
+            xp={points.xp}
+            coin={points.coin}
+            level={points.level}
+            badges={badgeCount ?? 0}
+            unlocked={[]}
+          />
 
           <BalanceSummary
             points={points}
