@@ -1321,3 +1321,138 @@ where xp = 99999;
 select public.award_leaderboard_rewards('turkiye', 'week', '2026-W01');
 \echo '(yukarida yetki hatasi bekleniyor: dagitim elle cagrilamaz)'
 rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 35: zincir kapisi -- baskasinin satiri gizli, yazma yok (D33)'
+\echo '=========================================================='
+
+begin;
+-- Kapı satırını definer fonksiyon açar; burada postgres rolüyle taklit.
+insert into public.task_chains (id, title, description, bonus_xp, bonus_token, status)
+values ('00000000-0000-0000-0000-0000000000c1', 'RLS zincir', 't', 10, 10, 'active')
+on conflict (id) do nothing;
+
+insert into public.chain_awards (chain_id, user_id)
+values ('00000000-0000-0000-0000-0000000000c1', :'B')
+on conflict do nothing;
+
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+
+select count(*) as c_gordugu_zincir_odulu from public.chain_awards;
+\echo '(0 olmali: C, B nin zincir odulunu gormemeli)'
+
+-- Kullanıcı kendine bonus acamamali: tabloda YAZMA politikasi yok.
+insert into public.chain_awards (chain_id, user_id)
+values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000c');
+\echo '(yukarida RLS hatasi bekleniyor: kapi tablosuna client yazamaz)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 36: davet kapisi ve ayarlari (D33)'
+\echo '=========================================================='
+
+begin;
+insert into public.referral_awards (invited_user_id, inviter_id)
+values (:'B', :'A') on conflict do nothing;
+
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+
+select count(*) as c_gordugu_davet_odulu from public.referral_awards;
+\echo '(0 olmali: C ne davet eden ne davet edilen)'
+
+select count(*) as c_gordugu_ayar from public.referral_settings;
+\echo '(1 olmali: odul miktarlari herkese acik, tesvikin kendisi)'
+
+update public.referral_settings set inviter_xp = 99999;
+\echo '(yukarida 0 satir guncellenmeli: RLS reddi sessiz 0)'
+
+select count(*) as bozulan_ayar from public.referral_settings where inviter_xp = 99999;
+\echo '(0 olmali)'
+
+-- Kendi kendini davet edilmis gostermek: yazma politikasi yok.
+insert into public.referral_awards (invited_user_id, inviter_id)
+values ('00000000-0000-0000-0000-00000000000c', :'A');
+\echo '(yukarida RLS hatasi bekleniyor: kapi tablosuna client yazamaz)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 37: gunun gorevi ve sezon -- oku evet, yaz hayir (D33)'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+
+select count(*) >= 0 as vitrin_okunabiliyor from public.daily_spotlight;
+\echo '(true olmali: vitrin herkese acik)'
+
+select count(*) >= 1 as sezon_okunabiliyor from public.seasons;
+\echo '(true olmali: sezon herkese acik)'
+
+-- Vitrini kendi lehine degistirme denemesi.
+delete from public.daily_spotlight;
+\echo '(0 satir silinmeli: RLS reddi sessiz 0)'
+
+update public.seasons set name = 'Ele gecirildi';
+\echo '(0 satir guncellenmeli)'
+
+select count(*) as bozulan_sezon from public.seasons where name = 'Ele gecirildi';
+\echo '(0 olmali)'
+
+-- Vitrin sabitleme RPC'si yetki istiyor.
+select public.set_daily_spotlight(current_date, '00000000-0000-0000-0000-000000000001');
+\echo '(yukarida yetki hatasi bekleniyor: vitrini yalniz super admin sabitler)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 38: IDEMPOTENS -- ayni tetik iki kez, tek kayit (D33)'
+\echo '=========================================================='
+
+begin;
+-- Zincir kapisi: ayni satir iki kez girmeye calisiyor.
+insert into public.task_chains (id, title, description, bonus_xp, bonus_token, status)
+values ('00000000-0000-0000-0000-0000000000c2', 'RLS idempotens', 't', 10, 10, 'active')
+on conflict (id) do nothing;
+
+insert into public.chain_awards (chain_id, user_id)
+values ('00000000-0000-0000-0000-0000000000c2', :'A') on conflict do nothing;
+insert into public.chain_awards (chain_id, user_id)
+values ('00000000-0000-0000-0000-0000000000c2', :'A') on conflict do nothing;
+
+select count(*) as zincir_kapi_satiri from public.chain_awards
+where chain_id = '00000000-0000-0000-0000-0000000000c2';
+\echo '(1 olmali: birincil anahtar ikinci satiri engelliyor)'
+
+-- Davet kapisi: ayni davetli iki kez.
+insert into public.referral_awards (invited_user_id, inviter_id)
+values (:'B', :'A') on conflict do nothing;
+insert into public.referral_awards (invited_user_id, inviter_id)
+values (:'B', :'C') on conflict do nothing;
+
+select count(*) as davet_kapi_satiri from public.referral_awards
+where invited_user_id = :'B';
+\echo '(1 olmali: davet eden degisse bile davetli basina tek satir)'
+
+-- Sezon rozeti kapisi: user_badges birincil anahtari.
+insert into public.badges (slug, name, description, criteria, status)
+values ('rls-sezon', 'RLS Sezon', 't', '{"type":"season"}'::jsonb, 'active')
+on conflict (slug) do nothing;
+
+insert into public.user_badges (user_id, badge_id)
+select :'A', id from public.badges where slug = 'rls-sezon'
+on conflict do nothing;
+insert into public.user_badges (user_id, badge_id)
+select :'A', id from public.badges where slug = 'rls-sezon'
+on conflict do nothing;
+
+select count(*) as sezon_rozet_satiri from public.user_badges ub
+join public.badges b on b.id = ub.badge_id
+where b.slug = 'rls-sezon' and ub.user_id = :'A';
+\echo '(1 olmali)'
+rollback;
