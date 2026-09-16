@@ -32,10 +32,24 @@ export const SCOPES = [
   { key: "takimlar", label: "Takımlar" },
 ] as const;
 
+/*
+  Dönemler.
+
+  'Tümü' ARAYÜZDEN KALKTI (D32): tüm zamanların sıralaması ilk
+  kullanıcıları kalıcı olarak öne koyuyor ve sonradan katılanın
+  yakalaması imkânsız — liste donuyor. Yıl penceresi her ocakta
+  sıfırlanıyor, yarış canlı kalıyor.
+
+  'all' DB'de duruyor; leaderboard_top ve leaderboard_teams hâlâ kabul
+  ediyor ve yönetim tarafında toplam bakmak gerekebilir.
+
+  Yıl sınırı Europe/Istanbul: sunucu UTC ve 1 Ocak'ta üç saat boyunca
+  önceki yılın sıralaması görünürdü.
+*/
 export const PERIODS = [
   { key: "week", label: "Bu Hafta" },
   { key: "month", label: "Bu Ay" },
-  { key: "all", label: "Tümü" },
+  { key: "year", label: "Bu Yıl" },
 ] as const;
 
 /*

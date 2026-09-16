@@ -70,13 +70,34 @@ export default async function ProfilePage() {
   ]);
 
   /*
-    Seviye Yolu düğümleri: mevcut seviye + sonraki beş seviye.
-    Tamamı levels ve badges verisinden; yeni tablo yok.
+    Seviye Yolu penceresi: HER ZAMAN altı düğüm, mevcut seviye ortada.
+
+    ÖNCEKİ DURUM: `level .. level + 5` — mevcut seviye her zaman EN
+    ÜSTTEYDİ ve kullanıcı nereden geldiğini göremiyordu. Son
+    seviyelerde ise pencere kısalıyordu (50. seviyede tek düğüm
+    kalıyordu) ve blok boyu zıplıyordu.
+
+    Yeni kural: mevcut seviyenin iki altından başla, altı düğüm göster.
+    Başa ya da sona yakınken pencere kayıyor ama BOYU DEĞİŞMİYOR —
+    görünüm penceresi mantığı. Seviye atladıkça pencere alttan kayarak
+    ilerliyor.
   */
+  const WINDOW = 6;
+  const BEHIND = 2;
+
+  const maxLevel = levels.length > 0 ? levels[levels.length - 1].level : 1;
+  const minLevel = levels.length > 0 ? levels[0].level : 1;
+
+  // Pencerenin başı: iki geri, ama sona yakınken geriye kaydırılıyor.
+  const windowStart = Math.max(
+    minLevel,
+    Math.min(points.level - BEHIND, maxLevel - WINDOW + 1),
+  );
+
   const nodes: LevelNode[] = levels
     .filter(
       (row) =>
-        row.level >= points.level && row.level <= points.level + 5,
+        row.level >= windowStart && row.level < windowStart + WINDOW,
     )
     .map((row, index, all) => {
       const next = all[index + 1];

@@ -18,12 +18,15 @@ export default function Loading() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHudSkeleton title="Sıralama" />
 
-      <div className="border-b border-edge px-4 pb-3.5 pt-3">
-        <SkeletonBlock className="h-10 w-full rounded-full" />
-        <div className="mt-3">
-          <SkeletonChips count={4} />
+      {/* Tek filtre kartı: sayfadaki yapının aynısı (D32 FAZ SR2). */}
+      <div className="px-4 pb-3 pt-3">
+        <div className="rounded-2xl border border-edge bg-card p-2">
+          <SkeletonBlock className="h-[48px] w-full rounded-xl" />
+          <div className="mt-2 px-2">
+            <SkeletonChips count={4} />
+          </div>
+          <SkeletonBlock className="mt-2 h-10 w-full rounded-xl" />
         </div>
-        <SkeletonBlock className="mt-3 h-9 w-full rounded-full" />
       </div>
 
       <main className="flex-1 px-4 pb-8 pt-4 has-bottom-nav">
