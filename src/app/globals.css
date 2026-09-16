@@ -1289,17 +1289,31 @@
    `pb-` yazmak, birini unutunca son satırın gezinmenin altında
    kalmasıyla sonuçlanıyordu.
    --------------------------------------------------------------------------- */
+/*
+  Gezinmenin altında kalan içerik boşluğu.
+
+  ÖLÇÜLDÜ (D32 FAZ NAV2, headless Chrome ekran görüntüsünde piksel
+  taraması): gezinme şeridi 74 CSS px. Buradaki değer 57px idi, yani
+  içeriğin son 17 pikseli şeridin ALTINDA kalıyordu — liste sonundaki
+  kart ve butonlara ulaşılamıyordu. Değer tahminle yazılmıştı.
+
+  78px = 74 ölçülen + 4 nefes payı.
+*/
 @utility has-bottom-nav {
-  padding-bottom: calc(57px + env(safe-area-inset-bottom));
+  padding-bottom: calc(78px + env(safe-area-inset-bottom));
 }
 
 /*
-  Yapışkan öğeler de gezinmenin üstünde durmalı. Ortadaki yükseltilmiş
-  Görevler dairesi gezinmenin üst kenarından 22px taşıyor; bu yüzden
-  yapışkan bantlar 85px + güvenli alan yukarıda.
+  Yapışkan öğeler de gezinmenin ÜSTÜNDE durmalı.
+
+  ÖLÇÜLDÜ: orta kadranın tepesi şeridin alt kenarından 95 CSS px
+  yukarıda (74 şerit + 21 taşma). Değer 85px idi ve kadranın üst
+  kısmı yapışkan bantların altında kalıyordu.
+
+  100px = 95 ölçülen + 5 nefes payı.
 */
 @utility above-bottom-nav {
-  bottom: calc(85px + env(safe-area-inset-bottom));
+  bottom: calc(100px + env(safe-area-inset-bottom));
 }
 
 /* ---------------------------------------------------------------------------
@@ -1551,4 +1565,95 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.2),
     0 3px 9px rgb(0 0 0 / 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   Alt gezinme v3 (D32 FAZ NAV2)
+   --------------------------------------------------------------------------- */
+
+/*
+  Taban: yarı saydam kart + bulanıklık. Üstünden kayan içerik gezinmenin
+  ARDINDAN geçiyor gibi duruyor; düz opak şerit uygulamayı iki ayrı
+  katmana bölüyordu.
+
+  color-mix ile kart renginin %78'i: sabit bir rgba yazmak temayı takip
+  etmiyordu (açık temada koyu bir şerit kalıyordu).
+*/
+.nav-base {
+  background-color: color-mix(in oklab, var(--color-card) 88%, transparent);
+  border-top: 1px solid var(--color-edge);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .nav-base {
+    backdrop-filter: blur(20px) saturate(1.5);
+  }
+}
+
+/*
+  Bulanıklık desteklenmiyorsa saydamlık okunabilirliği bozuyor —
+  o durumda tam opak karta düşülüyor.
+*/
+@supports not (backdrop-filter: blur(1px)) {
+  .nav-base {
+    background-color: var(--color-card);
+  }
+}
+
+/*
+  Orta düğmenin kubbesi.
+
+  Üst kenarın ortasında yukarı doğru bir yay: daire gezinmenin İÇİNDEN
+  çıkıyormuş gibi duruyor. Önceden daire üst kenarı kesiyordu ve ring-4
+  ile maskeleniyordu; kenar çizgisi dairenin arkasından geçmeye devam
+  ettiği için yama gibi görünüyordu.
+
+  radial-gradient ile: tema değişince arka plan rengini kendiliğinden
+  takip ediyor. SVG maske denendi ve elendi — aynı görüntüyü veriyordu
+  ama rengi sabitliyordu (kupon biletinde de aynı karar verilmişti).
+*/
+.nav-dome {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 104px;
+  height: 52px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(
+    52px 52px at 50% 100%,
+    color-mix(in oklab, var(--color-card) 88%, transparent) 0 calc(100% - 1px),
+    var(--color-edge) calc(100% - 1px) 100%,
+    transparent 100%
+  );
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .nav-dome {
+    backdrop-filter: blur(20px) saturate(1.5);
+    /* Yayın dışını kırpıyor: bulanıklık kare bir yama bırakmasın. */
+    clip-path: circle(52px at 50% 100%);
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .nav-dome {
+    background: radial-gradient(
+      52px 52px at 50% 100%,
+      var(--color-card) 0 calc(100% - 1px),
+      var(--color-edge) calc(100% - 1px) 100%,
+      transparent 100%
+    );
+  }
+}
+
+/*
+  Kadran: orta düğmenin kendi gölgesi ve iç parlak hattı. ring-4 ring-card
+  kalktı — kubbe zaten kenarı açıyor, halka artık düğmeyi küçültmekten
+  başka bir iş yapmıyordu.
+*/
+.nav-dial {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    0 6px 18px rgb(0 0 0 / 0.35);
 }

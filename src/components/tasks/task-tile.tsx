@@ -162,45 +162,55 @@ export function TaskTile({
             </span>
           ) : null}
 
+          {/* ------------------------------------------------- durum mührü */}
+          {/*
+            ÖNCEKİ DURUM: sağ kenarda "Tamamlandı" yazan küçük bir kurdele.
+            Oyunun en değerli anı (tamamlama) 9 punto bir etikete
+            sıkışmıştı ve kartın en az bakılan köşesindeydi.
+
+            v3: kapak alanının sol üstünde büyük yuvarlak mühür. Kapakla
+            içeriğin SINIRINA oturtmak denendi ve elendi — mühür oradan
+            ödül haplarının üstüne taşıyordu (ölçüldü: ekran görüntüsünde
+            "+80" hapı yarısına kadar kapanıyordu).
+
+            İkon birincil, yanındaki metin doğrulayıcı: renk tek başına
+            ayırt edici değil. "Tekrar yap" durumunda metin YOK — kartın
+            altındaki "Bugün tekrar yap" hapı zaten aynı şeyi söylüyor ve
+            iki kez yazmak kartı kalabalıklaştırıyordu.
+
+            YAKINDA şeridiyle aynı köşede ama çakışmıyor: başlamamış bir
+            göreve teslim gönderilemiyor, yani ikisi aynı anda olamaz.
+          */}
+          {badge ? (
+            <span
+              className={`absolute left-1.5 top-1.5 z-10 flex items-center gap-1 ${
+                small ? "scale-90" : ""
+              }`}
+            >
+              <span
+                className={`state-seal flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${badge.badge}`}
+              >
+                <Icon
+                  name={badge.icon}
+                  className="h-5 w-5 text-white"
+                  strokeWidth={2.8}
+                />
+              </span>
+              {state === "repeat" ? null : (
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white ${badge.badge}`}
+                >
+                  {badge.label}
+                </span>
+              )}
+            </span>
+          ) : null}
+
           {/* Tamamlanan görevde hafif kutlama izi. */}
           {done ? (
             <span aria-hidden className="tile-done-trace absolute inset-0" />
           ) : null}
         </span>
-
-        {/* --------------------------------------------------- durum mührü */}
-        {/*
-          ÖNCEKİ DURUM: sağ kenarda "Tamamlandı" yazan küçük bir kurdele.
-          Oyunun en değerli anı (tamamlama) 9 punto bir etikete sıkışmıştı
-          ve kartın en az bakılan köşesindeydi.
-
-          v3: kapakla içeriğin sınırına oturan büyük yuvarlak mühür. Kart
-          zeminiyle halkalanıyor, yani "kartın üstüne basılmış" gibi
-          duruyor. İkon birincil, yanındaki metin doğrulayıcı — renk tek
-          başına ayırt edici değil (renk körlüğü).
-        */}
-        {badge ? (
-          <span
-            className={`absolute left-2 top-[44%] z-10 flex -translate-y-1/2 items-center gap-1 ${
-              small ? "scale-90" : ""
-            }`}
-          >
-            <span
-              className={`state-seal flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-4 ring-card ${badge.badge}`}
-            >
-              <Icon
-                name={badge.icon}
-                className="h-5 w-5 text-white"
-                strokeWidth={2.8}
-              />
-            </span>
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white ${badge.badge}`}
-            >
-              {badge.label}
-            </span>
-          </span>
-        ) : null}
 
         {/* ------------------------------------------------------ alt: içerik */}
         <span className="flex min-w-0 flex-1 flex-col gap-1.5 p-2.5">
