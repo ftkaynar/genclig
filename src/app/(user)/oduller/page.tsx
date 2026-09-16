@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { RewardCard } from "@/components/rewards/reward-card";
+import { RewardTile, type Eligibility } from "@/components/rewards/reward-tile";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { Icon } from "@/components/ui/icon";
@@ -35,31 +35,34 @@ export default async function RewardsPage() {
     Hiçbiri karşılanmıyorsa vitrin en ucuz ödülü gösteriyor: bir sonraki
     hedefi işaret ediyor.
   */
-  const meetsConditions = (reward: (typeof rewards)[number]) =>
-    points.level >= reward.min_level &&
-    (!reward.required_badge_id || myBadges.has(reward.required_badge_id)) &&
-    points.coin >= reward.coin_cost;
+  /*
+    Uygun ödül sayısı üst şeritte gösteriliyor: kullanıcı ızgaraya
+    bakmadan önce "kaç tanesini alabilirim" sorusuna cevap alsın.
+    Öne çıkan tek kart kaldırıldı (aşağıdaki nota bakın); bu sayaç
+    onun yerini tutuyor ve hiçbir ödülü kayırmıyor.
+  */
+  const readyCount = rewards.filter(
+    (reward) =>
+      points.level >= reward.min_level &&
+      (!reward.required_badge_id || myBadges.has(reward.required_badge_id)) &&
+      points.coin >= reward.coin_cost,
+  ).length;
 
-  const affordable = rewards.filter(meetsConditions);
+  /*
+    Uygunluk SUNUCUDA hesaplanıyor ve kutucuğa hazır geliyor.
 
-  const featured =
-    affordable.length > 0
-      ? affordable.reduce((best, item) =>
-          item.coin_cost > best.coin_cost ? item : best,
-        )
-      : rewards.length > 0
-        ? rewards.reduce((cheapest, item) =>
-            item.coin_cost < cheapest.coin_cost ? item : cheapest,
-          )
-        : null;
-
-  const rest = rewards.filter((reward) => reward.id !== featured?.id);
-
-  const cardProps = (reward: (typeof rewards)[number]) => ({
-    reward,
-    coinBalance: points.coin,
-    level: points.level,
-    hasBadge: reward.required_badge_id
+    Kutucuk kendi hesaplasaydı bakiye/seviye/rozet üçlüsünü her karta
+    ayrı ayrı geçirmek gerekiyordu ve "eksik ne" mantığı iki yerde
+    (ızgara kutucuğu + detay sayfası) ayrı ayrı yazılırdı. Gerçek
+    kontrol her hâlükârda sunucuda: redeem_reward şartlara yeniden
+    bakıyor.
+  */
+  const eligibilityOf = (reward: (typeof rewards)[number]): Eligibility => ({
+    affordable: points.coin >= reward.coin_cost,
+    missingCoin: Math.max(0, reward.coin_cost - points.coin),
+    levelOk: points.level >= reward.min_level,
+    missingLevel: Math.max(0, reward.min_level - points.level),
+    badgeOk: reward.required_badge_id
       ? myBadges.has(reward.required_badge_id)
       : true,
     requiredBadgeName: reward.required_badge_id
@@ -78,7 +81,14 @@ export default async function RewardsPage() {
       */}
       <div className="sticky top-[57px] z-10 border-b border-edge bg-surface/95 px-4 py-2.5 backdrop-blur">
         <div className="flex items-center justify-between rounded-xl bg-card px-3.5 py-2">
-          <span className="text-xs text-ink-muted">Bakiyen</span>
+          <span className="text-xs text-ink-muted">
+            Bakiyen
+            {readyCount > 0 ? (
+              <span className="ml-1.5 rounded-full bg-status-success/15 px-1.5 py-0.5 text-[10px] font-bold text-status-success">
+                {readyCount} ödül hazır
+              </span>
+            ) : null}
+          </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
             <Icon name="coins" className="h-4 w-4" />
             {formatPoints(points.coin)} Token
@@ -94,26 +104,26 @@ export default async function RewardsPage() {
             description="Belediyen ödül eklediğinde burada listelenecek."
           />
         ) : (
-          <>
-            {featured ? (
-              <ul className="mb-4 list-none">
-                <RewardCard key={featured.id} {...cardProps(featured)} featured />
-              </ul>
-            ) : null}
+          /*
+            ÖNCEKİ DURUM: tek sütun uzun satır kartları + ayrı bir
+            "öne çıkan" afiş. Kullanıcı listeyi tarayıp "hangisini
+            ALABILIRIM" sorusuna bakışta cevap veremiyordu.
 
-            {rest.length > 0 ? (
-              <>
-                <h2 className="mb-2 text-sm font-semibold text-ink">
-                  Tüm ödüller
-                </h2>
-                <ul className="flex flex-col gap-3">
-                  {rest.map((reward) => (
-                    <RewardCard key={reward.id} {...cardProps(reward)} />
-                  ))}
-                </ul>
-              </>
-            ) : null}
-          </>
+            Şimdi tek bir ızgara: mobilde iki, geniş ekranda üç-dört
+            sütun. Öne çıkan kart kaldırıldı — ızgarada zaten uygun
+            olanlar parlıyor ve asıl ayrım "pahalı" değil
+            "alabilir miyim".
+          */
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {rewards.map((reward, i) => (
+              <RewardTile
+                key={reward.id}
+                reward={reward}
+                el={eligibilityOf(reward)}
+                index={i}
+              />
+            ))}
+          </ul>
         )}
 
         <Link

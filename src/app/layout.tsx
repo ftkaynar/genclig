@@ -14,6 +14,22 @@ export const metadata: Metadata = {
     title: "GençLİG",
     statusBarStyle: "black-translucent",
   },
+  /*
+    Favicon seti public/ altında üretiliyor (pnpm brand:icons).
+
+    Next app/favicon.ico dosyasını kendiliğinden alıyor ama biz public/
+    altında tutuyoruz: ikonların tamamı tek script'ten çıkıyor ve ikisi
+    ayrı yerde dursaydı biri güncellenip diğeri geride kalabilirdi. Bu
+    yüzden bağlantılar burada açıkça yazılı.
+  */
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32 16x16" },
+      { url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 // Mobile-first PWA: viewport meta'sı Next'in viewport export'u ile veriliyor.

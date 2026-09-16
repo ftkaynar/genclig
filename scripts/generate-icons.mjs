@@ -5,6 +5,10 @@
  *   public/brand/logo-mark.png  — zemini şeffaflaştırılmış, kırpılmış logo
  *   public/icons/icon-192.png   — koyu lacivert zemin üzerine ortalanmış mark
  *   public/icons/icon-512.png   — aynısı, 512 px
+ *   public/icons/icon-32.png    — favicon (sekme)
+ *   public/icons/icon-16.png    — favicon (küçük)
+ *   public/apple-touch-icon.png — iOS ana ekran ikonu, 180 px
+ *   public/favicon.ico          — 32+16 px çok boyutlu ICO
  *
  * Neden tek seferlik script, build adımı değil: logo yılda birkaç kez değişir,
  * her derlemede sharp çalıştırmak build süresine kalıcı yük bindirirdi. Çıktılar
@@ -17,7 +21,7 @@
  * Koşma: pnpm brand:icons
  */
 
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
@@ -27,6 +31,7 @@ const ROOT = process.cwd();
 const SOURCE = path.join(ROOT, "public", "brand", "logo.png");
 const MARK_OUT = path.join(ROOT, "public", "brand", "logo-mark.png");
 const ICON_DIR = path.join(ROOT, "public", "icons");
+const APPLE_OUT = path.join(ROOT, "public", "apple-touch-icon.png");
 
 /** Marka koyu zemini (globals.css --surface-bg, koyu tema). */
 const ICON_BACKGROUND = "#0B1220";
@@ -90,8 +95,8 @@ async function makeTransparentMark() {
     .toBuffer();
 }
 
-async function writeIcon(markBuffer, size) {
-  const inner = Math.round(size * (1 - ICON_PADDING_RATIO * 2));
+async function writeIcon(markBuffer, size, padding = ICON_PADDING_RATIO, outPath = null) {
+  const inner = Math.round(size * (1 - padding * 2));
 
   const resizedMark = await sharp(markBuffer)
     .resize(inner, inner, { fit: "contain", background: "#00000000" })
@@ -108,9 +113,11 @@ async function writeIcon(markBuffer, size) {
   })
     .composite([{ input: resizedMark, gravity: "center" }])
     .png()
-    .toFile(path.join(ICON_DIR, `icon-${size}.png`));
+    .toFile(outPath ?? path.join(ICON_DIR, `icon-${size}.png`));
 
-  console.log(`icon-${size}.png yazıldı (${size}x${size}, zemin ${ICON_BACKGROUND})`);
+  if (!outPath) {
+    console.log(`icon-${size}.png yazıldı (${size}x${size}, zemin ${ICON_BACKGROUND})`);
+  }
 }
 
 async function main() {
@@ -126,6 +133,61 @@ async function main() {
 
   await writeIcon(markBuffer, 192);
   await writeIcon(markBuffer, 512);
+
+  /*
+    Favicon boyutları.
+
+    16 ve 32 px'te dolgu oranı büyük ikonlardakiyle aynı olsaydı mark
+    okunmayacak kadar küçülüyordu; bu boyutlarda kenar payı yarıya
+    indiriliyor.
+  */
+  await writeIcon(markBuffer, 32, ICON_PADDING_RATIO / 2);
+  await writeIcon(markBuffer, 16, ICON_PADDING_RATIO / 2);
+  await writeIcon(markBuffer, 180, ICON_PADDING_RATIO, APPLE_OUT);
+  console.log('apple-touch-icon.png yazıldı (180x180)');
+
+  /*
+    favicon.ico: 32 ve 16 px PNG'leri tek ICO'ya paketliyor.
+
+    sharp ICO yazamıyor, bu yüzden başlık elle kuruluyor — biçim
+    basit ve tek bağımlılık eklemekten ucuz. ICO, PNG gövdeleri
+    gömmeye izin veriyor (Vista+), yani BMP'ye çevirmeye gerek yok.
+  */
+  const ico32 = await readFile(path.join(ICON_DIR, 'icon-32.png'));
+  const ico16 = await readFile(path.join(ICON_DIR, 'icon-16.png'));
+  await writeFile(path.join(ROOT, 'public', 'favicon.ico'), buildIco([
+    { size: 32, data: ico32 },
+    { size: 16, data: ico16 },
+  ]));
+  console.log('favicon.ico yazıldı (32 + 16)');
+}
+
+/** Birden çok PNG'yi tek ICO kabına paketler. */
+function buildIco(images) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // ayrılmış
+  header.writeUInt16LE(1, 2); // tip: ikon
+  header.writeUInt16LE(images.length, 4);
+
+  const entries = [];
+  let offset = 6 + images.length * 16;
+
+  for (const img of images) {
+    const entry = Buffer.alloc(16);
+    // 256 px ICO'da 0 olarak yazılır; bizim boyutlarımız küçük.
+    entry.writeUInt8(img.size === 256 ? 0 : img.size, 0);
+    entry.writeUInt8(img.size === 256 ? 0 : img.size, 1);
+    entry.writeUInt8(0, 2); // palet yok
+    entry.writeUInt8(0, 3);
+    entry.writeUInt16LE(1, 4); // renk düzlemi
+    entry.writeUInt16LE(32, 6); // bit derinliği
+    entry.writeUInt32LE(img.data.length, 8);
+    entry.writeUInt32LE(offset, 12);
+    entries.push(entry);
+    offset += img.data.length;
+  }
+
+  return Buffer.concat([header, ...entries, ...images.map((i) => i.data)]);
 }
 
 main().catch((error) => {

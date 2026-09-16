@@ -114,6 +114,9 @@ const BOX = {
     nameSpacing: "5px",
     statValue: "text-[22px]",
     statLabel: "text-[11px]",
+    /* İki haneli en geniş sayı + pay; "99" ile "9" aynı yerde biter. */
+    statNumWidth: 30,
+    statLabelWidth: 30,
     flag: 28,
     district: "text-[9px]",
     wordmark: "text-[8px] tracking-[0.3em]",
@@ -130,6 +133,8 @@ const BOX = {
     nameSpacing: "2px",
     statValue: "text-[12px]",
     statLabel: "text-[7px]",
+    statNumWidth: 17,
+    statLabelWidth: 18,
     flag: 16,
     district: "text-[6px]",
     wordmark: "text-[5px] tracking-[0.2em]",
@@ -244,17 +249,40 @@ export function IdentityCard({
               </span>
             ) : null}
 
-            <span className="overflow-hidden rounded-[2px] border border-[#d4a02c]/70">
-              <FlagTR size={box.flag} />
-            </span>
+            {/*
+              Bayrak + ilçe TEK madalyonda.
 
-            {identity.district ? (
-              <span
-                className={`mt-1 max-w-[70px] truncate text-center font-semibold uppercase tracking-wide text-white/75 ${box.district}`}
-              >
-                {identity.district}
+              ÖNCEKİ SORUN: bayrak ile ilçe adı iki ayrı öğeydi ve
+              yapışık duruyordu; ilçe adı bayrağın altına kaçmış bir
+              alt yazı gibi okunuyordu. Şimdi çerçeveli bir rozet:
+              üstte bayrak, altında ince ayraç, altında altın harf
+              aralıklı ilçe adı. İlçe yoksa madalyon yalnız bayrakla
+              ve daha dar kalıyor — boş bir alt bölme bırakmıyor.
+            */}
+            <span
+              className={`flex flex-col items-center rounded-lg border border-[#d4a02c]/55 bg-black/25 ${
+                mini ? "gap-0.5 px-1 py-1" : "gap-1 px-2 py-1.5"
+              }`}
+            >
+              <span className="overflow-hidden rounded-[2px] border border-[#d4a02c]/70">
+                <FlagTR size={box.flag} />
               </span>
-            ) : null}
+
+              {identity.district ? (
+                <>
+                  <span
+                    aria-hidden
+                    className="block h-px w-full bg-[#d4a02c]/40"
+                  />
+                  <span
+                    className={`vip-gold-text max-w-[74px] truncate text-center font-bold uppercase ${box.district}`}
+                    style={{ letterSpacing: mini ? "0.5px" : "1px" }}
+                  >
+                    {identity.district}
+                  </span>
+                </>
+              ) : null}
+            </span>
           </div>
 
           {/* Portre + seviye madalyonu */}
@@ -326,8 +354,8 @@ export function IdentityCard({
           tabloyu boğuyordu. Bar detayı kartın arka yüzünde duruyor.
         */}
         <div
-          className={`relative grid flex-1 grid-cols-2 content-center ${
-            mini ? "mt-1.5 gap-x-2" : "mt-3 gap-x-4"
+          className={`relative grid flex-1 grid-cols-2 content-center justify-items-center ${
+            mini ? "mt-1.5 gap-x-2 gap-y-1" : "mt-3 gap-x-4 gap-y-2"
           }`}
         >
           <span
@@ -335,20 +363,32 @@ export function IdentityCard({
             className="absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-[#d4a02c]/30"
           />
 
+          {/*
+            HİZA: sayı sabit genişlikte ve SAĞA dayalı, kısaltma sol
+            hizalı ve sabit genişlikte. Böylece "9" ile "87" aynı
+            sütunda bitiyor ve altı kısaltma tek bir dikey çizgide
+            başlıyor. Önceden ikisi de ortalanıyordu; sayı bir
+            haneden iki haneye çıkınca kısaltma yana kayıyor ve iki
+            sütunun ritmi bozuluyordu.
+
+            `tabular-nums` rakamları eşit genişliğe getiriyor —
+            orantılı rakamlarda 1 ile 8 farklı genişlikte ve sabit
+            kutu tek başına yetmiyordu.
+          */}
           {STAT_META.map((meta) => (
             <div
               key={meta.key}
-              className={`flex items-baseline gap-1.5 ${
-                mini ? "justify-center" : "justify-center"
-              }`}
+              className={`flex items-baseline ${mini ? "gap-1" : "gap-1.5"}`}
             >
               <span
-                className={`${tier.text} font-bold tabular-nums ${box.statValue}`}
+                className={`${tier.text} shrink-0 text-right font-bold tabular-nums ${box.statValue}`}
+                style={{ width: box.statNumWidth }}
               >
                 {stats[meta.key]}
               </span>
               <span
-                className={`font-semibold tracking-wide text-white/75 ${box.statLabel}`}
+                className={`shrink-0 font-semibold tracking-wide text-white/75 ${box.statLabel}`}
+                style={{ width: box.statLabelWidth }}
               >
                 {meta.short}
               </span>

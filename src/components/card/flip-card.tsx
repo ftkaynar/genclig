@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { IdentityCard, type CardIdentity } from "./identity-card";
 import { Icon } from "@/components/ui/icon";
@@ -28,9 +28,50 @@ export function FlipCard({
 }) {
   const [flipped, setFlipped] = useState(false);
 
+  /*
+    Kaydırarak çevirme.
+
+    Pointer Events kullanılıyor (touch + mouse tek yol): iki ayrı
+    dinleyici yazmak, mobilde çalışıp masaüstünde çalışmayan ya da
+    tersi bir davranış riski taşıyordu.
+
+    Eşik 48px: daha küçük bir eşikte sayfayı dikey kaydırmaya çalışan
+    parmak kartı kazara çeviriyordu. Dikey hareket yataydan büyükse
+    hiç çevirmiyoruz — kullanıcı sayfayı kaydırıyor demektir.
+
+    Düğmeler KALDIRILMADI: kaydırma keşfedilmesi gereken bir
+    etkileşim, tek yol olamaz. Klavye kullanıcısı da düğmeye
+    ihtiyaç duyuyor.
+  */
+  const drag = useRef<{ x: number; y: number } | null>(null);
+
+  function onPointerDown(event: React.PointerEvent) {
+    drag.current = { x: event.clientX, y: event.clientY };
+  }
+
+  function onPointerUp(event: React.PointerEvent) {
+    const start = drag.current;
+    drag.current = null;
+    if (!start) return;
+
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+
+    if (Math.abs(dx) < 48 || Math.abs(dx) <= Math.abs(dy)) return;
+
+    // Sağa da sola da kaydırmak çeviriyor: kart iki yüzlü, yön bir
+    // sonraki sayfayı değil ters yüzü gösteriyor.
+    setFlipped((prev) => !prev);
+  }
+
   return (
     <div className="flex flex-col items-center">
-      <div className="flip-scene w-[320px] max-w-full">
+      <div
+        className="flip-scene w-[320px] max-w-full touch-pan-y select-none"
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => { drag.current = null; }}
+      >
         <div className={`flip-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ------------------------------------------------------- ön yüz */}
           <div className="flip-face flip-front">
@@ -168,6 +209,13 @@ export function FlipCard({
         <Icon name="chevron-right" className="h-3 w-3" />
         {flipped ? "Kartı çevir" : "Ayrıntıları gör"}
       </button>
+
+      {/* Kaydırma keşfedilir bir etkileşim; ipucu olmadan bulunmuyor. */}
+      <p className="mt-1 flex items-center gap-1 text-[10px] text-ink-muted">
+        <Icon name="chevron-right" className="h-3 w-3 rotate-180" />
+        Kartı yana kaydır
+        <Icon name="chevron-right" className="h-3 w-3" />
+      </p>
     </div>
   );
 }

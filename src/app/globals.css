@@ -954,6 +954,8 @@
   .vipcard-rays,
   .vipcard-float,
   .tile-stagger,
+  .anim-stagger,
+  .reward-ready,
   .vip-holo-text {
     animation: none;
   }
@@ -1025,4 +1027,66 @@
    orada beyaz metin okunmuyor. */
 .auth-card select option {
   color: #111a2e;
+}
+
+/* ---------------------------------------------------------------------------
+   Ödül kartı v3 — "alabilirsin" durumu (D29 FAZ F)
+
+   Uygun ödülün kenarı yavaşça nefes alıyor. Nabız değil nefes: mağaza
+   ızgarasında aynı anda beş-altı kart uygun olabiliyor ve hepsi hızlı
+   yanıp sönseydi ekran titrer, sinyal gürültüye dönerdi.
+
+   Renk tek başına ayırt edici değil; karttaki "ALABİLİRSİN" yazısı ve
+   kilitlideki kilit ikonu bilgiyi renkten bağımsız taşıyor.
+   --------------------------------------------------------------------------- */
+@keyframes genclig-ready {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px rgb(34 197 94 / 0.35);
+  }
+}
+
+.reward-ready {
+  animation: genclig-ready 2600ms ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Ortak hareket sabitleri (D29 FAZ V)
+
+   Süre ve eğri TEK YERDE. Önceden her bileşen kendi süresini yazıyordu
+   (90ms, 110ms, 150ms, 200ms, 300ms...) ve aynı türden iki etkileşim
+   farklı hızda hissediliyordu. Kutlama ekranları dışında hiçbir animasyon
+   400ms'i geçmiyor — daha uzunu arayüzü yavaş gösteriyor.
+   --------------------------------------------------------------------------- */
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 220ms;
+  --motion-slow: 360ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Sayfa içi blokların sırayla belirmesi. Gecikme satır içi --i ile. */
+@utility anim-stagger {
+  animation: genclig-rise var(--motion-slow) var(--motion-ease) both;
+  animation-delay: calc(min(var(--i, 0), 8) * 45ms);
+}
+
+/* Kart/satır dokunuş hissi — görev kutucuğundakiyle aynı reçete. */
+@utility press-soft {
+  transition:
+    transform var(--motion-fast) ease-out,
+    filter var(--motion-fast) ease-out;
+}
+
+.press-soft:active {
+  transform: scale(0.98);
+  filter: brightness(1.06);
+}
+
+/* İlerleme çubuklarının yumuşak dolması. */
+@utility bar-fill {
+  transition: width var(--motion-slow) var(--motion-ease);
 }

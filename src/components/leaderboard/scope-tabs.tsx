@@ -65,6 +65,13 @@ export function ScopeTabs({
   const personalHref = href(isTeams ? "turkiye" : scope, period);
 
   return (
+    /*
+      Yatay padding üst bardakiyle (UserHud: px-3) değil, sayfa
+      gövdesiyle (px-4) hizalı tutuluyor: kullanıcı filtreleri altındaki
+      LİSTEYLE aynı sütunda görmek istiyor, üstündeki HUD ile değil.
+      Kayan çip şeridi de -mx-4/px-4 ile aynı kenardan başlıyor, yani
+      ilk çip listenin sol kenarıyla tam hizalı.
+    */
     <div className="border-b border-edge px-4 pb-3.5 pt-3">
       {/* -------------------------------------------- 1. Bireysel | Takım */}
       <div
