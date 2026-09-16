@@ -11,27 +11,14 @@ export type NotificationRow = {
   created_at: string;
 };
 
-/** Bildirim türüne göre kullanıcıya görünen etiket. */
-export const NOTIFICATION_LABEL: Record<string, string> = {
-  submission_approved: "Görev onayı",
-  submission_rejected: "Görev reddi",
-  badge_earned: "Yeni rozet",
-  problem_status: "Bildirim durumu",
-  reward_redeemed: "Ödül",
-  system: "Sistem",
-  stat_decay: "Kart soğuyor",
-};
+/*
+  Etiket ve ikon haritaları lib/notifications/labels.ts'e taşındı.
 
-/** Bildirim türüne göre ikon. */
-export const NOTIFICATION_ICON: Record<string, string> = {
-  submission_approved: "check",
-  submission_rejected: "shield",
-  badge_earned: "award",
-  problem_status: "megaphone",
-  reward_redeemed: "gift",
-  system: "bell",
-  stat_decay: "activity",
-};
+  Sebep: buradaki haritalar EKSİKTİ ve eksik tipte ham tip dizgisi
+  ekrana basılıyordu (örn. support_reply, friend_request, stat_decay).
+  Ayrıca bu dosya next/headers çeken createClient'ı import ediyor;
+  haritalar burada dururken client bileşenleri onları alamıyordu.
+*/
 
 export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient();

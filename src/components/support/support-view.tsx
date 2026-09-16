@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
@@ -72,6 +73,25 @@ export function SupportView({
       setPending(false);
     }
   }
+
+  /*
+    Bildirimden gelen derin bağlantı: ?talep=<id> varsa o konuşma
+    açılıyor. Effect bir kez koşuyor (ran bayrağı) ve setState'i
+    doğrudan değil openThread üzerinden yapıyor; kullanıcı konuşmayı
+    kapatırsa tekrar açılmamalı.
+  */
+  const params = useSearchParams();
+  const deepLinked = useRef(false);
+
+  useEffect(() => {
+    if (deepLinked.current) return;
+    const wanted = params.get("talep");
+    if (!wanted) return;
+    const found = tickets.find((t) => t.id === wanted);
+    if (!found) return;
+    deepLinked.current = true;
+    void openThread(found);
+  }, [params, tickets]);
 
   async function openThread(ticket: TicketRow) {
     setPending(true);
@@ -352,11 +372,29 @@ export function SupportView({
                   <button
                     type="button"
                     onClick={() => openThread(ticket)}
-                    className="flex w-full items-center gap-3 rounded-2xl border border-edge bg-card p-3.5 text-left transition-colors hover:border-primary/60"
+                    /*
+                      Yanıtlanmış talep vurgulu: kullanıcı listeye
+                      baktığında hangisine bakması gerektiğini bilmeli.
+                      Önceden tek ayrım küçük bir durum çipiydi ve
+                      "Yanıtlandı" ile "Yanıt bekliyor" aynı ağırlıkta
+                      duruyordu.
+                    */
+                    className={`press-soft flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left ${
+                      ticket.status === "answered"
+                        ? "border-status-success/60"
+                        : "border-edge hover:border-primary/60"
+                    }`}
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-ink">
-                        {ticket.subject}
+                      <span className="flex items-center gap-1.5">
+                        <span className="min-w-0 truncate text-sm font-semibold text-ink">
+                          {ticket.subject}
+                        </span>
+                        {ticket.status === "answered" ? (
+                          <span className="shrink-0 rounded-full bg-status-success px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                            Yeni yanıt
+                          </span>
+                        ) : null}
                       </span>
                       <span className="mt-1 flex items-center gap-2">
                         <span

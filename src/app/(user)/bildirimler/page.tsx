@@ -1,12 +1,12 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { markAllNotificationsReadAction } from "@/lib/notifications/actions";
+import { MarkReadOnOpen } from "@/components/notifications/mark-read-on-open";
+import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import {
-  NOTIFICATION_ICON,
-  NOTIFICATION_LABEL,
-  listNotifications,
-  relativeTime,
-} from "@/lib/notifications/queries";
+  notificationHref,
+  notificationMeta,
+} from "@/lib/notifications/labels";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHeader } from "@/components/user-header";
 import { Icon } from "@/components/ui/icon";
@@ -31,18 +31,12 @@ export default async function NotificationsPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHeader title="Bildirimler" signedIn />
 
-      {unreadCount > 0 ? (
-        <div className="px-4 pt-3">
-          <form action={markAllNotificationsReadAction}>
-            <button
-              type="submit"
-              className="rounded-full border border-edge bg-card px-3.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
-            >
-              Tümünü okundu işaretle ({unreadCount})
-            </button>
-          </form>
-        </div>
-      ) : null}
+      {/*
+        Sayfa açılınca okundu. Düğme kaldırıldı: listeyi görmek zaten
+        okumaktır ve ayrıca bir düğmeye basmak gerekmesi sayacı
+        anlamsızlaştırıyordu.
+      */}
+      <MarkReadOnOpen unread={unreadCount} />
 
       <main className="flex-1 px-4 py-4">
         {notifications.length === 0 ? (
@@ -53,35 +47,61 @@ export default async function NotificationsPage() {
           />
         ) : (
           <ul className="flex flex-col gap-2.5">
-            {notifications.map((item) => (
-              <li
-                key={item.id}
-                className={
-                  item.is_read
-                    ? "rounded-2xl border border-edge bg-card p-3.5"
-                    : "rounded-2xl border border-primary/50 bg-card p-3.5"
-                }
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-ink-muted">
-                    <Icon
-                      name={NOTIFICATION_ICON[item.type] ?? "bell"}
-                      className="h-3.5 w-3.5"
-                    />
-                    {NOTIFICATION_LABEL[item.type] ?? item.type}
-                  </span>
-                  <span className="text-[11px] text-ink-muted">
-                    {relativeTime(item.created_at)}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm font-semibold text-ink">
-                  {item.title}
-                </p>
-                {item.body ? (
-                  <p className="mt-0.5 text-sm text-ink-muted">{item.body}</p>
-                ) : null}
-              </li>
-            ))}
+            {notifications.map((item, i) => {
+              const meta = notificationMeta(item.type);
+              return (
+                <li
+                  key={item.id}
+                  className="anim-stagger"
+                  style={{ "--i": i } as React.CSSProperties}
+                >
+                  {/*
+                    Her bildirim bir yere götürüyor. Tıklanıp hiçbir şey
+                    olmayan bildirim, kullanıcıya "bu bozuk" dedirtiyordu.
+                  */}
+                  <Link
+                    href={notificationHref(item.type, item.ref_id)}
+                    className={`press-soft block rounded-2xl border p-3.5 ${
+                      item.is_read
+                        ? "border-edge bg-card"
+                        : "border-primary/50 bg-card"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.tone}`}
+                      >
+                        <Icon name={meta.icon} className="h-3 w-3" />
+                        {meta.label}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-ink-muted">
+                        {!item.is_read ? (
+                          <span
+                            aria-label="Okunmadı"
+                            className="h-1.5 w-1.5 rounded-full bg-primary"
+                          />
+                        ) : null}
+                        {relativeTime(item.created_at)}
+                      </span>
+                    </div>
+
+                    <p className="mt-1.5 text-sm font-semibold text-ink">
+                      {item.title}
+                    </p>
+                    {item.body ? (
+                      <p className="mt-0.5 text-sm text-ink-muted">
+                        {item.body}
+                      </p>
+                    ) : null}
+
+                    <span className="mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium text-primary">
+                      Aç
+                      <Icon name="chevron-right" className="h-3 w-3" />
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>
