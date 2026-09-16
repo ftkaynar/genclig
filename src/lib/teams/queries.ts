@@ -53,9 +53,23 @@ export async function getTeamLeaderboard(
   period: string,
 ): Promise<TeamLeaderboardRow[]> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("leaderboard_teams", {
-    p_period: period,
-  });
+
+  const read = (p: string) =>
+    supabase.rpc("leaderboard_teams", { p_period: p });
+
+  let { data, error } = await read(period);
+
+  /*
+    'year' dönemi M30 ile geldi; migration koşmamış bir veritabanında
+    leaderboard_teams onu reddediyor ve hata YUTULUYORDU — takım
+    sıralaması "Bu Yıl"da hatasız ama bomboş görünüyordu. Bireysel
+    sıralamayla aynı geri düşme (bkz. lib/leaderboard/queries.ts):
+    yıl penceresi yoksa tüm zamanlar gösteriliyor.
+  */
+  if (error && period === "year" && error.message?.includes("Geçersiz dönem")) {
+    ({ data, error } = await read("all"));
+  }
+
   return (data ?? []) as TeamLeaderboardRow[];
 }
 

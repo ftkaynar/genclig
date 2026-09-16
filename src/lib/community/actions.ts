@@ -3,8 +3,18 @@
 import { revalidatePath } from "next/cache";
 
 import type { ChannelMessage } from "@/lib/community/labels";
-import { listChannelMessages } from "@/lib/community/queries";
+import {
+  listChannelMessages,
+  listChannelMessagesOf,
+} from "@/lib/community/queries";
 import { createClient } from "@/lib/supabase/server";
+import {
+  isKnownMissing,
+  isMissingSchema,
+  markMissing,
+} from "@/lib/supabase/schema-guard";
+
+const POST_RPC = "post_message_to";
 
 export type CommunityState = { error?: string; notice?: string };
 
@@ -167,6 +177,13 @@ export async function postMessageToAction(
   channelId: string,
   body: string,
 ): Promise<{ error?: string }> {
+  /*
+    M30 yoksa eski (kendi kanalı) eylemine düşülüyor. Migration
+    koşmamış bir veritabanında post_message_to PGRST202 veriyordu ve
+    kullanıcı "Mesaj gönderilemedi" ile karşılaşıyordu.
+  */
+  if (isKnownMissing(POST_RPC)) return postMessageAction(body);
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("post_message_to", {
     p_channel: channelId,
@@ -174,6 +191,10 @@ export async function postMessageToAction(
   });
 
   if (error) {
+    if (isMissingSchema(error)) {
+      markMissing(POST_RPC);
+      return postMessageAction(body);
+    }
     return { error: translate(error.message) };
   }
 
@@ -185,10 +206,5 @@ export async function postMessageToAction(
 export async function refreshChannelMessagesAction(
   channelId: string,
 ): Promise<ChannelMessage[]> {
-  const supabase = await createClient();
-  const { data } = await supabase.rpc("list_channel_messages_of", {
-    p_channel: channelId,
-    p_limit: 100,
-  });
-  return (data ?? []) as ChannelMessage[];
+  return listChannelMessagesOf(channelId, 100);
 }

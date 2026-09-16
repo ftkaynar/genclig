@@ -1,6 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
+import {
+  isKnownMissing,
+  isMissingSchema,
+  markMissing,
+} from "@/lib/supabase/schema-guard";
 import type { TaskFormValues } from "@/components/panel/task-form";
 import { getTaskCategories } from "@/lib/reference/queries";
+
+const ART_KEY = "tasks.art_key";
 
 /** Form için kategori listesi. */
 export async function listTaskCategories(): Promise<
@@ -21,19 +28,78 @@ function toLocalInput(iso: string | null): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+/** M30 öncesi de var olan alanlar. */
+const FORM_FIELDS_BASE =
+  "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,daily_submission_limit,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,status";
+
+/**
+ * Düzenleme formunun okuduğu satır.
+ *
+ * `art_key` isteğe bağlı: M30 koşmamış bir veritabanında alan listesinden
+ * düşürülüyor ve satırda hiç bulunmuyor.
+ */
+type TaskEditRow = {
+  id: string;
+  title: string | null;
+  description: string | null;
+  instructions: string | null;
+  type: string | null;
+  category_id: number | null;
+  verification: string | null;
+  difficulty: string | null;
+  scope: string | null;
+  min_team_size: number | null;
+  team_bonus_xp: number | null;
+  team_bonus_coin: number | null;
+  daily_submission_limit: number | null;
+  icon: string | null;
+  xp: number | null;
+  coin: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  lat: number | null;
+  lng: number | null;
+  radius_m: number | null;
+  capacity: number | null;
+  image_url: string | null;
+  status: string | null;
+  art_key?: string | null;
+};
+
 /** Var olan görevi form değerlerine çevirir. */
 export async function loadTaskForEdit(
   id: string,
 ): Promise<TaskFormValues | null> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("tasks")
-    .select(
-      "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,daily_submission_limit,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,art_key,status",
-    )
-    .eq("id", id)
-    .maybeSingle();
+  /*
+    Alan listesi çalışma anında kurulduğu için PostgREST'in tip çıkarımı
+    devre dışı kalıyor; satır bu yüzden açıkça yazıldı. Gevşek bir
+    `any` denendi ve elendi — aşağıdaki otuz alanın adı sessizce yanlış
+    yazılabilir hale geliyordu.
+  */
+  const read = (fields: string) =>
+    supabase
+      .from("tasks")
+      .select(fields)
+      .eq("id", id)
+      .maybeSingle<TaskEditRow>();
+
+  let { data, error } = await read(
+    isKnownMissing(ART_KEY)
+      ? FORM_FIELDS_BASE
+      : `${FORM_FIELDS_BASE},art_key`,
+  );
+
+  /*
+    art_key M30 ile geldi; sütun yoksa onsuz bir kez daha okunuyor.
+    Hata eskiden YUTULUYORDU (`const { data }`) ve migration koşmamış bir
+    veritabanında düzenleme formu hep boş açılıyordu.
+  */
+  if (error && isMissingSchema(error)) {
+    markMissing(ART_KEY);
+    ({ data, error } = await read(FORM_FIELDS_BASE));
+  }
 
   if (!data) return null;
 
@@ -55,7 +121,8 @@ export async function loadTaskForEdit(
     teamBonusXp: String(data.team_bonus_xp ?? 0),
     teamBonusCoin: String(data.team_bonus_coin ?? 0),
     icon: data.icon ?? "list-checks",
-    artKey: data.art_key ?? "",
+    // Sütun yoksa alan formda boş kalıyor; seçici de kaydetmeyecek.
+    artKey: ("art_key" in data ? data.art_key : null) ?? "",
     xp: String(data.xp ?? 0),
     coin: String(data.coin ?? 0),
     startsAt: toLocalInput(data.starts_at),

@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  isMissingSchema,
+  markMissing,
+} from "@/lib/supabase/schema-guard";
+
+const ART_KEY = "tasks.art_key";
 
 export type TaskSaveState = { error?: string; notice?: string; id?: string };
 
@@ -173,6 +179,7 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
       Sunucu tarafında ayrıca beyaz liste tutmak, görsel seti her
       büyüdüğünde iki yerde güncelleme demekti.
     */
+    // Sütun yoksa aşağıda düşürülüyor; bkz. write().
     art_key: input.artKey.trim() || null,
     xp,
     coin,
@@ -186,16 +193,34 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     status: input.status,
   };
 
-  const { data, error } = input.id
-    ? await supabase
-        .from("tasks")
-        .update(payload)
-        .eq("id", input.id)
-        .select("id")
-    : await supabase
-        .from("tasks")
-        .insert({ ...payload, municipality_id: municipalityId })
-        .select("id");
+  /*
+    art_key M30 ile geldi. Migration koşmamış bir veritabanında bu
+    alanı yazmak 42703 veriyor ve KAYIT TAMAMEN başarısız oluyordu —
+    tek bir yeni alan yüzünden panelden hiçbir görev kaydedilemiyordu.
+
+    Sütun yoksa alan düşürülüp bir kez daha deneniyor: görev kaydı
+    çalışmaya devam ediyor, yalnız kapak görseli seçimi kaydedilmiyor.
+  */
+  const write = (body: Record<string, unknown>) =>
+    input.id
+      ? supabase
+          .from("tasks")
+          .update(body)
+          .eq("id", input.id)
+          .select("id")
+      : supabase
+          .from("tasks")
+          .insert({ ...body, municipality_id: municipalityId })
+          .select("id");
+
+  let { data, error } = await write(payload);
+
+  if (error && isMissingSchema(error)) {
+    markMissing(ART_KEY);
+    const withoutArt = { ...payload };
+    delete (withoutArt as Record<string, unknown>).art_key;
+    ({ data, error } = await write(withoutArt));
+  }
 
   if (error || !data || data.length === 0) {
     return {

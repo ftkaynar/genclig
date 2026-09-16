@@ -105,13 +105,45 @@ export default async function CommunityPage({
     );
   }
 
-  const [channel, messages] = await Promise.all([
+  const [channelInfo, messages] = await Promise.all([
     getChannelInfo(selectedId),
     listChannelMessagesOf(selectedId, 100),
   ]);
 
+  /*
+    Kanal bilgisi gelmezse KENDİ kanalına düşülüyor, yönlendirme YOK.
+
+    ÖLÇÜLEN SORUN: burada `redirect("/topluluk")` vardı. M30 koşmamış bir
+    veritabanında channel_info yok (PGRST202), bilgi hep null geliyor ve
+    sayfa kendini sonsuza kadar yeniden yönlendiriyordu — /topluluk hiç
+    açılmıyordu. Bir sayfa, kendi varsayılanına düşerken kendine
+    yönlendirmemeli: koşul değişmediği için döngü kapanmıyor.
+  */
+  const channel = channelInfo ?? myChannel;
+
   if (!channel) {
-    redirect("/topluluk");
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
+        <UserHud title="Topluluk" />
+        <main className="flex-1 px-4 py-4 has-bottom-nav">
+          <EmptyState
+            icon="users"
+            title="Sohbet şu an açılamadı"
+            description="Topluluk kanalına ulaşılamıyor. Biraz sonra tekrar dene."
+            action={
+              <Link
+                href="/"
+                className="btn-chunky bg-cta inline-block rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+              >
+                Ana sayfaya dön
+              </Link>
+            }
+          />
+        </main>
+        <RewardFab />
+        <UserBottomNav active="home" />
+      </div>
+    );
   }
 
   /*
@@ -136,13 +168,22 @@ export default async function CommunityPage({
     <div className="mx-auto flex h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title={channel.name} />
 
-      <div className="shrink-0 px-4 pt-3">
-        <ProvincePicker
-          channels={provinces}
-          currentId={selectedId}
-          currentName={channel.district_name}
-        />
-      </div>
+      {/*
+        Seçici yalnız gerçekten seçenek varken görünüyor.
+
+        M30'un `channels_select_all` politikası yoksa RLS kullanıcıya tek
+        kanal döndürüyor; "Değiştir" yazan ama tek satır açan bir kutu
+        çalışmayan bir söz verirdi.
+      */}
+      {provinces.length > 1 ? (
+        <div className="shrink-0 px-4 pt-3">
+          <ProvincePicker
+            channels={provinces}
+            currentId={selectedId}
+            currentName={channel.district_name}
+          />
+        </div>
+      ) : null}
 
       <ChatView
         channel={channel}

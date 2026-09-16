@@ -4,6 +4,11 @@ import type {
   MyChannel,
 } from "@/lib/community/labels";
 import { createClient } from "@/lib/supabase/server";
+import {
+  isKnownMissing,
+  isMissingSchema,
+  markMissing,
+} from "@/lib/supabase/schema-guard";
 
 /*
   Topluluk okumaları security definer RPC'lerden geliyor: mesajın yanında
@@ -54,7 +59,13 @@ export type ProvinceChannel = {
   province_name: string;
 };
 
-/** Seçici listesi: 81 il kanalı. */
+/**
+ * Seçici listesi: 81 il kanalı.
+ *
+ * M30'un `channels_select_all` politikası yoksa RLS yalnız kendi
+ * kanalını döndürüyor; liste tek satıra iniyor ve seçici kendiliğinden
+ * saklanıyor (bkz. /topluluk sayfası). Hata vermiyor.
+ */
 export async function listProvinceChannels(): Promise<ProvinceChannel[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -83,14 +94,37 @@ export async function listProvinceChannels(): Promise<ProvinceChannel[]> {
     .sort((a, b) => a.province_name.localeCompare(b.province_name, "tr"));
 }
 
+/*
+  M30 RPC'leri yoksa eski (kendi kanalı) yoluna düşülüyor.
+
+  ÖLÇÜLEN SORUN: migration koşmamış bir veritabanında channel_info
+  PGRST202 veriyor, kod null dönüyordu ve /topluluk kendine redirect
+  ediyordu — sonsuz yönlendirme döngüsü, sayfa hiç açılmıyordu.
+
+  Geri düşünce il gezgini çalışmıyor ama topluluk sohbeti KENDİ ili
+  için çalışmaya devam ediyor. Yarım özellik, çöken sayfadan iyi.
+*/
+const CHANNEL_RPC = "channel_info";
+
 /** Seçilen kanalın başlığı ve susturma durumu. */
 export async function getChannelInfo(
   channelId: string,
 ): Promise<MyChannel | null> {
+  if (isKnownMissing(CHANNEL_RPC)) return getMyChannel();
+
   const supabase = await createClient();
-  const { data } = await supabase.rpc("channel_info", {
+  const { data, error } = await supabase.rpc("channel_info", {
     p_channel: channelId,
   });
+
+  if (error) {
+    if (isMissingSchema(error)) {
+      markMissing(CHANNEL_RPC);
+      return getMyChannel();
+    }
+    return null;
+  }
+
   const rows = (data ?? []) as {
     channel_id: string;
     name: string;
@@ -119,10 +153,21 @@ export async function listChannelMessagesOf(
   channelId: string,
   limit = 100,
 ): Promise<ChannelMessage[]> {
+  if (isKnownMissing(CHANNEL_RPC)) return listChannelMessages(limit);
+
   const supabase = await createClient();
-  const { data } = await supabase.rpc("list_channel_messages_of", {
+  const { data, error } = await supabase.rpc("list_channel_messages_of", {
     p_channel: channelId,
     p_limit: limit,
   });
+
+  if (error) {
+    if (isMissingSchema(error)) {
+      markMissing(CHANNEL_RPC);
+      return listChannelMessages(limit);
+    }
+    return [];
+  }
+
   return (data ?? []) as ChannelMessage[];
 }

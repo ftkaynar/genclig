@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { markMissing } from "@/lib/supabase/schema-guard";
 
 export type LeaderboardRow = {
   rank: number;
@@ -57,25 +58,68 @@ export const PERIODS = [
   kendi işlemlerini gösterdiği için normal sorguyla sıralama üretilemez.
   Fonksiyonlar yalnızca kullanıcı adı, seviye ve dönem XP'si döndürüyor.
 */
+/*
+  'year' dönemi M30 ile geldi.
+
+  ÖLÇÜLEN SORUN: migration koşmamış bir veritabanında leaderboard_top
+  'year' için P0001 / 'Geçersiz dönem.' raise ediyor. Hata
+  YUTULUYORDU (`const { data }`), yani "Bu Yıl" sekmesi hatasız ama
+  BOMBOŞ bir liste gösteriyordu — kullanıcı için "kimse yok" ile
+  "sorgu kırık" ayırt edilemiyordu.
+
+  Bu hata eksik-şema koduyla (42703/PGRST202) gelmiyor, uygulama
+  seviyesinde raise ediliyor; bu yüzden ayrı bir kontrol var.
+
+  Geri düşerken 'all' seçiliyor: yıl penceresi yokken tüm zamanlar,
+  boş listeden çok daha yakın bir yaklaşım.
+*/
+const YEAR = "year";
+const YEAR_FALLBACK = "all";
+
+/** Dönem, veritabanınca reddedildi mi? */
+function isInvalidPeriod(error: { message?: string | null } | null) {
+  return Boolean(error?.message?.includes("Geçersiz dönem"));
+}
+
 export async function getLeaderboard(
   scope: string,
   period: string,
 ): Promise<LeaderboardRow[]> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("leaderboard_top", {
-    p_scope: scope,
-    p_period: period,
-    p_limit: 50,
-  });
+
+  const read = (p: string) =>
+    supabase.rpc("leaderboard_top", {
+      p_scope: scope,
+      p_period: p,
+      p_limit: 50,
+    });
+
+  let { data, error } = await read(period);
+
+  if (error && period === YEAR && isInvalidPeriod(error)) {
+    markMissing("period_start('year')");
+    ({ data, error } = await read(YEAR_FALLBACK));
+  }
+
   return (data ?? []) as LeaderboardRow[];
 }
 
 export async function getMyRank(scope: string, period: string): Promise<MyRank> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("leaderboard_my_rank", {
-    p_scope: scope,
-    p_period: period,
-  });
+
+  const read = (p: string) =>
+    supabase.rpc("leaderboard_my_rank", {
+      p_scope: scope,
+      p_period: p,
+    });
+
+  let { data, error } = await read(period);
+
+  // getLeaderboard ile aynı geri düşme: sıra ve liste ayrışmamalı.
+  if (error && period === YEAR && isInvalidPeriod(error)) {
+    ({ data, error } = await read(YEAR_FALLBACK));
+  }
+
   const rows = (data ?? []) as NonNullable<MyRank>[];
   return Array.isArray(rows) ? (rows[0] ?? null) : null;
 }

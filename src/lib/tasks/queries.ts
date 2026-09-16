@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import {
+  isKnownMissing,
+  isMissingSchema,
+  markMissing,
+} from "@/lib/supabase/schema-guard";
+import {
   formatRemaining,
   formatStartsIn,
   taskTimeState,
@@ -69,8 +74,28 @@ export type TaskRow = {
   startsInLabel: string | null;
 };
 
-const TASK_FIELDS =
-  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,starts_at,ends_at,capacity,art_key,task_categories(slug,name,icon)";
+/*
+  Sorgu alanları iki parçaya ayrıldı.
+
+  art_key M30 ile geldi. Migration koşmamış bir veritabanında bu
+  sütunu istemek PostgREST'te 42703 veriyor ve SORGUNUN TAMAMI
+  hata dönüyor — tek bir yeni sütun yüzünden görev akışı komple
+  çöküyordu (ölçüldü: ana sayfa ve /gorevler 500).
+*/
+const TASK_FIELDS_BASE =
+  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,starts_at,ends_at,capacity,task_categories(slug,name,icon)";
+
+/** M30 sonrası eklenen alanlar. */
+const TASK_FIELDS_ART = "art_key";
+
+const ART_KEY = "tasks.art_key";
+
+/** Şemanın desteklediği en geniş alan listesi. */
+function taskFields(): string {
+  return isKnownMissing(ART_KEY)
+    ? TASK_FIELDS_BASE
+    : `${TASK_FIELDS_BASE},${TASK_FIELDS_ART}`;
+}
 
 function withRemainingLabel(rows: unknown[]): TaskRow[] {
   const now = Date.now();
@@ -104,26 +129,42 @@ export async function listFeedTasks(
 ): Promise<TaskRow[]> {
   const supabase = await createClient();
 
-  let query = supabase
-    .from("tasks")
-    .select(TASK_FIELDS)
-    .eq("status", "active")
-    .in("type", [...FEED_TASK_TYPES])
-    // Süresi dolmuş görevler feed'den düşüyor; başlamamış olanlar
-    // DÜŞMÜYOR — kullanıcı yaklaşan etkinliği önceden görebilmeli.
-    .or(`ends_at.is.null,ends_at.gt.${new Date().toISOString()}`)
-    .order("created_at", { ascending: true });
+  /*
+    Sorgu iki kez kurulabilmeli (art_key'li ve art_key'siz), bu yüzden
+    kurulum bir fonksiyona alındı. Aynı zinciri iki yere kopyalamak,
+    filtrelerden birinin ilerde yalnız bir dalda güncellenmesi demekti.
+  */
+  const build = (fields: string) => {
+    let q = supabase
+      .from("tasks")
+      .select(fields)
+      .eq("status", "active")
+      .in("type", [...FEED_TASK_TYPES])
+      // Süresi dolmuş görevler feed'den düşüyor; başlamamış olanlar
+      // DÜŞMÜYOR — kullanıcı yaklaşan etkinliği önceden görebilmeli.
+      .or(`ends_at.is.null,ends_at.gt.${new Date().toISOString()}`)
+      .order("created_at", { ascending: true });
 
-  if (type && (FEED_TASK_TYPES as readonly string[]).includes(type)) {
-    query = query.eq("type", type);
+    if (type && (FEED_TASK_TYPES as readonly string[]).includes(type)) {
+      q = q.eq("type", type);
+    }
+
+    // Bireysel/Takım ayrımı da veritabanında: tip filtresiyle aynı gerekçe.
+    if (scope && (FEED_TASK_SCOPES as readonly string[]).includes(scope)) {
+      q = q.eq("scope", scope);
+    }
+
+    return q;
+  };
+
+  let { data, error } = await build(taskFields());
+
+  // Sütun yoksa art_key'siz bir kez daha dene ve durumu hatırla.
+  if (error && isMissingSchema(error)) {
+    markMissing(ART_KEY);
+    ({ data, error } = await build(TASK_FIELDS_BASE));
   }
 
-  // Bireysel/Takım ayrımı da veritabanında: tip filtresiyle aynı gerekçe.
-  if (scope && (FEED_TASK_SCOPES as readonly string[]).includes(scope)) {
-    query = query.eq("scope", scope);
-  }
-
-  const { data, error } = await query;
   if (error) {
     throw new Error(`Görevler alınamadı: ${error.message}`);
   }
@@ -135,12 +176,26 @@ export async function listFeedTasks(
 export async function getTask(id: string): Promise<TaskRow | null> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("tasks")
-    .select(TASK_FIELDS)
-    .eq("id", id)
-    .eq("status", "active")
-    .maybeSingle();
+  const read = (fields: string) =>
+    supabase
+      .from("tasks")
+      .select(fields)
+      .eq("id", id)
+      .eq("status", "active")
+      .maybeSingle();
+
+  let { data, error } = await read(taskFields());
+
+  /*
+    Buradaki hata eskiden YUTULUYORDU (`const { data }`) ve art_key
+    olmayan bir şemada her görev detayı sessizce 404 oluyordu.
+    Artık eksik sütun fark ediliyor ve eski alan listesiyle
+    yeniden okunuyor.
+  */
+  if (error && isMissingSchema(error)) {
+    markMissing(ART_KEY);
+    ({ data, error } = await read(TASK_FIELDS_BASE));
+  }
 
   return data ? (withRemainingLabel([data])[0] ?? null) : null;
 }
