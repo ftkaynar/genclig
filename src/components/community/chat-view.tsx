@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import {
   deleteOwnMessageAction,
-  postMessageAction,
-  refreshMessagesAction,
+  postMessageToAction,
+  refreshChannelMessagesAction,
   reportMessageAction,
 } from "@/lib/community/actions";
 import {
@@ -78,6 +78,18 @@ export function ChatView({
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+  /*
+    Tüm okuma/yazma SEÇİLİ kanala gidiyor (D32 FAZ KE).
+
+    Önceki sürüm parametresiz `postMessageAction` / `refreshMessagesAction`
+    çağırıyordu; bunlar sunucuda `my_channel_id()` çözüyor, yani kullanıcı
+    hangi ili seçerse seçsin mesaj KENDİ iline düşüyordu. Kanal kimliğini
+    istemciden geçirmek yetkilendirmeyi zayıflatmıyor: RPC'ler kanalın
+    scope='province' olduğunu ve susturma/oran sınırını yine sunucuda
+    kontrol ediyor.
+  */
+  const channelId = channel.channel_id;
+
   const mutedUntil = channel.muted_until
     ? new Date(channel.muted_until)
     : null;
@@ -91,11 +103,11 @@ export function ChatView({
   */
   useEffect(() => {
     const timer = setInterval(async () => {
-      const fresh = await refreshMessagesAction();
+      const fresh = await refreshChannelMessagesAction(channelId);
       setMessages(fresh);
     }, 30_000);
     return () => clearInterval(timer);
-  }, []);
+  }, [channelId]);
 
   // Yeni mesaj gelince en alta kaydır — sohbet düzeninde en yeni altta.
   useEffect(() => {
@@ -109,13 +121,13 @@ export function ChatView({
     setNotice(null);
     setPending(true);
     try {
-      const result = await postMessageAction(body);
+      const result = await postMessageToAction(channelId, body);
       if (result.error) {
         setNotice(result.error);
         return;
       }
       setDraft("");
-      setMessages(await refreshMessagesAction());
+      setMessages(await refreshChannelMessagesAction(channelId));
     } finally {
       setPending(false);
     }
@@ -126,7 +138,9 @@ export function ChatView({
     try {
       const result = await fn();
       setNotice(result.error ?? result.notice ?? null);
-      if (!result.error) setMessages(await refreshMessagesAction());
+      if (!result.error) {
+        setMessages(await refreshChannelMessagesAction(channelId));
+      }
     } finally {
       setPending(false);
       setMenuFor(null);
@@ -147,7 +161,8 @@ export function ChatView({
         <Icon name="globe" className="h-3.5 w-3.5 shrink-0 text-primary" />
         <span>
           Bu sohbet <strong className="text-ink">{channel.district_name}</strong>
-          &apos;deki tüm GençLİG kullanıcılarına açık.
+          {" "}kanalı. Türkiye&apos;nin her yerinden okunabilir ve
+          yazılabilir.
         </span>
       </p>
 

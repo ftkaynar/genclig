@@ -1,9 +1,15 @@
--- M28 testi: il bazlı topluluk izolasyonu + denetim izi.
+-- M28+M30 testi: il bazlı topluluk kanalları + denetim izi.
+--
+-- M30 ile kanal İZOLASYONU kaldırıldı: kanallar hâlâ il bazlı ama
+-- herkes her ile girebiliyor. Senaryo 3 bu yüzden tersine döndü.
 --
 -- Senaryolar:
 --   1. İstanbul'lu A kendi il kanalını görüyor
---   2. Ankara'lı B farklı bir kanal görüyor (A'nınkini GÖRMÜYOR)
---   3. A'nın mesajını B okuyamıyor (RLS)
+--   2. Ankara'lı B'nin VARSAYILAN kanalı A'nınkinden farklı
+--   3a. Ankara'lı B, İstanbul kanalını okuyabiliyor (il kilidi kalktı)
+--   3b. B, İstanbul kanalına yazabiliyor; mesaj İstanbul'a düşüyor
+--   3c. channel_info / list_channel_messages_of seçili kanalı veriyor
+--   3d. Oran sınırı il değiştirerek aşılamıyor
 --   4. Mesaj silme denetim izine düşüyor, DOĞRU AKTÖRLE
 --   5. Duyuru denetim izine düşüyor
 --   6. Rol verme denetim izine düşüyor
@@ -101,48 +107,136 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- SENARYO 3 — A'nın mesajını B göremiyor
+-- SENARYO 3 — il kilidi KALKTI: başka ilin kanalı okunuyor VE yazılıyor
+--
+-- D32'ye kadar bu senaryo TERSİNİ sınıyordu ("B, A'nın mesajını
+-- göremiyor"). M30 ile kanal izolasyonu bilinçli olarak kaldırıldı:
+-- "Türkiye'nin gençlik ligi" diyorsak Ankara'lı bir kullanıcı
+-- İstanbul kanalını okuyabilmeli ve oraya yazabilmeli.
+--
+-- Kalkan tek şey ERİŞİM KAPSAMI. Susturma, oran sınırı ve raporlama
+-- her kanalda aynen geçerli — oran sınırı kullanıcı bazlı olduğu için
+-- il değiştirerek aşılamıyor (senaryo 3d).
 -- ---------------------------------------------------------------------------
 
 do $$
 declare
   v_a uuid := (select v from t_ids where k = 'a');
   v_b uuid := (select v from t_ids where k = 'b');
+  v_ist uuid;
+  v_ank uuid;
   v_msg uuid;
-  v_seen_by_a integer;
+  v_cross uuid;
   v_seen_by_b integer;
+  v_in_ist integer;
+  v_in_ank integer;
+  v_listed integer;
+  v_info_name text;
 begin
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_a::text, 'role', 'authenticated')::text, true);
-
-  insert into public.channel_messages (channel_id, user_id, body)
-  values (public.my_channel_id(), v_a, 'Merhaba Istanbul')
-  returning id into v_msg;
-
-  insert into t_ids values ('msg', v_msg);
-
-  perform set_config('role', 'authenticated', true);
-
-  select count(*) into v_seen_by_a
-  from public.channel_messages where id = v_msg;
+  v_ist := public.my_channel_id();
 
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_b::text, 'role', 'authenticated')::text, true);
+  v_ank := public.my_channel_id();
+
+  -- A kendi (İstanbul) kanalına yazıyor.
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_a::text, 'role', 'authenticated')::text, true);
+  v_msg := (public.post_message_to(v_ist, 'Merhaba Istanbul')).id;
+  insert into t_ids values ('msg', v_msg);
+
+  -- ---- 3a: Ankara'lı B, İstanbul mesajını OKUYABİLİYOR (RLS ile).
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_b::text, 'role', 'authenticated')::text, true);
+  perform set_config('role', 'authenticated', true);
 
   select count(*) into v_seen_by_b
   from public.channel_messages where id = v_msg;
 
   perform set_config('role', 'postgres', true);
 
-  insert into t_result values ('3-izolasyon', 'A goruyor / B goruyor',
-    v_seen_by_a || ' / ' || v_seen_by_b);
-  insert into t_result values ('3-izolasyon',
-    case when v_seen_by_a = 1 and v_seen_by_b = 0
-         then 'GECTI: baska ilin mesaji gorunmuyor'
-         else 'HATA: izolasyon kirik' end, '');
+  -- ---- 3b: B, İstanbul kanalına YAZABİLİYOR.
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_b::text, 'role', 'authenticated')::text, true);
+  v_cross := (public.post_message_to(v_ist, 'Ankara buradan yaziyor')).id;
+
+  select count(*) into v_in_ist
+  from public.channel_messages where id = v_cross and channel_id = v_ist;
+
+  select count(*) into v_in_ank
+  from public.channel_messages where id = v_cross and channel_id = v_ank;
+
+  -- ---- 3c: seçilen kanalın listesi ve başlığı B'ye açık.
+  select count(*) into v_listed
+  from public.list_channel_messages_of(v_ist, 100);
+
+  select ci.province_name into v_info_name
+  from public.channel_info(v_ist) ci;
+
+  perform set_config('role', 'postgres', true);
+
+  insert into t_result values ('3a-okuma', 'B baska ilin mesajini goruyor mu',
+    case when v_seen_by_b = 1 then 'GECTI'
+         else 'HATA: gorunen=' || v_seen_by_b end);
+
+  insert into t_result values ('3b-yazma', 'B mesaji Istanbul kanalina dustu mu',
+    case when v_in_ist = 1 and v_in_ank = 0 then 'GECTI'
+         else 'HATA: ist=' || v_in_ist || ' ank=' || v_in_ank end);
+
+  insert into t_result values ('3c-liste', 'secili kanal listesi iki mesaj',
+    case when v_listed = 2 then 'GECTI'
+         else 'HATA: listelenen=' || v_listed end);
+
+  insert into t_result values ('3c-baslik', 'channel_info il adi',
+    case when v_info_name = 'İstanbul' then 'GECTI'
+         else 'HATA: ' || coalesce(v_info_name, 'null') end);
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- SENARYO 3d — oran sınırı il değiştirerek aşılamıyor
+--
+-- Sınır KULLANICI bazlı (kanal bazlı değil). Kanal bazlı olsaydı 81 il
+-- × 5 mesaj = dakikada 405 mesajlık bir spam kapısı açılırdı.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_b uuid := (select v from t_ids where k = 'b');
+  v_ist uuid;
+  v_ank uuid;
+  v_blocked boolean := false;
+begin
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_b::text, 'role', 'authenticated')::text, true);
+  v_ank := public.my_channel_id();
+
+  select c.id into v_ist
+  from public.channels c join public.provinces p on p.id = c.province_id
+  where p.name = 'İstanbul' and c.scope = 'province';
+
+  /*
+    B'nin 3b'de attığı 1 mesaj var. Ankara'ya 4 tane daha atınca sınıra
+    (60 sn / 5) dayanıyor; 6. mesaj BAŞKA bir ile gitse bile reddedilmeli.
+  */
+  begin
+    perform public.post_message_to(v_ank, 'ank 1');
+    perform public.post_message_to(v_ank, 'ank 2');
+    perform public.post_message_to(v_ank, 'ank 3');
+    perform public.post_message_to(v_ank, 'ank 4');
+    perform public.post_message_to(v_ist, 'il degistirip devam');
+  exception when others then
+    v_blocked := true;
+  end;
+
+  perform set_config('role', 'postgres', true);
+
+  insert into t_result values ('3d-oran', 'il degistirerek sinir asilamiyor',
+    case when v_blocked then 'GECTI' else 'HATA: 6. mesaj gecti' end);
+end;
+$$;
 -- ---------------------------------------------------------------------------
 -- SENARYO 4 — mesaj silme denetim izine düşüyor, doğru aktörle
 -- ---------------------------------------------------------------------------

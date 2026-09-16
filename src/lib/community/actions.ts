@@ -154,3 +154,41 @@ export async function muteUserAction(input: {
   refreshModeration();
   return { notice: "Kullanıcı susturuldu." };
 }
+
+/*
+  Seçilen kanala mesaj (D32 FAZ KE).
+
+  Ayrı bir eylem: mevcut postMessageAction kullanıcının KENDİ kanalını
+  çözüyor ve arayüzün kanal seçebilmesi gerekiyor. Eski eylem duruyor —
+  çağıran kalmasa da kaldırmak, dağıtım sırasında eski istemcinin
+  kırılması demekti.
+*/
+export async function postMessageToAction(
+  channelId: string,
+  body: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("post_message_to", {
+    p_channel: channelId,
+    p_body: body,
+  });
+
+  if (error) {
+    return { error: translate(error.message) };
+  }
+
+  revalidatePath("/topluluk");
+  return {};
+}
+
+/** Seçilen kanalın mesajlarını tazeler. */
+export async function refreshChannelMessagesAction(
+  channelId: string,
+): Promise<ChannelMessage[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("list_channel_messages_of", {
+    p_channel: channelId,
+    p_limit: 100,
+  });
+  return (data ?? []) as ChannelMessage[];
+}

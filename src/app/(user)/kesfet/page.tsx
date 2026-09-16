@@ -3,7 +3,7 @@ import { RewardFab } from "@/components/rewards/reward-fab";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { getViewerProfile } from "@/lib/auth/viewer";
-import { getDistrictStats } from "@/lib/discover/queries";
+import { } from "@/lib/discover/queries";
 import { getTaskCategories } from "@/lib/reference/queries";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import type { SubmissionSummary } from "@/lib/tasks/queries";
@@ -21,10 +21,9 @@ export default async function DiscoverPage() {
   */
   const tasks = await listFeedTasks();
 
-  const [submissionMap, categories, stats] = await Promise.all([
+  const [submissionMap, categories] = await Promise.all([
     getSubmissionMap(tasks.map((task) => task.id)),
     getTaskCategories(),
-    getDistrictStats(),
   ]);
 
   const profile = await getViewerProfile();
@@ -64,7 +63,6 @@ export default async function DiscoverPage() {
           mapTasks={mapTasks}
           submissions={submissions}
           categories={filterCategories}
-          stats={stats}
           hasLocation={Boolean(profile?.district_id)}
         />
       </main>

@@ -209,6 +209,7 @@ $$;
   oran sınırı kontrolleri değişmedi.
 */
 drop policy if exists channels_select_own on public.channels;
+drop policy if exists channels_select_all on public.channels;
 create policy channels_select_all on public.channels
   for select to authenticated using (scope = 'province');
 
@@ -218,6 +219,7 @@ create policy channels_select_all on public.channels
   silinmişleri de görüyor.
 */
 drop policy if exists channel_messages_select_own on public.channel_messages;
+drop policy if exists channel_messages_select_any on public.channel_messages;
 create policy channel_messages_select_any on public.channel_messages
   for select to authenticated using (
     is_deleted = false
@@ -336,8 +338,19 @@ $$;
 revoke all on function public.channel_info(uuid) from public, anon;
 grant execute on function public.channel_info(uuid) to authenticated;
 
-/** Seçilen kanalın mesajları. */
-create or replace function public.list_channel_messages_of(
+/*
+  Seçilen kanalın mesajları.
+
+  Dönüş şekli list_channel_messages ile BİREBİR aynı: aynı arayüz
+  bileşeni (ChatView) iki listeyi de render ediyor. `level` ve
+  `is_deleted` ilk yazımda eksikti — tip uyuşmazlığı derlemede değil,
+  yalnız çalışma anında rozet boş görünerek ortaya çıkardı.
+
+  Sıra artan: sohbet düzeninde en yeni altta.
+*/
+drop function if exists public.list_channel_messages_of(uuid, integer);
+
+create function public.list_channel_messages_of(
   p_channel uuid,
   p_limit integer default 100
 )
@@ -346,7 +359,9 @@ returns table (
   user_id uuid,
   username text,
   avatar_url text,
+  level integer,
   body text,
+  is_deleted boolean,
   created_at timestamptz,
   is_mine boolean
 )
@@ -361,20 +376,43 @@ begin
     return;
   end if;
 
+  /*
+    Yalnız il kanalları: başka kapsamdaki bir kanal id'si sızdırmasın.
+
+    Tablo takma adı ŞART: RETURNS TABLE bir OUT değişkeni olarak 'id'
+    tanımlıyor ve niteliksiz 'id' çalışma anında "column reference is
+    ambiguous" veriyor — derlemede değil, ilk çağrıda.
+  */
+  if not exists (
+    select 1 from public.channels ch
+    where ch.id = p_channel and ch.scope = 'province'
+  ) then
+    return;
+  end if;
+
   return query
-  select
-    m.id,
-    m.user_id,
-    p.username::text,
-    p.avatar_url,
-    m.body,
-    m.created_at,
-    m.user_id = v_uid
-  from public.channel_messages m
-  join public.profiles p on p.id = m.user_id
-  where m.channel_id = p_channel and m.is_deleted = false
-  order by m.created_at desc
-  limit greatest(1, least(coalesce(p_limit, 100), 200));
+  select * from (
+    select
+      m.id,
+      m.user_id,
+      p.username::text,
+      p.avatar_url,
+      (select l.level from public.level_from_xp(
+        coalesce((select sum(x.amount)::integer from public.xp_transactions x
+                   where x.user_id = p.id), 0)
+      ) l),
+      m.body,
+      m.is_deleted,
+      m.created_at,
+      m.user_id = v_uid
+    from public.channel_messages m
+    join public.profiles p on p.id = m.user_id
+    where m.channel_id = p_channel
+      and m.is_deleted = false
+    order by m.created_at desc
+    limit greatest(1, least(coalesce(p_limit, 100), 200))
+  ) recent
+  order by recent.created_at asc;
 end;
 $$;
 
