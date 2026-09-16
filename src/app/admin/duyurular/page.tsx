@@ -1,7 +1,7 @@
 import { AnnouncementComposer } from "@/components/announcements/announcement-composer";
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { listAnnouncements } from "@/lib/announcements/queries";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,16 +20,12 @@ export default async function AdminAnnouncementsPage() {
   ]);
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`Gönderilen duyurular: ${announcements.length}`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`Gönderilen duyurular: ${announcements.length}`}>
       <AnnouncementComposer
         announcements={announcements}
         municipalities={municipalities ?? []}
         isSuper
       />
-    </PanelShell>
+    </AdminShell>
   );
 }

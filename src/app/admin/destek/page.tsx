@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { AdminTicketList } from "@/components/support/admin-ticket-list";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { listAllTickets } from "@/lib/support/queries";
 
@@ -32,11 +32,7 @@ export default async function AdminSupportPage({
   const tickets = await listAllTickets(active || undefined);
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`Destek talepleri: ${tickets.length}`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`Destek talepleri: ${tickets.length}`}>
       <nav aria-label="Durum" className="mb-4">
         <ul className="flex flex-wrap gap-2">
           {FILTERS.map((item) => (
@@ -60,6 +56,6 @@ export default async function AdminSupportPage({
       </nav>
 
       <AdminTicketList tickets={tickets} />
-    </PanelShell>
+    </AdminShell>
   );
 }

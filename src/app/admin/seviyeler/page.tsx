@@ -1,6 +1,6 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { LevelEditor } from "@/components/panel/level-editor";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,11 +21,7 @@ export default async function AdminLevelsPage() {
   const levels = (data ?? []) as { level: number; min_xp: number }[];
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle="Seviye eşikleri. Değişiklik anında geçerli olur; kullanıcıların seviyesi yeni eşiklere göre yeniden hesaplanır."
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle="Seviye eşikleri. Değişiklik anında geçerli olur; kullanıcıların seviyesi yeni eşiklere göre yeniden hesaplanır.">
       <ul className="grid gap-2 sm:grid-cols-2">
         {levels.map((row, index) => (
           <li
@@ -45,6 +41,6 @@ export default async function AdminLevelsPage() {
           </li>
         ))}
       </ul>
-    </PanelShell>
+    </AdminShell>
   );
 }

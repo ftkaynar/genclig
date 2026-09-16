@@ -1,6 +1,6 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { ReportList } from "@/components/panel/report-list";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { listPanelReports } from "@/lib/panel/queries";
 
@@ -15,12 +15,8 @@ export default async function AdminReportsPage() {
   const reports = await listPanelReports(null);
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`Tüm bildirimler: ${reports.length}`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`Tüm bildirimler: ${reports.length}`}>
       <ReportList reports={reports} />
-    </PanelShell>
+    </AdminShell>
   );
 }

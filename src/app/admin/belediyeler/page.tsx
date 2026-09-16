@@ -1,6 +1,6 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { MunicipalityEditor } from "@/components/panel/municipality-editor";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,11 +32,7 @@ export default async function AdminMunicipalitiesPage() {
   }[];
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`${rows.length} belediye`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`${rows.length} belediye`}>
       <div className="mb-4">
         <MunicipalityEditor
           provinces={(provinces ?? []) as { id: number; name: string }[]}
@@ -71,6 +67,6 @@ export default async function AdminMunicipalitiesPage() {
           ))}
         </ul>
       )}
-    </PanelShell>
+    </AdminShell>
   );
 }

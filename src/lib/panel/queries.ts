@@ -221,3 +221,122 @@ export async function listPanelReports(
     profiles: { username: nameById.get(row.user_id) ?? null },
   }));
 }
+
+/* ---------------------------------------------------------------------------
+   Süper admin: bekleyen iş sayaçları ve denetim izi (D29)
+   --------------------------------------------------------------------------- */
+
+export type AdminBadgeCounts = {
+  reviews: number;
+  problems: number;
+  moderation: number;
+  support: number;
+};
+
+/**
+ * Üst şeritteki ve sol sütundaki bekleyen iş rozetleri.
+ *
+ * Dört `head: true` sayım sorgusu paralel gidiyor; hiçbiri satır
+ * taşımıyor. Ayrı bir RPC yazılmadı: RLS bu tabloların hepsinde süper
+ * admini zaten geçiriyor ve sayımı veritabanı fonksiyonuna taşımak,
+ * değişen her sayaç için yeni bir migration demekti.
+ */
+export async function getAdminBadges(): Promise<AdminBadgeCounts> {
+  const supabase = await createClient();
+
+  const [reviews, problems, moderation, support] = await Promise.all([
+    supabase
+      .from("task_submissions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase
+      .from("problem_reports")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open"),
+    supabase
+      .from("message_reports")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open"),
+    supabase
+      .from("support_tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open"),
+  ]);
+
+  return {
+    reviews: reviews.count ?? 0,
+    problems: problems.count ?? 0,
+    moderation: moderation.count ?? 0,
+    support: support.count ?? 0,
+  };
+}
+
+export type AuditRow = {
+  id: string;
+  actor_id: string | null;
+  actor_username: string | null;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  meta: Record<string, unknown>;
+  created_at: string;
+};
+
+/**
+ * Denetim izi kayıtları.
+ *
+ * Aktör adı ikinci sorguyla çekiliyor: audit_logs ile profiles arasında
+ * FK yok (actor_id auth.users'a bakıyor) ve gömme denemek sorgunun
+ * tamamını patlatırdı — D29 FAZ T'de tam olarak bu hata ölçüldü.
+ */
+export async function listAuditLogs(filters: {
+  action?: string;
+  actor?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}): Promise<AuditRow[]> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("audit_logs")
+    .select("id,actor_id,action,target_type,target_id,meta,created_at")
+    .order("created_at", { ascending: false })
+    .limit(filters.limit ?? 200);
+
+  if (filters.action) query = query.eq("action", filters.action);
+  if (filters.actor) query = query.eq("actor_id", filters.actor);
+  if (filters.from) query = query.gte("created_at", filters.from);
+  if (filters.to) query = query.lte("created_at", filters.to);
+
+  const rows = unwrap(await query, "Denetim izi") as unknown as Omit<
+    AuditRow,
+    "actor_username"
+  >[];
+
+  const actorIds = [...new Set(rows.map((r) => r.actor_id).filter(Boolean))] as string[];
+  const nameById = new Map<string, string | null>();
+
+  if (actorIds.length > 0) {
+    const names = unwrap(
+      await supabase.from("profiles").select("id,username").in("id", actorIds),
+      "Denetim aktörleri",
+    ) as unknown as { id: string; username: string | null }[];
+    for (const row of names) nameById.set(row.id, row.username);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    actor_username: row.actor_id ? (nameById.get(row.actor_id) ?? null) : null,
+  }));
+}
+
+/** Denetim izinde geçen aksiyon tipleri — filtre açılır listesi için. */
+export async function listAuditActions(): Promise<string[]> {
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase.from("audit_logs").select("action").limit(1000),
+    "Denetim aksiyonları",
+  ) as unknown as { action: string }[];
+  return [...new Set(rows.map((r) => r.action))].sort();
+}

@@ -1,7 +1,7 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { RewardCreator } from "@/components/panel/admin-editors";
 import { RewardArchiveButton } from "@/components/panel/archive-controls";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,11 +29,7 @@ export default async function AdminRewardsPage() {
   }[];
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`${rewards.length} ödül`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`${rewards.length} ödül`}>
       <div className="mb-4">
         <RewardCreator />
       </div>
@@ -59,6 +55,6 @@ export default async function AdminRewardsPage() {
           </li>
         ))}
       </ul>
-    </PanelShell>
+    </AdminShell>
   );
 }

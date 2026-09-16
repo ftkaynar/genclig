@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { TaskStatusControls } from "@/components/panel/task-status-controls";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { listPanelTasks } from "@/lib/panel/queries";
 import { TASK_TYPE_LABEL, VERIFICATION_LABEL } from "@/lib/tasks/labels";
@@ -25,11 +25,7 @@ export default async function AdminTasksPage() {
   const tasks = await listPanelTasks(null);
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`${tasks.length} global görev`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`${tasks.length} global görev`}>
       <div className="mb-4">
         <Link
           href="/admin/gorevler/yeni"
@@ -57,6 +53,6 @@ export default async function AdminTasksPage() {
           </li>
         ))}
       </ul>
-    </PanelShell>
+    </AdminShell>
   );
 }

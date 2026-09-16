@@ -1,6 +1,6 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { RoleManager } from "@/components/panel/role-manager";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -56,11 +56,7 @@ export default async function AdminUsersPage({
   }
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`${rows.length} kullanıcı listeleniyor`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`${rows.length} kullanıcı listeleniyor`}>
       <form className="mb-4 flex gap-2" action="/admin/kullanicilar">
         <input
           name="ara"
@@ -119,6 +115,6 @@ export default async function AdminUsersPage({
           ))}
         </ul>
       )}
-    </PanelShell>
+    </AdminShell>
   );
 }

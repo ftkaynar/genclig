@@ -1,9 +1,9 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import {
   ProblemCategoryCreator,
   TaskCategoryCreator,
 } from "@/components/panel/admin-editors";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -44,7 +44,7 @@ export default async function AdminCategoriesPage() {
   );
 
   return (
-    <PanelShell title="GençLİG Süper Admin" nav={ADMIN_NAV}>
+    <AdminShell>
       <section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">Görev kategorileri</h2>
@@ -76,6 +76,6 @@ export default async function AdminCategoriesPage() {
           }[],
         )}
       </section>
-    </PanelShell>
+    </AdminShell>
   );
 }

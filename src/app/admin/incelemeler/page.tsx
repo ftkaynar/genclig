@@ -1,6 +1,6 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { ReviewQueue } from "@/components/panel/review-queue";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { listPendingReviews } from "@/lib/panel/queries";
 
@@ -20,12 +20,8 @@ export default async function AdminReviewsPage() {
   const items = await listPendingReviews("all");
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`Bekleyen teslim (tüm belediyeler + global): `}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`Bekleyen teslim (tüm belediyeler + global): `}>
       <ReviewQueue items={items} />
-    </PanelShell>
+    </AdminShell>
   );
 }

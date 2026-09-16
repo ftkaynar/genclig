@@ -1,7 +1,7 @@
-import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
+import { NoAccess } from "@/components/panel/panel-shell";
+import { AdminShell } from "@/components/panel/admin-shell";
 import { BadgeCreator } from "@/components/panel/admin-editors";
 import { BadgeStatusButton } from "@/components/panel/archive-controls";
-import { ADMIN_NAV } from "@/lib/panel/nav";
 import { isSuperAdmin } from "@/lib/panel/guard";
 import { criteriaText } from "@/lib/profile/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -31,11 +31,7 @@ export default async function AdminBadgesPage() {
   }[];
 
   return (
-    <PanelShell
-      title="GençLİG Süper Admin"
-      subtitle={`${badges.length} rozet`}
-      nav={ADMIN_NAV}
-    >
+    <AdminShell subtitle={`${badges.length} rozet`}>
       <div className="mb-4">
         <BadgeCreator />
       </div>
@@ -66,6 +62,6 @@ export default async function AdminBadgesPage() {
           </li>
         ))}
       </ul>
-    </PanelShell>
+    </AdminShell>
   );
 }
