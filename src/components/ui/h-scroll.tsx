@@ -97,22 +97,19 @@ export function HScroll({
       </Container>
 
       {/*
-        Kenar solması: kesilen kart "bitti" değil "devam ediyor" desin.
-        Genişlik 8px'den 12'ye çıktı — 8px'te kesme çizgisi hâlâ keskin
-        görünüyordu.
+        SOLMA MASKESİ YOK (D34 FAZ SH).
+
+        Önceden iki kenarda 48px genişliğinde gradyan katman vardı
+        (`from-surface via-surface/80 to-transparent`). Amaç "kesilen
+        kart devam ediyor" demekti ama sonuç tersiydi: kartın kenarı
+        zemine karışıyor, kart yarım ve SOLUK görünüyordu. Ana
+        sayfadaki "Bugün için önerilen" şeridinde en görünür haliyle
+        — son kart her zaman soluk bir hayalet gibi duruyordu.
+
+        Kenar algısını zaten OK DÜĞMESİ taşıyor: taşma varsa ok var,
+        yoksa yok (D32 FAZ H'de ölçülüp düzeltilmişti). İki sinyal
+        aynı şeyi söylüyordu ve biri içeriği bozuyordu.
       */}
-      {showLeft ? (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 -left-4 w-12 bg-gradient-to-r from-surface via-surface/80 to-transparent"
-        />
-      ) : null}
-      {showRight ? (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 -right-4 w-12 bg-gradient-to-l from-surface via-surface/80 to-transparent"
-        />
-      ) : null}
 
       {/*
         Oklar: yarı saydam koyu daire + backdrop-blur, içinde beyaz

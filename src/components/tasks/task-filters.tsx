@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HScroll } from "@/components/ui/h-scroll";
 import { Icon } from "@/components/ui/icon";
 
 /*
@@ -104,8 +105,16 @@ export function TypeChips({
   activeScope: string;
 }) {
   return (
+    /*
+      Tip çipleri de ortak şeride geçti (D34 FAZ SH).
+
+      Önceden ham bir overflow-x-auto kabıydı: masaüstünde tarayıcının
+      gri kaydırma çubuğu görünüyordu ve taşma olduğunda ok yoktu —
+      kapsam çipleri (ScopeTabs) ise zaten HScroll kullanıyordu. Aynı
+      ekranda iki şerit iki ayrı şekilde davranıyordu.
+    */
     <nav aria-label="Görev türü">
-      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <HScroll as="ul" ariaLabel="Görev türü filtresi">
         {TASK_TYPE_TABS.map((tab) => {
           const isActive = tab.key === activeTab;
           const count = counts[tab.key] ?? 0;
@@ -146,7 +155,7 @@ export function TypeChips({
             </li>
           );
         })}
-      </ul>
+      </HScroll>
     </nav>
   );
 }
