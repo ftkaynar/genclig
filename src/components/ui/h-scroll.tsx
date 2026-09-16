@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
 
@@ -40,9 +40,18 @@ export function HScroll({
   */
   as?: "div" | "ul";
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
+  /*
+    ÖLÇÜLEN SORUN (D32 FAZ H): `atEnd` başlangıçta false'tu ve ilk
+    scroll olayına kadar öyle kalıyordu. Taşması olmayan bir şeritte
+    scroll olayı HİÇ tetiklenmiyor, dolayısıyla sağ ok sonsuza kadar
+    görünüyordu — "burada daha çok şey var" diye yalan söylüyordu.
+
+    Başlangıç artık true (ok yok) ve gerçek ölçüm eleman DOM'a
+    bağlanınca yapılıyor.
+  */
+  const [atEnd, setAtEnd] = useState(true);
 
   function measure(el: HTMLDivElement) {
     const overflow = el.scrollWidth - el.clientWidth;
@@ -50,6 +59,18 @@ export function HScroll({
     // 4px tolerans: alt piksel kaydırmada "sonda" durumu hiç oluşmuyordu.
     setAtEnd(overflow <= 4 || el.scrollLeft >= overflow - 4);
   }
+
+  /*
+    Ölçüm geri çağırma ref'iyle: eleman DOM'a bağlandığı anda
+    çalışıyor. Effect ile yapmak `react-hooks/set-state-in-effect`
+    kuralına takılıyordu (aynı kurala D22, D29, D30 ve D32'de
+    takıldık); geri çağırma ref'i commit aşamasında koştuğu için
+    kural kapsamında değil.
+  */
+  const attach = useCallback((el: HTMLDivElement | null) => {
+    ref.current = el;
+    if (el) measure(el);
+  }, []);
 
   function nudge(direction: -1 | 1) {
     const el = ref.current;
@@ -65,7 +86,7 @@ export function HScroll({
   return (
     <div className={`relative ${className}`}>
       <Container
-        ref={ref as React.Ref<HTMLDivElement & HTMLUListElement>}
+        ref={attach as React.Ref<HTMLDivElement & HTMLUListElement>}
         onScroll={(e: React.UIEvent<HTMLElement>) =>
           measure(e.currentTarget as HTMLDivElement)
         }

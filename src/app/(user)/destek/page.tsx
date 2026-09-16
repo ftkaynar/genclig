@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { RewardFab } from "@/components/rewards/reward-fab";
 
 import { SupportView } from "@/components/support/support-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -26,6 +27,8 @@ export default async function SupportPage() {
       <main className="flex-1 px-4 py-4 has-bottom-nav">
         <SupportView faq={faq} tickets={tickets} />
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="profile" />
     </div>

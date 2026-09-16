@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { redirect } from "next/navigation";
 
 import { MarkReadOnOpen } from "@/components/notifications/mark-read-on-open";
@@ -105,6 +106,8 @@ export default async function NotificationsPage() {
           </ul>
         )}
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="home" />
     </div>

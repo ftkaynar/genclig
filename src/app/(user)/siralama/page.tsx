@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { redirect } from "next/navigation";
 
 import { Podium, type PodiumEntry } from "@/components/leaderboard/podium";
@@ -276,6 +277,8 @@ export default async function LeaderboardPage({
           </div>
         </div>
       ) : null}
+      <RewardFab />
+
 
       <UserBottomNav active="ranking" />
     </div>

@@ -956,6 +956,7 @@
   .tile-stagger,
   .anim-stagger,
   .reward-ready,
+  .reward-fab,
   .reward-shine::after,
   .confetti-bit,
   .vip-holo-text {
@@ -1322,10 +1323,11 @@
   background: rgb(11 18 32 / 0.55);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  /* Gölge hafif: ok şeridin üstünde yama değil, cam bir düğme. */
   box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.14),
-    0 4px 14px rgb(0 0 0 / 0.3);
-  opacity: 0.75;
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    0 2px 8px rgb(0 0 0 / 0.18);
+  opacity: 0.7;
   transition:
     opacity var(--motion-fast) ease-out,
     transform var(--motion-fast) ease-out;
@@ -1392,4 +1394,46 @@
     transparent
   );
   animation: genclig-shine 3200ms ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Ödül FAB'ı (D32 FAZ H)
+
+   Altın gradyan daire, sürekli hafif nefes. Nabız değil nefes: ekranın
+   köşesinde sürekli duran bir öğe hızlı yanıp sönseydi okumayı
+   bozardı — sinyal görünür olmalı, rahatsız edici değil.
+
+   56px: alt gezinmenin ortadaki yükseltilmiş dairesinden (56px) küçük
+   değil ama ondan uzakta duruyor, ikisi yarışmıyor.
+   --------------------------------------------------------------------------- */
+@keyframes genclig-fab-breathe {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      0 4px 14px rgb(217 119 6 / 0.45);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      0 6px 22px rgb(245 179 1 / 0.6);
+  }
+}
+
+.reward-fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  color: #3a2a00;
+  background-image: linear-gradient(135deg, #ffd966, #d97706);
+  animation: genclig-fab-breathe 2800ms ease-in-out infinite;
+  transition: transform var(--motion-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reward-fab:active {
+  transform: scale(0.92);
 }

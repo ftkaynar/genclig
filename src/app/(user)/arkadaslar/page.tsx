@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { RewardFab } from "@/components/rewards/reward-fab";
 
 import { FriendsView } from "@/components/social/friends-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -29,6 +30,8 @@ export default async function FriendsPage() {
       <main className="flex-1 px-4 py-4 has-bottom-nav">
         <FriendsView friends={friends} requests={requests} />
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="profile" />
     </div>

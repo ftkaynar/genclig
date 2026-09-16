@@ -21,6 +21,7 @@ export default function Loading() {
         </div>
       </main>
 
+
       <UserBottomNav active="profile" />
     </div>
   );

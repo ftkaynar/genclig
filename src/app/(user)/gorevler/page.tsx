@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 
 import { TaskTile } from "@/components/tasks/task-tile";
 import { Icon } from "@/components/ui/icon";
@@ -170,6 +171,8 @@ export default async function TasksPage({
           </>
         )}
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="tasks" />
     </div>

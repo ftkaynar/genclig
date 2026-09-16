@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { RewardFab } from "@/components/rewards/reward-fab";
 
 import { TeamView } from "@/components/teams/team-view";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -28,6 +29,8 @@ export default async function TeamPage() {
       <main className="flex-1 px-4 py-4 has-bottom-nav">
         <TeamView team={team} members={members} />
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="profile" />
     </div>

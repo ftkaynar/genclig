@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -104,6 +105,8 @@ export default async function UserHomePage() {
             </Link>
           </section>
         </main>
+      <RewardFab />
+
 
         <UserBottomNav active="home" />
       </div>

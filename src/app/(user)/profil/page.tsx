@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import Link from "next/link";
 
 import { Arrival } from "@/components/game/arrival";
@@ -352,6 +353,8 @@ export default async function ProfilePage() {
           )}
         </section>
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="profile" />
     </div>

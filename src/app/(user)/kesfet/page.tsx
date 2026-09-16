@@ -1,4 +1,5 @@
 import { DiscoverView } from "@/components/discover/discover-view";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { getViewerProfile } from "@/lib/auth/viewer";
@@ -67,6 +68,8 @@ export default async function DiscoverPage() {
           hasLocation={Boolean(profile?.district_id)}
         />
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="discover" />
     </div>

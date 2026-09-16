@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 
@@ -321,6 +322,8 @@ export default async function TaskDetailPage({
           )}
         </div>
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="tasks" />
     </div>

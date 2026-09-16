@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { Button } from "@/components/ui/button";
 
 import { signOutAction } from "@/lib/auth/actions";
@@ -83,6 +84,8 @@ export default async function SettingsPage() {
           </form>
         </section>
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="profile" />
     </div>

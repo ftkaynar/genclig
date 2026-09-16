@@ -30,6 +30,7 @@ export default function Loading() {
         <SkeletonList count={6} />
       </main>
 
+
       <UserBottomNav active="ranking" />
     </div>
   );

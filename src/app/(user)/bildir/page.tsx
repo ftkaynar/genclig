@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { redirect } from "next/navigation";
 
 import { ReportForm } from "@/components/problems/report-form";
@@ -39,6 +40,8 @@ export default async function ReportPage() {
           Bildirimlerim
         </Link>
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="home" />
     </div>

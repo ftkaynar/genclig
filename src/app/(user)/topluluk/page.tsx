@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { redirect } from "next/navigation";
 
 import { ChatView } from "@/components/community/chat-view";
@@ -64,6 +65,8 @@ export default async function CommunityPage() {
             }
           />
         </main>
+      <RewardFab />
+
         <UserBottomNav active="home" />
       </div>
     );

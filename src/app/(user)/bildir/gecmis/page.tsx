@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardFab } from "@/components/rewards/reward-fab";
 import { redirect } from "next/navigation";
 
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -125,6 +126,8 @@ export default async function MyReportsPage() {
           </ul>
         )}
       </main>
+      <RewardFab />
+
 
       <UserBottomNav active="home" />
     </div>

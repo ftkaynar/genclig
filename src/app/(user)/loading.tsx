@@ -33,6 +33,7 @@ export default function Loading() {
         </div>
       </main>
 
+
       <UserBottomNav active="home" />
     </div>
   );
