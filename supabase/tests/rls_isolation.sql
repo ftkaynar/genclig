@@ -749,11 +749,24 @@ select count(*) as c_okunmamis_duyuru from public.notifications
   raporlayabilmesi dogru davranis, izolasyon kaniti degil.
   Bu yuzden yazan B, disaridaki C (hicbir rolu yok).
 */
-select id as ilce1 from public.districts where province_id = 34 order by name limit 1 \gset
-select id as ilce2 from public.districts where province_id = 34 order by name offset 1 limit 1 \gset
+/*
+  D29: kanal cozumu ILCE'den IL'e gecti (M28). Iki kullanici AYRI
+  ILLERE dusmeli; ayni ilin iki ilcesi artik ayni kanal demek ve
+  izolasyon iddiasi anlamsizlasiyordu (olculdu: suite 28 -> 31 ERROR
+  ve bir iddia sessizce kayboldu).
 
-update public.profiles set district_id = :'ilce1' where id = :'B';
-update public.profiles set district_id = :'ilce2' where id = :'C';
+  Not: \gset kolon takma adlarini KUCUK HARFE ceviriyor; bu yuzden
+  :'il1' kucuk yazilmak zorunda (D03'te olculmustu).
+*/
+select id as il1 from public.provinces where name = 'İstanbul' \gset
+select id as il2 from public.provinces where name = 'Ankara' \gset
+
+update public.profiles set province_id = :'il1',
+  district_id = (select id from public.districts where province_id = :'il1' order by name limit 1)
+ where id = :'B';
+update public.profiles set province_id = :'il2',
+  district_id = (select id from public.districts where province_id = :'il2' order by name limit 1)
+ where id = :'C';
 
 begin;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
@@ -1109,7 +1122,8 @@ rollback;
   islem icinde bilerek null yapilip geri aliniyor.
 */
 begin;
-update public.profiles set district_id = null where id = :'B';
+-- D29: kanal artik il uzerinden cozuluyor; ikisi de bosaltiliyor.
+update public.profiles set district_id = null, province_id = null where id = :'B';
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 set local role authenticated;
 select count(*) as ilcesiz_kullanici_satiri from public.district_discover_stats();
@@ -1201,7 +1215,7 @@ insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
 values ('00000000-0000-0000-0000-0000000000f7',
         '00000000-0000-0000-0000-000000000000','authenticated','authenticated',
         'silme@t.local','x',now(),now(),now());
-update public.profiles set username='silme_u',
+update public.profiles set username='silme_u', province_id=34,
   district_id=(select id from public.districts where province_id=34 order by name limit 1)
  where id='00000000-0000-0000-0000-0000000000f7';
 /*
@@ -1215,8 +1229,9 @@ update public.profiles set username='silme_u',
 insert into public.channel_messages (channel_id, user_id, body)
 select c.id, '00000000-0000-0000-0000-0000000000f7', 'x'
 from public.channels c
-join public.profiles p on p.district_id = c.district_id
+join public.profiles p on p.province_id = c.province_id
 where p.id = '00000000-0000-0000-0000-0000000000f7'
+  and c.scope = 'province'
 limit 1;
 delete from auth.users where id = '00000000-0000-0000-0000-0000000000f7';
 /*
