@@ -956,6 +956,7 @@
   .tile-stagger,
   .anim-stagger,
   .reward-ready,
+  .confetti-bit,
   .vip-holo-text {
     animation: none;
   }
@@ -1089,4 +1090,67 @@
 /* İlerleme çubuklarının yumuşak dolması. */
 @utility bar-fill {
   transition: width var(--motion-slow) var(--motion-ease);
+}
+
+/* ---------------------------------------------------------------------------
+   Yatay şeritlerde kaydırma çubuğunu gizle (D30 FAZ K2)
+
+   Çubuk masaüstünde çirkin bir gri bar, mobilde zaten görünmüyor.
+   Kaydırılabilirliği ok düğmeleri ve kenar solması anlatıyor
+   (bkz. components/ui/h-scroll.tsx) — yani bilgi kaybolmuyor, yalnızca
+   taşıyıcısı değişiyor.
+   --------------------------------------------------------------------------- */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Kutlama parçacıkları (D30 FAZ C)
+
+   On iki span, her biri kendi açısında dışa fırlıyor. Saf CSS: kutlama
+   yılda birkaç saniye görünen bir efekt ve bunun için çalışma zamanına
+   animasyon motoru sokmak bundle'a kalıcı yük bindirirdi (aynı gerekçe
+   D21'deki kutlama ekranında da yazılıydı).
+
+   Açı ve gecikme satır içi `--angle` / `--delay` ile: her parçacık için
+   ayrı sınıf üretmek Tailwind'in tarayıcısından geçmezdi.
+
+   Süre 1.2s — kutlama ekranları 400ms kuralının bilinçli istisnası.
+   --------------------------------------------------------------------------- */
+@keyframes genclig-burst {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(0) scale(0.4);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(-120px) scale(1);
+  }
+}
+
+.confetti-bit {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #f5b301, #ec4899);
+  transform-origin: center;
+  animation: genclig-burst 1200ms ease-out both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Çift renk: tek renkte patlama yassı duruyordu. */
+.confetti-bit:nth-child(2n) {
+  background: linear-gradient(135deg, #22d3ee, #7c3aed);
 }

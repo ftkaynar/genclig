@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { MapSkeleton } from "./map-skeleton";
+import { HScroll } from "@/components/ui/h-scroll";
 import { TaskTile } from "@/components/tasks/task-tile";
 import { Icon } from "@/components/ui/icon";
 import type { DiscoverTask } from "@/lib/discover/queries";
@@ -86,9 +87,9 @@ function StripHeader({
 /** Yatay kaydırmalı kutucuk şeridi. */
 function Strip({ children }: { children: React.ReactNode }) {
   return (
-    <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
+    <HScroll as="ul">
       {children}
-    </ul>
+    </HScroll>
   );
 }
 
@@ -230,8 +231,8 @@ export function DiscoverView({
 
         {/* Kategori filtre çipleri */}
         <nav aria-label="Kategori filtresi" className="mb-2">
-          <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-            <li className="shrink-0">
+          <HScroll className="mt-2" ariaLabel="Kategoriler">
+            <span className="shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveCategory("")}
@@ -244,9 +245,9 @@ export function DiscoverView({
               >
                 Tümü
               </button>
-            </li>
+            </span>
             {categories.map((category) => (
-              <li key={category.slug} className="shrink-0">
+              <span key={category.slug} className="shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveCategory(category.slug)}
@@ -259,9 +260,9 @@ export function DiscoverView({
                 >
                   {category.name}
                 </button>
-              </li>
+              </span>
             ))}
-          </ul>
+          </HScroll>
         </nav>
 
         {error ? (

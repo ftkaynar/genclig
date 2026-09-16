@@ -29,7 +29,16 @@ export function FlipCard({
   const [flipped, setFlipped] = useState(false);
 
   /*
-    Kaydırarak çevirme.
+    DOKUNARAK çevirme: kartın herhangi bir yerine dokunmak yeterli.
+
+    Önceki sürümde yalnızca yana KAYDIRMAK çeviriyordu ve bunu
+    anlatmak için kartın altında "Kartı yana kaydır" ipucu duruyordu.
+    Açıklama gerektiren bir etkileşim, keşfedilmeyen bir etkileşimdir;
+    dokunmak evrensel ve ipucuna gerek bırakmıyor.
+
+    Kaydırma da KORUNDU (aşağıdaki pointer mantığı): parmakla iten
+    kullanıcı da çevirebilsin. Ama artık tek yol değil, bu yüzden
+    ipucu metni kaldırıldı.
 
     Pointer Events kullanılıyor (touch + mouse tek yol): iki ayrı
     dinleyici yazmak, mobilde çalışıp masaüstünde çalışmayan ya da
@@ -56,21 +65,45 @@ export function FlipCard({
 
     const dx = event.clientX - start.x;
     const dy = event.clientY - start.y;
+    const moved = Math.hypot(dx, dy);
 
-    if (Math.abs(dx) < 48 || Math.abs(dx) <= Math.abs(dy)) return;
+    /*
+      İki yol da aynı sonuca çıkıyor:
+        - 8px'den az hareket -> DOKUNUŞ, çevir
+        - 48px'den çok YATAY hareket -> KAYDIRMA, çevir
+      Aradaki bölge (sayfayı dikey kaydırmaya çalışan parmak) hiçbir
+      şey yapmıyor; yoksa liste kaydırırken kart kazara çevriliyordu.
+    */
+    const isTap = moved < 8;
+    const isSwipe = Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy);
 
-    // Sağa da sola da kaydırmak çeviriyor: kart iki yüzlü, yön bir
-    // sonraki sayfayı değil ters yüzü gösteriyor.
+    if (!isTap && !isSwipe) return;
+
     setFlipped((prev) => !prev);
   }
 
   return (
     <div className="flex flex-col items-center">
+      {/*
+        Kap düğme DEĞİL, role="button" olan bir div: içinde kendi
+        etkileşimleri olan öğeler var (arka yüzdeki bağlantılar) ve
+        <button> içine buton/bağlantı koymak geçersiz HTML.
+      */}
       <div
-        className="flip-scene w-[320px] max-w-full touch-pan-y select-none"
+        role="button"
+        tabIndex={0}
+        aria-pressed={flipped}
+        aria-label={flipped ? "Kartın ön yüzünü göster" : "Kartın arka yüzünü göster"}
+        className="flip-scene w-[320px] max-w-full cursor-pointer touch-pan-y select-none"
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerCancel={() => { drag.current = null; }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setFlipped((prev) => !prev);
+          }
+        }}
       >
         <div className={`flip-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ------------------------------------------------------- ön yüz */}
@@ -210,12 +243,7 @@ export function FlipCard({
         {flipped ? "Kartı çevir" : "Ayrıntıları gör"}
       </button>
 
-      {/* Kaydırma keşfedilir bir etkileşim; ipucu olmadan bulunmuyor. */}
-      <p className="mt-1 flex items-center gap-1 text-[10px] text-ink-muted">
-        <Icon name="chevron-right" className="h-3 w-3 rotate-180" />
-        Kartı yana kaydır
-        <Icon name="chevron-right" className="h-3 w-3" />
-      </p>
+      {/* İpucu metni kaldırıldı: artık kartın her yeri dokunmatik. */}
     </div>
   );
 }

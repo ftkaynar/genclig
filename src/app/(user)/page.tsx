@@ -6,7 +6,8 @@ import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
 import { QuickAccess } from "@/components/home/quick-access";
 import { BalanceSummary } from "@/components/points/balance-summary";
-import { TaskCardCompact } from "@/components/tasks/task-card-compact";
+import { HScroll } from "@/components/ui/h-scroll";
+import { TaskTile } from "@/components/tasks/task-tile";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -227,33 +228,45 @@ export default async function UserHomePage() {
               />
             </div>
           ) : (
-            // Yatay şerit: mobilde dikey liste ana sayfayı gereğinden uzun
-            // yapıyordu; kaydırmalı şerit üç kartı da ilk ekranda tutuyor.
-            <ul className="mt-3 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
-              {suggested.map((task) => (
-                <TaskCardCompact key={task.id} task={task} />
+            /*
+              GÖREV KUTUSU BİRLİĞİ (D30 FAZ U): ana sayfa da Görevler ve
+              Keşfet ile AYNI TaskTile bileşenini kullanıyor.
+
+              Önceden burada TaskCardCompact vardı: farklı gradyan,
+              farklı ödül gösterimi, farklı zaman çipi. Aynı görev üç
+              ekranda üç türlü görünüyordu ve biri güncellendiğinde
+              diğerleri geride kalıyordu.
+            */
+            <HScroll as="ul" className="mt-3" ariaLabel="Önerilen görevler">
+              {suggested.map((task, i) => (
+                <TaskTile key={task.id} task={task} index={i} small />
               ))}
-            </ul>
+            </HScroll>
           )}
         </section>
 
-        {/* Şehrin için bildir — gradyan kenarlı vurgu kartı. */}
+        {/*
+          Bu blok artık hero'nun hemen altında (yukarı taşındı).
+          Önceden önerilen görevlerin ALTINDAYDI ve ilk ekranda hiç
+          görünmüyordu; oysa "şehrin için bildir" uygulamanın sivil
+          amacının merkezinde.
+        */}
         <Link
           href="/bildir"
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/50 bg-card p-4 transition-colors hover:border-primary active:scale-[0.99]"
+          className="press-soft brand-gradient mt-4 flex items-center gap-3 rounded-2xl p-4 text-white shadow-lg"
         >
-          <span className="brand-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white">
-            <Icon name="megaphone" className="h-5 w-5" />
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20">
+            <Icon name="megaphone" className="h-6 w-6" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-ink">
+            <span className="block text-base font-bold">
               Şehrin için bildir
             </span>
-            <span className="block text-[11px] text-ink-muted">
+            <span className="block text-[12px] text-white/85">
               Sorun, öneri ya da proje · +25 XP • +10 Token
             </span>
           </span>
-          <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-ink-muted" />
+          <Icon name="chevron-right" className="h-5 w-5 shrink-0" />
         </Link>
 
         {/*
