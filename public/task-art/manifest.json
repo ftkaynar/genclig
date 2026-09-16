@@ -1,0 +1,107 @@
+{
+  "note": "Görev kapak görselleri. Gerçek görseller aynı anahtarla değiştirilecek; 'file' alanı uzantıyı taşıdığı için kod değişmeden WEBP'ye geçilebilir.",
+  "width": 600,
+  "height": 800,
+  "items": [
+    {
+      "key": "art-01",
+      "file": "art-01.svg",
+      "hint": "Çevre · ağaç dikimi"
+    },
+    {
+      "key": "art-02",
+      "file": "art-02.svg",
+      "hint": "Toplum · dayanışma"
+    },
+    {
+      "key": "art-03",
+      "file": "art-03.svg",
+      "hint": "Spor · koşu"
+    },
+    {
+      "key": "art-04",
+      "file": "art-04.svg",
+      "hint": "Kültür · sahne"
+    },
+    {
+      "key": "art-05",
+      "file": "art-05.svg",
+      "hint": "Eğitim · kitap"
+    },
+    {
+      "key": "art-06",
+      "file": "art-06.svg",
+      "hint": "Yurttaşlık · meydan"
+    },
+    {
+      "key": "art-07",
+      "file": "art-07.svg",
+      "hint": "Geri dönüşüm"
+    },
+    {
+      "key": "art-08",
+      "file": "art-08.svg",
+      "hint": "Bağış"
+    },
+    {
+      "key": "art-09",
+      "file": "art-09.svg",
+      "hint": "Su ve tasarruf"
+    },
+    {
+      "key": "art-10",
+      "file": "art-10.svg",
+      "hint": "Müzik"
+    },
+    {
+      "key": "art-11",
+      "file": "art-11.svg",
+      "hint": "Bisiklet"
+    },
+    {
+      "key": "art-12",
+      "file": "art-12.svg",
+      "hint": "Tarım · fide"
+    },
+    {
+      "key": "art-13",
+      "file": "art-13.svg",
+      "hint": "Sahil temizliği"
+    },
+    {
+      "key": "art-14",
+      "file": "art-14.svg",
+      "hint": "Tiyatro"
+    },
+    {
+      "key": "art-15",
+      "file": "art-15.svg",
+      "hint": "Kütüphane"
+    },
+    {
+      "key": "art-16",
+      "file": "art-16.svg",
+      "hint": "Kodlama"
+    },
+    {
+      "key": "art-17",
+      "file": "art-17.svg",
+      "hint": "Hayvan barınağı"
+    },
+    {
+      "key": "art-18",
+      "file": "art-18.svg",
+      "hint": "Yaşlı ziyareti"
+    },
+    {
+      "key": "art-19",
+      "file": "art-19.svg",
+      "hint": "Festival"
+    },
+    {
+      "key": "art-20",
+      "file": "art-20.svg",
+      "hint": "Doğa yürüyüşü"
+    }
+  ]
+}

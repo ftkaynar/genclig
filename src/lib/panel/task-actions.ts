@@ -21,6 +21,7 @@ type Input = {
   teamBonusXp: string;
   teamBonusCoin: string;
   icon: string;
+  artKey: string;
   xp: string;
   coin: string;
   startsAt: string;
@@ -162,6 +163,17 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     team_bonus_xp: isTeamTask ? teamBonusXp : 0,
     team_bonus_coin: isTeamTask ? teamBonusCoin : 0,
     icon: input.icon.trim() || null,
+    /*
+      Kapak görseli anahtarı. Boş dize null'a çevriliyor: DB'de
+      "seçilmemiş" tek bir değerle temsil edilmeli, yoksa '' ve null
+      iki ayrı boşluk anlamına gelip sorguları ikiye bölüyor.
+
+      Anahtarın geçerliliği BURADA doğrulanmıyor; taskArtUrl()
+      tanımadığı anahtar için null dönüyor ve kart gradyana düşüyor.
+      Sunucu tarafında ayrıca beyaz liste tutmak, görsel seti her
+      büyüdüğünde iki yerde güncelleme demekti.
+    */
+    art_key: input.artKey.trim() || null,
     xp,
     coin,
     starts_at: toIsoOrNull(input.startsAt),

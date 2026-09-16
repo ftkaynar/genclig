@@ -959,6 +959,7 @@
   .reward-fab,
   .reward-shine::after,
   .confetti-bit,
+  .repeat-pill,
   .vip-holo-text {
     animation: none;
   }
@@ -1436,4 +1437,38 @@
 
 .reward-fab:active {
   transform: scale(0.92);
+}
+
+/* ---------------------------------------------------------------------------
+   Görev durum mührü ve tekrar daveti (D32 FAZ G3)
+   --------------------------------------------------------------------------- */
+
+/*
+  Mühür: hafif gölge + iç parıltı. Karta "basılmış" hissi bundan geliyor;
+  düz dolgu denendi ve elendi — kartın üstünde yüzmüyor, içine gömülmüş
+  gibi duruyordu.
+*/
+.state-seal {
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+/*
+  Tekrar daveti: çok yavaş bir nefes. Amaç dikkat çekmek değil "canlı"
+  olduğunu söylemek — hızlı bir yanıp sönme kart ızgarasında rahatsız
+  ediciydi (D31'de aynı kararı geri sayım noktasında vermiştik).
+*/
+.repeat-pill {
+  animation: repeat-breath 2.4s var(--motion-ease) infinite;
+}
+
+@keyframes repeat-breath {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(242 183 5 / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgb(242 183 5 / 0);
+  }
 }

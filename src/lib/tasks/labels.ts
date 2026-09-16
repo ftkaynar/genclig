@@ -165,3 +165,84 @@ export function formatDateTime(value: string): string {
     minute: "2-digit",
   });
 }
+
+/* ---------------------------------------------------------------------------
+   Görev kartının durum ritmi (D32 FAZ G3)
+
+   ÖNCEKİ DURUM: kart sağ üstünde "Tamamlandı" yazan bir kurdele vardı.
+   İki sorunu vardı:
+
+   1. Metin küçüktü ve kartın en az bakılan köşesindeydi — tamamlama
+      duygusu (oyunda en değerli an) bir etikete sıkışmıştı.
+   2. Sürekli görevde tik SONSUZA KADAR kalıyordu. Kullanıcı bir kez
+      yürüyüş yapınca kart ömür boyu "Tamamlandı" diyordu; günlük ritim
+      diye bir şey kalmıyordu ve ertesi gün geri gelmek için sebep yoktu.
+
+   v3'te dört durum var ve her biri İKONLA ayrışıyor (renk tek başına
+   ayırt edici değil — renk körlüğü):
+
+     done    büyük tik      yeşil     bu gün tamamlandı
+     pending saat           turuncu   incelemede
+     repeat  alev           turuncu   sürekli görev, gün yenilendi
+     none    —                        henüz dokunulmadı
+
+   `repeat` yalnız SÜREKLİ görevde var: dönemli görevlerde (günlük,
+   haftalık) tekillik kontrolü zaten period_key üzerinden sunucuda
+   yapılıyor, orada "tekrar yap" demek çalışmayan bir davet olurdu.
+   --------------------------------------------------------------------------- */
+
+export type TaskCardState = "done" | "pending" | "repeat" | "none";
+
+export const TASK_STATE_STYLE: Record<
+  Exclude<TaskCardState, "none">,
+  { icon: string; label: string; ring: string; badge: string }
+> = {
+  done: {
+    icon: "check",
+    label: "Tamamlandı",
+    ring: "ring-status-success/60",
+    badge: "bg-status-success",
+  },
+  pending: {
+    icon: "timer",
+    label: "İncelemede",
+    ring: "ring-status-warning/60",
+    badge: "bg-status-warning",
+  },
+  repeat: {
+    icon: "flame",
+    label: "Tekrar yap",
+    ring: "ring-amber/60",
+    badge: "bg-amber",
+  },
+};
+
+/**
+ * Kartın hangi durumu göstereceği.
+ *
+ * `isToday` teslimin İÇİNDE BULUNULAN görev gününe (Europe/Istanbul
+ * 06:00) ait olup olmadığını söylüyor; sorgu katmanında hesaplanıyor
+ * çünkü render içinde `Date.now()` çağırmak bileşeni saf olmaktan
+ * çıkarıyor.
+ */
+export function taskCardState(
+  taskType: string,
+  submission: { status: string; isToday: boolean } | undefined,
+): TaskCardState {
+  if (!submission) return "none";
+
+  const isContinuous = taskType === "continuous";
+
+  if (submission.status === "pending") {
+    // Bekleyen teslim eskise bile "incelemede": karar hâlâ verilmedi.
+    return "pending";
+  }
+
+  if (submission.status === "approved") {
+    if (isContinuous && !submission.isToday) return "repeat";
+    return "done";
+  }
+
+  // Reddedilen teslim kartı kilitlemiyor — kullanıcı yeniden deneyebilmeli.
+  return isContinuous ? "repeat" : "none";
+}

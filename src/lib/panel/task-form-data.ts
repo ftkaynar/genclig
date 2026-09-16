@@ -30,7 +30,7 @@ export async function loadTaskForEdit(
   const { data } = await supabase
     .from("tasks")
     .select(
-      "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,daily_submission_limit,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,status",
+      "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,daily_submission_limit,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,art_key,status",
     )
     .eq("id", id)
     .maybeSingle();
@@ -55,6 +55,7 @@ export async function loadTaskForEdit(
     teamBonusXp: String(data.team_bonus_xp ?? 0),
     teamBonusCoin: String(data.team_bonus_coin ?? 0),
     icon: data.icon ?? "list-checks",
+    artKey: data.art_key ?? "",
     xp: String(data.xp ?? 0),
     coin: String(data.coin ?? 0),
     startsAt: toLocalInput(data.starts_at),

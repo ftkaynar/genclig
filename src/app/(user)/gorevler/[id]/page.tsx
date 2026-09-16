@@ -19,6 +19,7 @@ import {
   TASK_TYPE_LABEL,
   VERIFICATION_LABEL,
   formatDateTime,
+  taskCardState,
 } from "@/lib/tasks/labels";
 import { QuizRunner } from "@/components/quiz/quiz-runner";
 import { SubmitTask } from "@/components/tasks/submit-task";
@@ -90,6 +91,9 @@ export default async function TaskDetailPage({
 
   const continuousPending =
     task.type === "continuous" && submission?.status === "pending";
+
+  // Kart ile detayın aynı kuralı kullanması için (D32 FAZ G3).
+  const cardState = taskCardState(task.type, submission);
 
   const tone = task.task_categories
     ? (CATEGORY_TONE[task.task_categories.slug] ?? CATEGORY_TONE_FALLBACK)
@@ -225,6 +229,18 @@ export default async function TaskDetailPage({
             {submission.status === "rejected" ? (
               <span className="mt-1 block text-xs text-ink-muted">
                 Bu görevi yeniden deneyebilirsin.
+              </span>
+            ) : null}
+            {/*
+              Sürekli görevde dünkü onay bugünü kapatmıyor: görev günü
+              Europe/Istanbul 06:00'da yenileniyor (M31). Bu satır olmadan
+              kart "Tekrar yap" derken detay "Tamamlandı" diyordu ve
+              kullanıcı hangisine inanacağını bilmiyordu.
+            */}
+            {cardState === "repeat" ? (
+              <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-amber">
+                <Icon name="flame" className="h-3.5 w-3.5" />
+                Yeni gün başladı — bu görevi bugün tekrar yapabilirsin.
               </span>
             ) : null}
           </p>

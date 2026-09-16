@@ -22,6 +22,7 @@ import { getMyRank } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import { getTodayEarnings, getUserPoints } from "@/lib/points/queries";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { taskCardState } from "@/lib/tasks/labels";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
 
@@ -154,7 +155,23 @@ export default async function UserHomePage() {
     .select("badge_id", { count: "exact", head: true })
     .eq("user_id", viewer.user.id);
 
-  const open = allTasks.filter((task) => !submissions.has(task.id));
+  /*
+    Açık görevler: henüz dokunulmamışlar + günü yenilenmiş SÜREKLİ
+    görevler (D32 FAZ G3).
+
+    ÖNCEKİ DURUM: `!submissions.has(task.id)` — bir kez gönderilen görev
+    ana sayfadan SONSUZA KADAR düşüyordu. Sürekli görevin tüm amacı
+    günlük ritim kurmak; kullanıcı bir kez yürüyüş yaptıktan sonra o
+    görevi bir daha ana sayfada görmüyordu ve ertesi gün geri gelmek
+    için sebep kalmıyordu.
+
+    Kural taskCardState'te: "done" ve "pending" gizleniyor, "repeat" ve
+    "none" gösteriliyor. Görev günü Europe/Istanbul 06:00'da yenileniyor.
+  */
+  const open = allTasks.filter((task) => {
+    const state = taskCardState(task.type, submissions.get(task.id));
+    return state === "none" || state === "repeat";
+  });
 
   /*
     Öne çıkan görev: bitişi en yakın, henüz gönderilmemiş anlık görev.

@@ -48,6 +48,8 @@ export type TaskRow = {
   ends_at: string | null;
   capacity: number | null;
   icon: string | null;
+  /** public/task-art/ altındaki kapak görselinin anahtarı (art-01..art-20). */
+  art_key: string | null;
   task_categories: TaskCategory | null;
   /**
    * Geri sayımın sunucuda hesaplanmış ilk metni.
@@ -68,7 +70,7 @@ export type TaskRow = {
 };
 
 const TASK_FIELDS =
-  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,starts_at,ends_at,capacity,task_categories(slug,name,icon)";
+  "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,starts_at,ends_at,capacity,art_key,task_categories(slug,name,icon)";
 
 function withRemainingLabel(rows: unknown[]): TaskRow[] {
   const now = Date.now();
@@ -145,7 +147,60 @@ export async function getTask(id: string): Promise<TaskRow | null> {
 
 export type SubmissionSummary = {
   status: string;
+  /**
+   * Teslim, İÇİNDE BULUNULAN görev gününe mi ait?
+   *
+   * Görev günü Europe/Istanbul 06:00'da başlıyor (M31). Sürekli
+   * görevin tamamlanma tiki bu pencereye bağlı: dünkü teslim bugünün
+   * kartını tamamlanmış göstermemeli, kart "Tekrar yap"a dönmeli.
+   *
+   * Hesap SUNUCUDA: bileşen içinde Date.now() çağırmak render'ı saf
+   * olmaktan çıkarıyor ve lint bunu hata sayıyor (D07, D23, D29).
+   */
+  isToday: boolean;
 };
+
+/**
+ * İçinde bulunulan görev gününün başlangıcı (Europe/Istanbul 06:00).
+ *
+ * DB'deki task_day_start() ile AYNI kural. İki yerde durmasının nedeni:
+ * sayfa render'ı için tek satırlık bir hesabı RPC'ye çevirmek her kart
+ * listesine bir gidiş-dönüş ekliyordu. Kural değişirse İKİSİ de
+ * değişmeli — bu yüzden her iki tarafta da 06:00 sabiti tek bir yerde.
+ */
+export const TASK_DAY_START_HOUR = 6;
+
+export function taskDayStart(now = new Date()): Date {
+  /*
+    Türkiye 2016'dan beri sabit UTC+03:00 (yaz saati kaldırıldı), bu
+    yüzden ofset doğrudan yazılabiliyor. Tarih kısmı yine de Intl
+    üzerinden: sunucunun kendi saat dilimi ne olursa olsun
+    "İstanbul'da bugün hangi gün" cevabı değişmemeli.
+  */
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+
+  const get = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? "00";
+
+  const local = `${get("year")}-${get("month")}-${get("day")}`;
+  const hour = Number(get("hour"));
+
+  const pad = String(TASK_DAY_START_HOUR).padStart(2, "0");
+  const start = new Date(`${local}T${pad}:00:00+03:00`);
+
+  // 06:00'dan önceysek hâlâ DÜNKÜ görev günündeyiz.
+  if (hour < TASK_DAY_START_HOUR) {
+    start.setUTCDate(start.getUTCDate() - 1);
+  }
+  return start;
+}
 
 /**
  * Kullanıcının verilen görevlerdeki teslim durumları.
@@ -172,12 +227,26 @@ export async function getSubmissionMap(
 
   const { data } = await supabase
     .from("task_submissions")
-    .select("task_id,status")
+    .select("task_id,status,created_at")
     .eq("user_id", user.id)
-    .in("task_id", taskIds);
+    .in("task_id", taskIds)
+    .order("created_at", { ascending: false });
 
+  const dayStart = taskDayStart().getTime();
+
+  /*
+    En yeni teslim kazanıyor: sıralama azalan, ilk gelen yazılıyor,
+    sonrakiler atlanıyor. Sürekli görevde aynı görevin onlarca teslimi
+    olabiliyor ve kartın durumu SON teslime göre belirlenmeli —
+    sırasız okumada dünkü onaylı teslim bugünkü reddedilmişin önüne
+    geçip kartı yanlış gösteriyordu.
+  */
   for (const row of data ?? []) {
-    result.set(row.task_id, { status: row.status });
+    if (result.has(row.task_id)) continue;
+    result.set(row.task_id, {
+      status: row.status,
+      isToday: new Date(row.created_at).getTime() >= dayStart,
+    });
   }
 
   return result;

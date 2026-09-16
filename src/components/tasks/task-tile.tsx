@@ -3,11 +3,12 @@ import Link from "next/link";
 import { Countdown } from "./countdown";
 import { taskIconName, taskTone } from "./task-card";
 import { Icon } from "@/components/ui/icon";
-import { SUBMISSION_STATUS_LABEL } from "@/lib/tasks/labels";
+import { taskArtUrl } from "@/lib/tasks/art";
+import { TASK_STATE_STYLE, taskCardState } from "@/lib/tasks/labels";
 import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
 
 /*
-  Görev kutucuğu v3 — mobil oyun estetiği (D28 FAZ G).
+  Görev kutucuğu v3 — mobil oyun estetiği (D28 FAZ G, D32 FAZ G3).
 
   ÖNCEKİ SORUN: kart bilgi olarak doğruydu ama "oyunsu" değildi. Ödül
   küçük iki hapta duruyordu, zorluk kademesi ince bir halkaydı, dokunuşun
@@ -17,9 +18,12 @@ import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
   görünüyor; kartın en büyük ikinci öğesi o. Gençleri harekete geçiren
   şey görevin adı değil, kazancı.
 
+  D32 eklentileri: durum mührü (tik/saat/alev), kapak görseli ve sürekli
+  görevin günlük ritmi.
+
   Yüzeyler globals.css'te (.tile-edge, .tile-chip, .reward-pill,
-  .countdown-pill, .tile-press, .tile-stagger). Burada yalnızca hangi
-  durumda hangisinin takılacağı var.
+  .countdown-pill, .tile-press, .tile-stagger, .state-seal, .repeat-pill).
+  Burada yalnızca hangi durumda hangisinin takılacağı var.
 */
 
 /*
@@ -63,10 +67,26 @@ export function TaskTile({
   index?: number;
 }) {
   const tier = tierOf(task.difficulty);
-  const done = submission?.status === "approved";
-  const pending = submission?.status === "pending";
   const upcoming = task.timeState === "upcoming";
   const timed = !upcoming && Boolean(task.ends_at);
+
+  /*
+    Durum ritmi (D32 FAZ G3): tamamlandı / incelemede / tekrar yap.
+
+    Kural labels.ts'te duruyor: aynı karar detay sayfasında ve listede
+    aynı sonucu vermeli. İki ayrı kopyada tutmak, birinin unutulması
+    demekti (aynı sınıf hata D24 ve D30'da ölçüldü).
+  */
+  const state = taskCardState(task.type, submission);
+  const badge = state === "none" ? null : TASK_STATE_STYLE[state];
+  const done = state === "done";
+
+  /*
+    Kapak görseli. Yoksa kategori gradyanı devrede kalıyor — görsel
+    yüklemek yönetim tarafında ZORUNLU değil, aksi halde görev
+    yayınlamak görsel beklemeye takılırdı.
+  */
+  const artUrl = taskArtUrl(task.art_key);
 
   return (
     <li
@@ -84,17 +104,45 @@ export function TaskTile({
             small ? "h-[92px]" : "h-[44%]"
           } items-center justify-center bg-gradient-to-br ${taskTone(task)}`}
         >
-          <span aria-hidden className="tile-pattern absolute inset-0" />
+          {artUrl ? (
+            /*
+              Görsel <img> değil arka plan: kart 3/4 oranında ve kapak her
+              zaman tam kaplamalı. next/image denendi ve elendi — 4 KB'lık
+              yer tutucu SVG'ler için optimizasyon hattı kazanç değil
+              fazladan istek getiriyordu. Gerçek WEBP'ler geldiğinde tekrar
+              değerlendirilecek.
+            */
+            <span
+              aria-hidden
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${artUrl})` }}
+            />
+          ) : (
+            <span aria-hidden className="tile-pattern absolute inset-0" />
+          )}
 
-          {/* Büyük ikon, parıltılı chip içinde. */}
+          {/*
+            Kategori ikonu. Kapak görseli varsa küçülüp sol alta çekiliyor:
+            görsel zaten konuyu anlatıyor, ortadaki büyük ikon onu örtüyordu.
+          */}
           <span
-            className={`tile-chip relative flex items-center justify-center rounded-2xl ${
-              small ? "h-12 w-12" : "h-[58px] w-[58px]"
+            className={`tile-chip flex items-center justify-center rounded-2xl ${
+              artUrl
+                ? "absolute bottom-1.5 right-1.5 h-8 w-8"
+                : small
+                  ? "relative h-12 w-12"
+                  : "relative h-[58px] w-[58px]"
             }`}
           >
             <Icon
               name={taskIconName(task)}
-              className={small ? "h-6 w-6 text-white" : "h-8 w-8 text-white"}
+              className={
+                artUrl
+                  ? "h-4 w-4 text-white"
+                  : small
+                    ? "h-6 w-6 text-white"
+                    : "h-8 w-8 text-white"
+              }
               strokeWidth={2.1}
             />
           </span>
@@ -120,17 +168,37 @@ export function TaskTile({
           ) : null}
         </span>
 
-        {/* ----------------------------------------------- köşe kurdelesi */}
-        {done || pending ? (
+        {/* --------------------------------------------------- durum mührü */}
+        {/*
+          ÖNCEKİ DURUM: sağ kenarda "Tamamlandı" yazan küçük bir kurdele.
+          Oyunun en değerli anı (tamamlama) 9 punto bir etikete sıkışmıştı
+          ve kartın en az bakılan köşesindeydi.
+
+          v3: kapakla içeriğin sınırına oturan büyük yuvarlak mühür. Kart
+          zeminiyle halkalanıyor, yani "kartın üstüne basılmış" gibi
+          duruyor. İkon birincil, yanındaki metin doğrulayıcı — renk tek
+          başına ayırt edici değil (renk körlüğü).
+        */}
+        {badge ? (
           <span
-            className={`absolute right-0 top-[42%] z-10 rounded-l-md px-2 py-0.5 text-[9px] font-bold text-white ${
-              done ? "bg-status-success" : "bg-status-warning"
+            className={`absolute left-2 top-[44%] z-10 flex -translate-y-1/2 items-center gap-1 ${
+              small ? "scale-90" : ""
             }`}
           >
-            {done
-              ? "Tamamlandı"
-              : (SUBMISSION_STATUS_LABEL[submission?.status ?? ""] ??
-                "İncelemede")}
+            <span
+              className={`state-seal flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-4 ring-card ${badge.badge}`}
+            >
+              <Icon
+                name={badge.icon}
+                className="h-5 w-5 text-white"
+                strokeWidth={2.8}
+              />
+            </span>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white ${badge.badge}`}
+            >
+              {badge.label}
+            </span>
           </span>
         ) : null}
 
@@ -197,6 +265,16 @@ export function TaskTile({
                   endsAt={task.ends_at}
                   initialLabel={task.remainingLabel ?? ""}
                 />
+              </span>
+            ) : state === "repeat" ? (
+              /*
+                Gün yenilendi: kart artık "yapıldı" demiyor, DAVET ediyor.
+                Alev ikonu seri/ritim dilinden geliyor; turuncu bu kartta
+                tek kullanımlık, başka turuncu davet yok.
+              */
+              <span className="repeat-pill inline-flex items-center gap-1 rounded-full bg-amber px-2 py-0.5 text-[10px] font-bold text-[#3a2a00]">
+                <Icon name="flame" className="h-3 w-3" />
+                Bugün tekrar yap
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold text-ink-muted">

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ArtPicker } from "./art-picker";
 import { IconPicker } from "./icon-picker";
 import { QuizEditor, type EditorQuestion } from "./quiz-editor";
 import {
@@ -25,6 +26,8 @@ export type TaskFormValues = {
   teamBonusXp: string;
   teamBonusCoin: string;
   icon: string;
+  /** public/task-art/ anahtarı; boş dize = görsel yok. */
+  artKey: string;
   xp: string;
   coin: string;
   startsAt: string;
@@ -51,6 +54,7 @@ export const EMPTY_TASK: TaskFormValues = {
   teamBonusXp: "0",
   teamBonusCoin: "0",
   icon: "list-checks",
+  artKey: "",
   xp: "50",
   coin: "50",
   startsAt: "",
@@ -247,6 +251,13 @@ export function TaskForm({
 
         <div className="sm:col-span-2">
           <IconPicker value={values.icon} onChange={(name) => set("icon", name)} />
+        </div>
+
+        <div className="sm:col-span-2">
+          <ArtPicker
+            value={values.artKey}
+            onChange={(key) => set("artKey", key)}
+          />
         </div>
 
         <Field label="Doğrulama">
