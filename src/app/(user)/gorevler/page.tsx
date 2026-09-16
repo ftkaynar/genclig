@@ -12,6 +12,8 @@ import {
 import { EmptyState } from "@/components/ui/pills";
 import { UserHud } from "@/components/user-hud";
 import { UserBottomNav } from "@/components/user-bottom-nav";
+import { ChainStrip } from "@/components/chains/chain-strip";
+import { listMyChains } from "@/lib/chains/queries";
 import { getSpotlightTaskId } from "@/lib/spotlight/queries";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import { getTeamTaskProgress } from "@/lib/teams/queries";
@@ -73,11 +75,17 @@ export default async function TasksPage({
     .filter((task) => task.scope === "team")
     .map((task) => task.id);
 
-  const [submissions, teamProgress, spotlightId] = await Promise.all([
+  const [submissions, teamProgress, spotlightId, chains] = await Promise.all([
     getSubmissionMap(filtered.map((task) => task.id)),
     getTeamTaskProgress(teamTaskIds),
     // Kurdele için yalnız kimlik yeter; görevin kendisi zaten listede.
     getSpotlightTaskId(),
+    /*
+      Zincirler görev listesinin ÜSTÜNDE: "bunları birlikte yaparsan
+      fazladan kazanırsın" bilgisi, tek tek görevlere bakmadan önce
+      görülmeli. Altta olsaydı kimse o kadar aşağı inmiyordu.
+    */
+    listMyChains(),
   ]);
 
   return (
@@ -113,6 +121,8 @@ export default async function TasksPage({
       </div>
 
       <main className="flex-1 px-4 py-4 has-bottom-nav">
+        <ChainStrip chains={chains} />
+
         {upcoming.length > 0 ? (
           <section className="mb-5">
             <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-indigo">
