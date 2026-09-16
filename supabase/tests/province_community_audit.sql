@@ -169,8 +169,18 @@ begin
   from public.channel_messages where id = v_cross and channel_id = v_ank;
 
   -- ---- 3c: seçilen kanalın listesi ve başlığı B'ye açık.
+  /*
+    Toplam sayı DEĞİL, BU testin iki mesajı aranıyor.
+
+    Önce toplam sayıya bakılıyordu ve kanal boş sanılıyordu;
+    rls_isolation.sql suitinden kalan bir satır İstanbul kanalında
+    duruyordu ve sayı 3 çıkıyordu. Mutlak sayıya bakan bir iddia,
+    testin kendi ürettiğinden başka veriye bağlı kalıyor — aynı sınıf
+    hata D30da da ölçülmüştü.
+  */
   select count(*) into v_listed
-  from public.list_channel_messages_of(v_ist, 100);
+  from public.list_channel_messages_of(v_ist, 100) l
+  where l.id in (v_msg, v_cross);
 
   select ci.province_name into v_info_name
   from public.channel_info(v_ist) ci;
@@ -185,7 +195,7 @@ begin
     case when v_in_ist = 1 and v_in_ank = 0 then 'GECTI'
          else 'HATA: ist=' || v_in_ist || ' ank=' || v_in_ank end);
 
-  insert into t_result values ('3c-liste', 'secili kanal listesi iki mesaj',
+  insert into t_result values ('3c-liste', 'iki mesaj da secili kanal listesinde',
     case when v_listed = 2 then 'GECTI'
          else 'HATA: listelenen=' || v_listed end);
 
