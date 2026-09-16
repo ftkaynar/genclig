@@ -31,6 +31,7 @@ import {
 import { getMyStats } from "@/lib/stats/queries";
 import { listFriends } from "@/lib/social/queries";
 import { listMyReports } from "@/lib/problems/queries";
+import { ACCENT_CHIP, ACCENT_EDGE, accentFor } from "@/lib/ui/accents";
 
 export const metadata = {
   title: "Profil — GençLİG",
@@ -413,20 +414,25 @@ function ProfileLink({
   icon: string;
   label: string;
 }) {
-  return (
-    /*
-      ÖNCEKİ DURUM: gri ikon + gri metin, ince kenar. Altı kutucuk
-      da pasif görünüyordu ve tıklanabilir oldukları ancak imleç
-      üstüne gelince anlaşılıyordu.
+  /*
+    D31: gri ikon + gri metin yerine renkli chip — altı kutucuk da
+    pasif görünüyordu ve tıklanabilir oldukları ancak imleç üstüne
+    gelince anlaşılıyordu.
 
-      Şimdi ikon gradyan chip'te ve metin tam kontrastta; dokunma
-      alanı 40px'in üstünde.
-    */
+    D32 FAZ B2: chip artık HEPSİNDE aynı mor gradyan değil, hedefin
+    kendi rengi. Altı kutucuk aynı renk olunca ızgara tek bir blok
+    gibi okunuyordu ve göz aradığını ancak metni okuyarak buluyordu.
+  */
+  const accent = accentFor(href);
+
+  return (
     <Link
       href={href}
-      className="press-soft flex min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-xl border border-edge bg-card px-2 py-2.5 text-center hover:border-primary/60"
+      className={`press-soft flex min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-xl border border-edge bg-card px-2 py-2.5 text-center ${ACCENT_EDGE[accent]}`}
     >
-      <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg text-white">
+      <span
+        className={`flex h-8 w-8 items-center justify-center rounded-lg ${ACCENT_CHIP[accent]}`}
+      >
         <Icon name={icon} className="h-4 w-4" />
       </span>
       <span className="text-[11px] font-semibold text-ink">{label}</span>

@@ -165,6 +165,7 @@
   50% {
     box-shadow: 0 0 28px 6px rgb(34 211 238 / 0.35);
   }
+}
 
 /*
   Yükleme iskeleti.
@@ -190,8 +191,6 @@
   );
   background-size: 200% 100%;
   animation: genclig-shimmer 1.4s linear infinite;
-}
-
 }
 
 @utility anim-pop {
@@ -1471,4 +1470,85 @@
   50% {
     box-shadow: 0 0 0 4px rgb(242 183 5 / 0);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Kimlik butonları (D32 FAZ B2)
+
+   Her biri .btn-primary ile aynı reçete: gradyan + üstte iç parlak hat +
+   altta kendi renginde gölge. Renkli gölge şart — nötr siyah gölge tüm
+   varyantları aynı aileye çekiyor ve kimlik rengi yalnızca dolguda
+   kalıyordu.
+
+   Tek CSS değişkeniyle parametrik bir .btn-accent denendi ve elendi:
+   Tailwind sınıfları derleme anında taranıyor, çalışma anında atanan bir
+   --accent değeri hiçbir utility üretmiyordu ve her varyant yine elle
+   yazılmak zorunda kalıyordu. Beş açık blok, gizli bir dolaylılıktan
+   okunaklı.
+   --------------------------------------------------------------------------- */
+
+.btn-cyan {
+  background-image: linear-gradient(135deg, #22d3ee, #0891b2);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    0 6px 16px rgb(8 145 178 / 0.45);
+}
+
+.btn-cyan:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 8px 22px rgb(8 145 178 / 0.55);
+}
+
+.btn-magenta {
+  background-image: linear-gradient(135deg, #ec4899, #be185d);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    0 6px 16px rgb(190 24 93 / 0.45);
+}
+
+.btn-magenta:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    0 8px 22px rgb(190 24 93 / 0.55);
+}
+
+.btn-emerald {
+  background-image: linear-gradient(135deg, #22c55e, #15803d);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    0 6px 16px rgb(21 128 61 / 0.45);
+}
+
+.btn-emerald:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    0 8px 22px rgb(21 128 61 / 0.55);
+}
+
+.btn-indigo {
+  background-image: linear-gradient(135deg, #6366f1, #4338ca);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    0 6px 16px rgb(67 56 202 / 0.45);
+}
+
+.btn-indigo:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    0 8px 22px rgb(67 56 202 / 0.55);
+}
+
+/* Basınca hepsinde aynı çöküş: gölge küçülüyor, yükseklik düşüyor. */
+.btn-cyan:active:not(:disabled),
+.btn-magenta:active:not(:disabled),
+.btn-emerald:active:not(:disabled),
+.btn-indigo:active:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 3px 9px rgb(0 0 0 / 0.35);
 }

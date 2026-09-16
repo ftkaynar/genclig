@@ -9,6 +9,7 @@ import {
   settleLeaderboardRewards,
 } from "@/lib/leaderboard/rewards";
 import { ScopeTabs } from "@/components/leaderboard/scope-tabs";
+import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
@@ -112,12 +113,9 @@ export default async function LeaderboardPage({
               title="Bu kategoride henüz sıralama yok"
               description="Bir takım kur ya da kodla katıl, takım görevlerinde puan toplayın."
               action={
-                <Link
-                  href="/takim"
-                  className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
-                >
+                <ButtonLink href="/takim" variant="primary" icon="shield">
                   Takımıma git
-                </Link>
+                </ButtonLink>
               }
             />
           ) : (

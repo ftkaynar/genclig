@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
+import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/pills";
 import { relativeTime } from "@/lib/notifications/queries";
 import {
@@ -35,12 +35,9 @@ export default async function MyCouponsPage() {
             title="Henüz kuponun yok"
             description="Token biriktir, ödül havuzundan kupon al."
             action={
-              <Link
-                href="/oduller"
-                className="inline-block rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
-              >
+              <ButtonLink href="/oduller" variant="gold" icon="gift">
                 Ödül havuzuna git
-              </Link>
+              </ButtonLink>
             }
           />
         ) : (

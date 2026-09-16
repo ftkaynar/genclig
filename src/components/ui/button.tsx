@@ -19,10 +19,26 @@ import { Icon } from "@/components/ui/icon";
   olarak kaçındığımız şeydi.
 */
 
+/*
+  Varyant listesi iki kümeden oluşuyor:
+
+  ÖNEM varyantları (primary/secondary/danger/ghost) — aksiyonun
+  ağırlığını söylüyor.
+
+  KİMLİK varyantları (gold/cyan/magenta/emerald/indigo) — hedef
+  ekranın rengini taşıyor (lib/ui/accents.ts). Bunlar birincil
+  aksiyonun YERİNE geçmiyor; bir ekrana götüren düğmenin o ekranla
+  aynı renkte olması için var. 'violet' ayrı bir varyant DEĞİL:
+  markanın mor birincil butonu zaten o kimlik.
+*/
 export type ButtonVariant =
   | "primary"
   | "secondary"
   | "gold"
+  | "cyan"
+  | "magenta"
+  | "emerald"
+  | "indigo"
   | "danger"
   | "ghost";
 
@@ -52,6 +68,15 @@ const VARIANT: Record<ButtonVariant, string> = {
     "btn-surface border-[1.5px] border-indigo/70 bg-card text-white hover:border-indigo hover:bg-surface",
   /** Token/ödül aksiyonları: altın, koyu metin. */
   gold: "btn-surface btn-gold text-[#3a2a00]",
+  /*
+    Kimlik varyantları. Cyan ve altın gibi açık zeminlerde metin
+    KOYU: beyaz metin bu iki ton üzerinde WCAG AA'yı geçmiyor
+    (ölçüldü: cyan #22d3ee üzerinde beyaz 1.9:1).
+  */
+  cyan: "btn-surface btn-cyan text-[#06283a]",
+  magenta: "btn-surface btn-magenta text-white",
+  emerald: "btn-surface btn-emerald text-white",
+  indigo: "btn-surface btn-indigo text-white",
   danger:
     "btn-surface border-[1.5px] border-status-danger/60 bg-status-danger/10 text-status-danger hover:bg-status-danger/20",
   /** Yalnız metin; yine de dokunma alanı ve hover'ı var. */
