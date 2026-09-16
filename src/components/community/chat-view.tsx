@@ -137,6 +137,20 @@ export function ChatView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/*
+        Kanalın kapsamı açıkça yazılı. D29'da topluluk ilçeden İL'e
+        geçti; kullanıcının "bu sohbeti kim görüyor" sorusunu
+        tahmin etmesi gerekmemeli — çocuk güvenliğinde kapsamın
+        belirsiz olması başlı başına bir risk.
+      */}
+      <p className="mx-4 mt-3 flex items-center gap-1.5 rounded-xl border border-edge bg-card px-3.5 py-2 text-[11px] text-ink-muted">
+        <Icon name="globe" className="h-3.5 w-3.5 shrink-0 text-primary" />
+        <span>
+          Bu sohbet <strong className="text-ink">{channel.district_name}</strong>
+          &apos;deki tüm GençLİG kullanıcılarına açık.
+        </span>
+      </p>
+
+      {/*
         18 yaş altı güvenlik şeridi. Kapatılamıyor: kapatılabilir bir
         uyarı ilk gün kapatılır ve bir daha görünmez.
       */}

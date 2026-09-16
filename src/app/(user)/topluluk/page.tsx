@@ -44,7 +44,7 @@ export default async function CommunityPage() {
     getViewerProfile(),
   ]);
 
-  // İlçesi olmayan kullanıcı hangi kanala gireceğini bilemiyor.
+  // İli olmayan kullanıcı hangi kanala gireceğini bilemiyor.
   if (!channel) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
@@ -52,8 +52,8 @@ export default async function CommunityPage() {
         <main className="flex-1 px-4 py-4">
           <EmptyState
             icon="users"
-            title="Önce ilçeni ayarla"
-            description="Topluluk sohbeti ilçene göre açılıyor. Ayarlardan ilçeni seçtiğinde kanalın hazır olacak."
+            title="Önce ilini ayarla"
+            description="Topluluk sohbeti iline göre açılıyor. Ayarlardan ilini seçtiğinde kanalın hazır olacak."
             action={
               <Link
                 href="/ayarlar"

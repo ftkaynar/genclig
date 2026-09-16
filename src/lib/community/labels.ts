@@ -21,6 +21,14 @@ export type ChannelMessage = {
 export type MyChannel = {
   channel_id: string;
   name: string;
+  /**
+   * İL adı.
+   *
+   * Alan adı `district_name` kaldı çünkü `my_channel` RPC'sinin OUT
+   * parametre adını değiştirmek dönüş tipini değiştirir ve
+   * `create or replace` bunu yapamıyor (M26'da ölçüldü). D29'da
+   * topluluk ilçeden İL'e taşındı; bu alan artık il adı taşıyor.
+   */
   district_name: string;
   muted_until: string | null;
 };
