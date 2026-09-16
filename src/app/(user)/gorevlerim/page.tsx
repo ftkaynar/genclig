@@ -4,7 +4,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Icon } from "@/components/ui/icon";
-import { CoinPill, EmptyState, IconBadge, XpPill } from "@/components/ui/pills";
+import { EmptyState, IconBadge } from "@/components/ui/pills";
+import { TaskReward } from "@/components/ui/task-reward";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { getViewerUser } from "@/lib/auth/viewer";
@@ -143,10 +144,12 @@ export default async function MySubmissionsPage({
                       </span>
 
                       {row.status === "approved" ? (
-                        <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <XpPill value={row.xp} />
-                          <CoinPill value={row.coin} />
-                        </span>
+                        <TaskReward
+                          xp={row.xp}
+                          coin={row.coin}
+                          size="md"
+                          className="mt-1.5"
+                        />
                       ) : null}
                     </span>
 

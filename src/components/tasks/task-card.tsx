@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { Countdown } from "./countdown";
 import { Icon } from "@/components/ui/icon";
-import { CoinPill, IconBadge, XpPill } from "@/components/ui/pills";
+import { IconBadge } from "@/components/ui/pills";
+import { TaskReward } from "@/components/ui/task-reward";
 import {
   CATEGORY_TONE,
   CATEGORY_TONE_FALLBACK,
@@ -33,13 +34,14 @@ export function RewardBadges({
   coin: number;
   spotlight?: boolean;
 }) {
+  /*
+    D34 FAZ XP: detay sayfası da listelerle AYNI hapları kullanıyor.
+    Önceden burada soluk kenarlı XpPill/CoinPill vardı, listelerde ise
+    dolgun haplar — aynı görev iki ekranda iki ayrı ağırlıkta
+    görünüyordu.
+  */
   if (!spotlight) {
-    return (
-      <div className="flex items-center gap-2">
-        <XpPill value={xp} />
-        <CoinPill value={coin} />
-      </div>
-    );
+    return <TaskReward xp={xp} coin={coin} size="lg" />;
   }
 
   return (
@@ -48,16 +50,13 @@ export function RewardBadges({
         <Icon name="star" className="h-3 w-3" />
         GÜNÜN GÖREVİ · 2X ÖDÜL
       </span>
-      <span className="flex items-center gap-2">
-        <XpPill value={xp * 2} />
-        <CoinPill value={coin * 2} />
-      </span>
-      <span className="text-[11px] text-ink-muted">
-        normal:{" "}
-        <s>
-          +{xp} XP • +{coin} Token
-        </s>
-      </span>
+      <TaskReward
+        xp={xp * 2}
+        coin={coin * 2}
+        strikeXp={xp}
+        strikeCoin={coin}
+        size="lg"
+      />
     </div>
   );
 }
@@ -205,8 +204,7 @@ export function TaskCard({
           {/* Ödül hapları sağda dikey: kartın sağ kenarı bir "fiyat
               etiketi" sütunu gibi okunuyor, göz tek yerde tarıyor. */}
           <span className="flex shrink-0 flex-col items-end justify-center gap-1.5">
-            <XpPill value={task.xp} />
-            <CoinPill value={task.coin} unit={false} />
+            <TaskReward xp={task.xp} coin={task.coin} size="md" />
             <Icon
               name="chevron-right"
               className="mt-1 h-4 w-4 text-ink-muted transition-transform group-hover:translate-x-0.5"

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Countdown } from "@/components/tasks/countdown";
 import { taskIconName } from "@/components/tasks/task-card";
 import { Icon } from "@/components/ui/icon";
-import { CoinPill, XpPill } from "@/components/ui/pills";
+import { TaskReward } from "@/components/ui/task-reward";
 import type { TaskRow } from "@/lib/tasks/queries";
 
 /**
@@ -32,10 +32,12 @@ export function FeaturedTask({ task }: { task: TaskRow }) {
             <span className="line-clamp-2 text-sm font-bold leading-snug text-ink">
               {task.title}
             </span>
-            <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <XpPill value={task.xp} />
-              <CoinPill value={task.coin} />
-            </span>
+            <TaskReward
+              xp={task.xp}
+              coin={task.coin}
+              size="md"
+              className="mt-1.5"
+            />
             {task.ends_at ? (
               <span className="mt-1.5 block text-[11px] font-semibold text-status-warning">
                 <Countdown
