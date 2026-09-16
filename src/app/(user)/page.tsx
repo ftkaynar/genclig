@@ -7,6 +7,7 @@ import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
 import { SpotlightBand } from "@/components/home/spotlight-band";
 import { QuickAccess } from "@/components/home/quick-access";
+import { ReportCta } from "@/components/home/report-cta";
 import { RankCard } from "@/components/home/rank-card";
 import { Arrival } from "@/components/game/arrival";
 import { BalanceSummary } from "@/components/points/balance-summary";
@@ -360,23 +361,7 @@ export default async function UserHomePage() {
           görünmüyordu; oysa "şehrin için bildir" uygulamanın sivil
           amacının merkezinde.
         */}
-        <Link
-          href="/bildir"
-          className="press-soft brand-gradient mt-4 flex items-center gap-3 rounded-2xl p-4 text-white shadow-lg"
-        >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20">
-            <Icon name="megaphone" className="h-6 w-6" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-base font-bold">
-              Şehrin için bildir
-            </span>
-            <span className="block text-[12px] text-white/85">
-              Sorun, öneri ya da proje · +25 XP • +10 Token
-            </span>
-          </span>
-          <Icon name="chevron-right" className="h-5 w-5 shrink-0" />
-        </Link>
+        <ReportCta className="mt-4" />
 
 
         {notifications.length > 0 ? (

@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/pills";
 import { UserHud } from "@/components/user-hud";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { ChainStrip } from "@/components/chains/chain-strip";
+import { ReportCta } from "@/components/home/report-cta";
 import { listMyChains } from "@/lib/chains/queries";
 import { getSpotlightTaskId } from "@/lib/spotlight/queries";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
@@ -118,6 +119,21 @@ export default async function TasksPage({
           activeTab={activeTab}
           activeScope={activeScope}
         />
+      </div>
+
+      {/*
+        Bildir çağrısı filtrelerin HEMEN ALTINDA (D34 FAZ BD).
+
+        "Yapacak iş" arayan kullanıcı buraya geliyor ama listede yalnız
+        yayınlanmış görevler var. Bildirmek de bir katkı ve aynı ödül
+        ekonomisine bağlı; ayrı bir ekranda saklı kalması, sivil amacın
+        en görünür yerde olmaması demekti.
+
+        Ana sayfadakiyle AYNI bileşen: iki kopya tutmak, metin ya da
+        ödül değişince birinin geride kalması demekti.
+      */}
+      <div className="mt-3 px-4">
+        <ReportCta />
       </div>
 
       <main className="flex-1 px-4 py-4 has-bottom-nav">
