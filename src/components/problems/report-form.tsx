@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 
 import { submitReportAction } from "@/lib/problems/actions";
@@ -260,14 +261,9 @@ export function ReportForm({
       <div className="rounded-xl border border-edge bg-surface p-3.5">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-ink">Konum</span>
-          <button
-            type="button"
-            onClick={captureLocation}
-            disabled={busy}
-            className="rounded-full border border-edge bg-card px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-ink disabled:opacity-60"
-          >
+          <Button variant="secondary" size="sm" type="button" onClick={captureLocation} disabled={busy}>
             Konumumu kullan
-          </button>
+          </Button>
         </div>
 
         {coords ? (

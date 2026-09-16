@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -102,18 +103,9 @@ export function QuizRunner({
                 Görevlere dön
               </Link>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setResult(null);
-                  setAnswers({});
-                  setIndex(0);
-                  setStarted(true);
-                }}
-                className="btn-chunky bg-cta flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
-              >
+              <Button variant="primary" size="md" type="button" onClick={() => { setResult(null); setAnswers({}); setIndex(0); setStarted(true); }}>
                 Tekrar dene
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -124,13 +116,9 @@ export function QuizRunner({
   // ------------------------------------------------------------ başlangıç
   if (!started) {
     return (
-      <button
-        type="button"
-        onClick={() => setStarted(true)}
-        className="btn-chunky bg-cta mt-4 w-full rounded-full px-4 py-3 text-sm font-bold uppercase tracking-wide text-white"
-      >
+      <Button variant="primary" size="md" block type="button" onClick={() => setStarted(true)}>
         Testi çöz · {questions.length} soru
-      </button>
+      </Button>
     );
   }
 
@@ -218,13 +206,9 @@ export function QuizRunner({
 
       <div className="mt-4 flex gap-2">
         {index > 0 ? (
-          <button
-            type="button"
-            onClick={() => setIndex(index - 1)}
-            className="rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-          >
+          <Button variant="secondary" size="md" type="button" onClick={() => setIndex(index - 1)}>
             Geri
-          </button>
+          </Button>
         ) : null}
 
         {isLast ? (
@@ -241,14 +225,9 @@ export function QuizRunner({
                 : "Tüm soruları yanıtla"}
           </button>
         ) : (
-          <button
-            type="button"
-            disabled={!selected}
-            onClick={() => setIndex(index + 1)}
-            className="btn-chunky bg-cta flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-          >
+          <Button variant="primary" size="md" type="button" disabled={!selected} onClick={() => setIndex(index + 1)}>
             Sonraki soru
-          </button>
+          </Button>
         )}
       </div>
     </div>

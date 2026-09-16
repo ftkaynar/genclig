@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -127,7 +128,7 @@ export function SupportView({
             setReply("");
             setMessage(null);
           }}
-          className="flex items-center gap-1 text-sm font-medium text-ink-muted"
+          className="press-soft inline-flex min-h-[40px] items-center gap-1 rounded-[14px] px-3 text-sm font-semibold text-ink-muted hover:text-ink"
         >
           <Icon name="chevron-right" className="h-4 w-4 rotate-180" />
           Taleplerime dön
@@ -181,39 +182,12 @@ export function SupportView({
               className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-muted focus:border-primary"
             />
             <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                disabled={pending}
-                onClick={async () => {
-                  const ok = await run(() =>
-                    replyTicketAction(thread.ticket.id, reply),
-                  );
-                  if (ok) {
-                    setReply("");
-                    setThread(null);
-                    router.refresh();
-                  }
-                }}
-                className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-              >
+              <Button variant="primary" size="md" type="button" disabled={pending} onClick={async () => { const ok = await run(() => replyTicketAction(thread.ticket.id, reply), ); if (ok) { setReply(""); setThread(null); router.refresh(); } }}>
                 Gönder
-              </button>
-              <button
-                type="button"
-                disabled={pending}
-                onClick={async () => {
-                  const ok = await run(() =>
-                    closeTicketAction(thread.ticket.id),
-                  );
-                  if (ok) {
-                    setThread(null);
-                    router.refresh();
-                  }
-                }}
-                className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted disabled:opacity-60"
-              >
+              </Button>
+              <Button variant="secondary" size="md" type="button" disabled={pending} onClick={async () => { const ok = await run(() => closeTicketAction(thread.ticket.id), ); if (ok) { setThread(null); router.refresh(); } }}>
                 Talebi kapat
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -320,41 +294,18 @@ export function SupportView({
                 />
               </label>
               <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={async () => {
-                    const ok = await run(() =>
-                      createTicketAction(subject, body),
-                    );
-                    if (ok) {
-                      setSubject("");
-                      setBody("");
-                      setComposing(false);
-                      router.refresh();
-                    }
-                  }}
-                  className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-                >
+                <Button variant="primary" size="md" type="button" disabled={pending} onClick={async () => { const ok = await run(() => createTicketAction(subject, body), ); if (ok) { setSubject(""); setBody(""); setComposing(false); router.refresh(); } }}>
                   Gönder
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setComposing(false)}
-                  className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-                >
+                </Button>
+                <Button variant="secondary" size="md" type="button" onClick={() => setComposing(false)}>
                   Vazgeç
-                </button>
+                </Button>
               </div>
             </section>
           ) : (
-            <button
-              type="button"
-              onClick={() => setComposing(true)}
-              className="w-full rounded-full btn-chunky bg-cta px-5 py-3 text-sm font-semibold text-white"
-            >
+            <Button variant="primary" size="md" block type="button" onClick={() => setComposing(true)}>
               Yeni talep aç
-            </button>
+            </Button>
           )}
 
           {tickets.length === 0 ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -133,20 +134,12 @@ export function TeamView({
             description="Takım görevlerinde eşiği birlikte doldurun, bonus herkese yazılsın."
             action={
               <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMode("create")}
-                  className="rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
-                >
+                <Button variant="primary" size="md" type="button" onClick={() => setMode("create")}>
                   Takım kur
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("join")}
-                  className="rounded-full border border-edge px-5 py-2.5 text-sm font-medium text-ink"
-                >
+                </Button>
+                <Button variant="secondary" size="md" type="button" onClick={() => setMode("join")}>
                   Kodla katıl
-                </button>
+                </Button>
               </div>
             }
           />
@@ -192,21 +185,12 @@ export function TeamView({
             </ul>
 
             <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => run(() => createTeamAction(name, icon))}
-                className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-              >
+              <Button variant="primary" size="md" type="button" disabled={pending} onClick={() => run(() => createTeamAction(name, icon))}>
                 Kur
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("none")}
-                className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-              >
+              </Button>
+              <Button variant="secondary" size="md" type="button" onClick={() => setMode("none")}>
                 Vazgeç
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -227,21 +211,12 @@ export function TeamView({
             />
 
             <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => run(() => joinTeamAction(code))}
-                className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-              >
+              <Button variant="primary" size="md" type="button" disabled={pending} onClick={() => run(() => joinTeamAction(code))}>
                 Katıl
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("none")}
-                className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-              >
+              </Button>
+              <Button variant="secondary" size="md" type="button" onClick={() => setMode("none")}>
                 Vazgeç
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -334,24 +309,12 @@ export function TeamView({
 
               {isCaptain && member.role !== "captain" ? (
                 <div className="mt-2.5 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() =>
-                      run(() => transferCaptainAction(member.user_id))
-                    }
-                    className="flex-1 rounded-full border border-edge px-3 py-1.5 text-xs font-medium text-ink-muted disabled:opacity-60"
-                  >
+                  <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => run(() => transferCaptainAction(member.user_id)) }>
                     Kaptanlığı devret
-                  </button>
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => run(() => kickMemberAction(member.user_id))}
-                    className="flex-1 rounded-full border border-status-danger/50 px-3 py-1.5 text-xs font-medium text-status-danger disabled:opacity-60"
-                  >
+                  </Button>
+                  <Button variant="danger" size="sm" type="button" disabled={pending} onClick={() => run(() => kickMemberAction(member.user_id))}>
                     Çıkar
-                  </button>
+                  </Button>
                 </div>
               ) : null}
             </li>
@@ -359,14 +322,9 @@ export function TeamView({
         </ul>
       </section>
 
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => run(() => leaveTeamAction())}
-        className="mt-6 w-full rounded-full border border-status-danger/50 px-4 py-2.5 text-sm font-medium text-status-danger disabled:opacity-60"
-      >
+      <Button variant="danger" size="md" block type="button" disabled={pending} onClick={() => run(() => leaveTeamAction())}>
         Takımdan ayrıl
-      </button>
+      </Button>
 
       {isCaptain && team.member_count > 1 ? (
         <p className="mt-2 text-center text-[11px] text-ink-muted">

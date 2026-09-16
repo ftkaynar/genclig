@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
 
 import { Icon } from "@/components/ui/icon";
 import { updateRewardSettingAction } from "@/lib/leaderboard/reward-actions";
@@ -132,17 +133,12 @@ export function RewardSettingsTable({ rows }: { rows: RewardSetting[] }) {
                     />
                   </td>
                   <td className="px-3.5 py-2.5 text-right">
-                    <button
-                      type="button"
-                      onClick={() => save(row.id)}
-                      disabled={!changed || pending}
-                      className="btn-chunky bg-cta rounded-full px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-40"
-                    >
+                    <Button variant="primary" size="sm" type="button" onClick={() => save(row.id)} disabled={!changed || pending}>
                       <span className="inline-flex items-center gap-1">
                         <Icon name="check" className="h-3 w-3" />
                         Kaydet
                       </span>
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               );

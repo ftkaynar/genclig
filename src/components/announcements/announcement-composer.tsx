@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { sendAnnouncementAction } from "@/lib/announcements/actions";
@@ -177,23 +178,15 @@ export function AnnouncementComposer({
             >
               {pending ? "Gönderiliyor..." : "Gönder"}
             </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded-full border border-edge px-5 py-2.5 text-sm font-medium text-ink-muted"
-            >
+            <Button variant="secondary" size="md" type="button" onClick={() => setOpen(false)}>
               Vazgeç
-            </button>
+            </Button>
           </div>
         </section>
       ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="btn-chunky bg-cta mb-4 rounded-full px-5 py-2.5 text-sm font-semibold text-white"
-        >
+        <Button variant="primary" size="md" type="button" onClick={() => setOpen(true)}>
           Yeni duyuru
-        </button>
+        </Button>
       )}
 
       {announcements.length === 0 ? (

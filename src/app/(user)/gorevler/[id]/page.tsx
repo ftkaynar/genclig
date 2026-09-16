@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 
 import { Countdown } from "@/components/tasks/countdown";
@@ -201,13 +202,9 @@ export default async function TaskDetailPage({
               (push/planlanmış bildirim) borçta. Aktifmiş gibi göstermek,
               kullanıcıya tutulmayacak bir söz vermek olurdu.
             */}
-            <button
-              type="button"
-              disabled
-              className="mt-3 w-full cursor-not-allowed rounded-full border border-edge px-4 py-2 text-xs font-medium text-ink-muted opacity-60"
-            >
+            <Button variant="secondary" size="sm" block type="button" disabled>
               Hatırlat (yakında)
-            </button>
+            </Button>
           </div>
         ) : task.ends_at ? (
           <p className="mt-3 text-sm font-semibold text-status-warning">
@@ -279,13 +276,9 @@ export default async function TaskDetailPage({
               aldırmak demekti.
             */
             task.timeState === "upcoming" ? (
-              <button
-                type="button"
-                disabled
-                className="w-full cursor-not-allowed rounded-full border border-edge px-6 py-3 text-center text-base font-semibold text-ink-muted opacity-60"
-              >
+              <Button variant="secondary" size="lg" block type="button" disabled>
                 Başlamadı
-              </button>
+              </Button>
             ) : hasOpenSubmission ? (
               <p className="rounded-xl border border-edge bg-card px-3.5 py-3 text-center text-sm text-ink-muted">
                 {submission?.status === "approved"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import type { AdminActionState } from "@/lib/panel/admin-actions";
@@ -160,13 +161,9 @@ export function InlineEditor({
         >
           {pending ? "Kaydediliyor..." : submitLabel}
         </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="flex-1 rounded-full border border-edge px-4 py-2 text-sm font-medium text-ink-muted"
-        >
+        <Button variant="secondary" size="md" type="button" onClick={() => setOpen(false)}>
           Kapat
-        </button>
+        </Button>
       </div>
     </div>
   );

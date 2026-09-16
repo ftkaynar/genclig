@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
@@ -198,26 +199,13 @@ export function ChatView({
 
             <div className="mt-5 flex gap-2">
               {!card.is_friend && card.request_status === "none" ? (
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    run(() => sendFriendRequestAction(card.username)).then(() =>
-                      setCard(null),
-                    )
-                  }
-                  className="btn-chunky bg-cta flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-                >
+                <Button variant="primary" size="md" type="button" disabled={pending} onClick={() => run(() => sendFriendRequestAction(card.username)).then(() => setCard(null), ) }>
                   Arkadaş ekle
-                </button>
+                </Button>
               ) : null}
-              <button
-                type="button"
-                onClick={() => setCard(null)}
-                className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-              >
+              <Button variant="secondary" size="md" type="button" onClick={() => setCard(null)}>
                 Kapat
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -295,37 +283,18 @@ export function ChatView({
                     {menuFor === message.id ? (
                       <span className="flex gap-2">
                         {message.is_mine ? (
-                          <button
-                            type="button"
-                            disabled={pending}
-                            onClick={() =>
-                              run(() => deleteOwnMessageAction(message.id))
-                            }
-                            className="text-[10px] font-semibold text-status-danger"
-                          >
+                          <Button variant="danger" size="sm" type="button" disabled={pending} onClick={() => run(() => deleteOwnMessageAction(message.id)) }>
                             Sil
-                          </button>
+                          </Button>
                         ) : (
-                          <button
-                            type="button"
-                            disabled={pending}
-                            onClick={() =>
-                              run(() =>
-                                reportMessageAction(
-                                  message.id,
-                                  "Uygunsuz içerik",
-                                ),
-                              )
-                            }
-                            className="text-[10px] font-semibold text-status-danger"
-                          >
+                          <Button variant="danger" size="sm" type="button" disabled={pending} onClick={() => run(() => reportMessageAction( message.id, "Uygunsuz içerik", ), ) }>
                             Rapor et
-                          </button>
+                          </Button>
                         )}
                         <button
                           type="button"
                           onClick={() => setMenuFor(null)}
-                          className="text-[10px] font-medium text-ink-muted"
+                          className="press-soft min-h-[40px] rounded-[14px] px-2.5 text-[11px] font-semibold text-ink-muted hover:text-ink"
                         >
                           Vazgeç
                         </button>

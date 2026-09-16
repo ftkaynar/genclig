@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 import { Icon } from "@/components/ui/icon";
 import { badgeTone } from "@/lib/profile/badge-tones";
@@ -209,13 +210,9 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
               </p>
             ) : null}
 
-            <button
-              type="button"
-              onClick={() => setOpen(null)}
-              className="mt-5 w-full rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-            >
+            <Button variant="secondary" size="md" block type="button" onClick={() => setOpen(null)}>
               Kapat
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

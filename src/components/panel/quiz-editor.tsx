@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 import { Icon } from "@/components/ui/icon";
 
@@ -206,24 +207,16 @@ export function QuizEditor({
               ))}
             </ul>
 
-            <button
-              type="button"
-              onClick={() => addOption(index)}
-              className="mt-2 rounded-full border border-edge px-3 py-1 text-[11px] font-medium text-ink-muted"
-            >
+            <Button variant="secondary" size="sm" type="button" onClick={() => addOption(index)}>
               Şık ekle
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
 
-      <button
-        type="button"
-        onClick={addQuestion}
-        className="btn-chunky bg-cta mt-3 rounded-full px-4 py-2 text-xs font-semibold text-white"
-      >
+      <Button variant="primary" size="sm" type="button" onClick={addQuestion}>
         Soru ekle
-      </button>
+      </Button>
     </div>
   );
 }

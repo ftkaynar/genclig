@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { setUserRoleAction } from "@/lib/panel/admin-actions";
@@ -54,13 +55,9 @@ export function RoleManager({
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="mt-2.5 rounded-full border border-edge px-3 py-1 text-[11px] font-medium text-ink-muted hover:text-ink"
-      >
+      <Button variant="secondary" size="sm" type="button" onClick={() => setOpen(true)}>
         Rol yönet
-      </button>
+      </Button>
     );
   }
 
@@ -98,29 +95,15 @@ export function RoleManager({
           </select>
         ) : null}
 
-        <button
-          type="button"
-          onClick={() => run(true)}
-          disabled={pending}
-          className="rounded-full btn-chunky bg-cta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-        >
+        <Button variant="primary" size="sm" type="button" onClick={() => run(true)} disabled={pending}>
           Ver
-        </button>
-        <button
-          type="button"
-          onClick={() => run(false)}
-          disabled={pending}
-          className="rounded-full border border-status-danger/50 px-3 py-1.5 text-xs font-medium text-status-danger disabled:opacity-60"
-        >
+        </Button>
+        <Button variant="danger" size="sm" type="button" onClick={() => run(false)} disabled={pending}>
           Al
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="rounded-full border border-edge px-3 py-1.5 text-xs text-ink-muted"
-        >
+        </Button>
+        <Button variant="secondary" size="sm" type="button" onClick={() => setOpen(false)}>
           Kapat
-        </button>
+        </Button>
       </div>
     </div>
   );

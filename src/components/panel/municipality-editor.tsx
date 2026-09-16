@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 import { upsertMunicipalityAction } from "@/lib/panel/admin-actions";
@@ -82,13 +83,9 @@ export function MunicipalityEditor({
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white"
-      >
+      <Button variant="primary" size="md" type="button" onClick={() => setOpen(true)}>
         Yeni belediye
-      </button>
+      </Button>
     );
   }
 
@@ -185,13 +182,9 @@ export function MunicipalityEditor({
         >
           {pending ? "Kaydediliyor..." : "Kaydet"}
         </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="rounded-full border border-edge px-4 py-2 text-sm font-medium text-ink-muted"
-        >
+        <Button variant="secondary" size="md" type="button" onClick={() => setOpen(false)}>
           Kapat
-        </button>
+        </Button>
       </div>
     </div>
   );

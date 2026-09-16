@@ -1,4 +1,5 @@
 import { NoAccess } from "@/components/panel/panel-shell";
+import { Button } from "@/components/ui/button";
 import { AdminShell } from "@/components/panel/admin-shell";
 import { RoleManager } from "@/components/panel/role-manager";
 import { isSuperAdmin } from "@/lib/panel/guard";
@@ -64,12 +65,9 @@ export default async function AdminUsersPage({
           placeholder="Kullanıcı adı ara"
           className="flex-1 rounded-xl border border-edge bg-surface px-3.5 py-2 text-sm text-ink"
         />
-        <button
-          type="submit"
-          className="rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white"
-        >
+        <Button variant="primary" size="md" type="submit">
           Ara
-        </button>
+        </Button>
       </form>
 
       {rows.length === 0 ? (

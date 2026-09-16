@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 import { signOutAction } from "@/lib/auth/actions";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
@@ -76,12 +77,9 @@ export default async function SettingsPage() {
 
         <section className="mt-4">
           <form action={signOutAction}>
-            <button
-              type="submit"
-              className="w-full rounded-full border border-status-danger/50 px-6 py-3 text-base font-semibold text-status-danger transition-colors hover:bg-status-danger/10"
-            >
+            <Button variant="danger" size="lg" block type="submit">
               Çıkış yap
-            </button>
+            </Button>
           </form>
         </section>
       </main>

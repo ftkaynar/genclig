@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { updateLevelAction } from "@/lib/panel/admin-actions";
@@ -40,13 +41,9 @@ export function LevelEditor({
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="shrink-0 rounded-full border border-edge px-2.5 py-1 text-[11px] font-medium text-ink-muted hover:text-ink"
-      >
+      <Button variant="secondary" size="sm" type="button" onClick={() => setOpen(true)}>
         Düzenle
-      </button>
+      </Button>
     );
   }
 
@@ -66,13 +63,9 @@ export function LevelEditor({
       >
         {pending ? "..." : "Kaydet"}
       </button>
-      <button
-        type="button"
-        onClick={() => setOpen(false)}
-        className="rounded-full border border-edge px-2.5 py-1 text-[11px] text-ink-muted"
-      >
+      <Button variant="secondary" size="sm" type="button" onClick={() => setOpen(false)}>
         İptal
-      </button>
+      </Button>
       {error ? (
         <span role="alert" className="text-[10px] text-status-danger">
           {error}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { reviewSubmissionAction } from "@/lib/panel/actions";
@@ -118,21 +119,12 @@ export function ReviewQueue({ items }: { items: ReviewItem[] }) {
                   className="w-full rounded-xl border border-edge bg-surface px-3 py-2 text-sm text-ink"
                 />
                 <div className="mt-2 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => run(item.id, "reject", reason)}
-                    disabled={pendingId === item.id}
-                    className="flex-1 rounded-full bg-status-danger px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-                  >
+                  <Button variant="danger" size="md" type="button" onClick={() => run(item.id, "reject", reason)} disabled={pendingId === item.id}>
                     Reddet
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRejecting(null)}
-                    className="flex-1 rounded-full border border-edge px-4 py-2 text-sm font-medium text-ink-muted"
-                  >
+                  </Button>
+                  <Button variant="secondary" size="md" type="button" onClick={() => setRejecting(null)}>
                     Vazgeç
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -145,14 +137,9 @@ export function ReviewQueue({ items }: { items: ReviewItem[] }) {
                 >
                   {pendingId === item.id ? "..." : "Onayla"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setRejecting(item.id)}
-                  disabled={pendingId === item.id}
-                  className="flex-1 rounded-full border border-status-danger/50 px-4 py-2 text-sm font-medium text-status-danger disabled:opacity-60"
-                >
+                <Button variant="danger" size="md" type="button" onClick={() => setRejecting(item.id)} disabled={pendingId === item.id}>
                   Reddet
-                </button>
+                </Button>
               </div>
             )}
           </li>

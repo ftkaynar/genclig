@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import {
@@ -96,7 +97,7 @@ export function AdminTicketList({ tickets }: { tickets: AdminTicketRow[] }) {
               type="button"
               onClick={() => toggle(ticket.id)}
               aria-expanded={openId === ticket.id}
-              className="flex w-full items-center gap-3 p-3.5 text-left"
+              className="press-soft flex w-full items-center gap-3 rounded-2xl p-3.5 text-left"
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold text-ink">
@@ -155,39 +156,12 @@ export function AdminTicketList({ tickets }: { tickets: AdminTicketRow[] }) {
                       className="mt-3 w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-muted focus:border-primary"
                     />
                     <div className="mt-2 flex gap-2">
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={async () => {
-                          const ok = await run(() =>
-                            replyTicketAction(ticket.id, reply),
-                          );
-                          if (ok) {
-                            setReply("");
-                            setOpenId(null);
-                            router.refresh();
-                          }
-                        }}
-                        className="rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-                      >
+                      <Button variant="primary" size="md" type="button" disabled={pending} onClick={async () => { const ok = await run(() => replyTicketAction(ticket.id, reply), ); if (ok) { setReply(""); setOpenId(null); router.refresh(); } }}>
                         Yanıtla
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={async () => {
-                          const ok = await run(() =>
-                            closeTicketAction(ticket.id),
-                          );
-                          if (ok) {
-                            setOpenId(null);
-                            router.refresh();
-                          }
-                        }}
-                        className="rounded-full border border-edge px-4 py-2 text-sm font-medium text-ink-muted disabled:opacity-60"
-                      >
+                      </Button>
+                      <Button variant="secondary" size="md" type="button" disabled={pending} onClick={async () => { const ok = await run(() => closeTicketAction(ticket.id), ); if (ok) { setOpenId(null); router.refresh(); } }}>
                         Kapat
-                      </button>
+                      </Button>
                     </div>
                   </>
                 )}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -115,14 +116,9 @@ export function RedeemPanel({
             >
               {pending ? "Alınıyor..." : "Evet, al"}
             </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              disabled={pending}
-              className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-            >
+            <Button variant="secondary" size="md" type="button" onClick={() => setConfirming(false)} disabled={pending}>
               Vazgeç
-            </button>
+            </Button>
           </div>
         </div>
       ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { setProblemStatusAction } from "@/lib/panel/actions";
@@ -145,23 +146,15 @@ export function ReportList({ reports }: { reports: PanelReportRow[] }) {
                       {option.label}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => setNoteFor(null)}
-                    className="rounded-full border border-edge px-3 py-1.5 text-xs font-medium text-ink-muted"
-                  >
+                  <Button variant="secondary" size="sm" type="button" onClick={() => setNoteFor(null)}>
                     Vazgeç
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => setNoteFor(report.id)}
-                className="mt-3 rounded-full border border-edge px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:text-ink"
-              >
+              <Button variant="secondary" size="sm" type="button" onClick={() => setNoteFor(report.id)}>
                 Durumu değiştir
-              </button>
+              </Button>
             )}
           </li>
         ))}

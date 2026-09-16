@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -222,42 +223,20 @@ export function FriendsView({
 
             <div className="mt-5 flex gap-2">
               {!card.is_friend && card.request_status === "none" ? (
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    run(() => sendFriendRequestAction(card.username)).then(() =>
-                      setCard(null),
-                    )
-                  }
-                  className="flex-1 rounded-full btn-chunky bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-                >
+                <Button variant="primary" size="md" type="button" disabled={pending} onClick={() => run(() => sendFriendRequestAction(card.username)).then(() => setCard(null), ) }>
                   Arkadaş ekle
-                </button>
+                </Button>
               ) : null}
 
               {card.is_friend ? (
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    run(() => removeFriendAction(card.user_id)).then(() =>
-                      setCard(null),
-                    )
-                  }
-                  className="flex-1 rounded-full border border-status-danger/50 px-4 py-2.5 text-sm font-medium text-status-danger disabled:opacity-60"
-                >
+                <Button variant="danger" size="md" type="button" disabled={pending} onClick={() => run(() => removeFriendAction(card.user_id)).then(() => setCard(null), ) }>
                   Çıkar
-                </button>
+                </Button>
               ) : null}
 
-              <button
-                type="button"
-                onClick={() => setCard(null)}
-                className="flex-1 rounded-full border border-edge px-4 py-2.5 text-sm font-medium text-ink-muted"
-              >
+              <Button variant="secondary" size="md" type="button" onClick={() => setCard(null)}>
                 Kapat
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -271,24 +250,16 @@ export function FriendsView({
               title="Henüz arkadaşın yok"
               description="Kullanıcı adıyla arayıp istek gönderebilirsin."
               action={
-                <button
-                  type="button"
-                  onClick={() => setTab("search")}
-                  className="rounded-full btn-chunky bg-cta px-5 py-2.5 text-sm font-semibold text-white"
-                >
+                <Button variant="primary" size="md" type="button" onClick={() => setTab("search")}>
                   Arkadaş ara
-                </button>
+                </Button>
               }
             />
           ) : (
             <ul className="flex flex-col gap-2.5">
               {friends.map((friend) => (
                 <li key={friend.user_id}>
-                  <button
-                    type="button"
-                    onClick={() => openCard(friend.username)}
-                    className="flex w-full items-center gap-3 rounded-2xl border border-edge bg-card p-3 text-left transition-colors hover:border-primary/60"
-                  >
+                  <Button variant="secondary" size="md" block type="button" onClick={() => openCard(friend.username)}>
                     <Avatar url={friend.avatar_url} name={friend.username} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold text-ink">
@@ -299,7 +270,7 @@ export function FriendsView({
                       </span>
                     </span>
                     <XpPill value={friend.weekly_xp} className="shrink-0" />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -330,26 +301,12 @@ export function FriendsView({
                         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
                           {item.username}
                         </span>
-                        <button
-                          type="button"
-                          disabled={pending}
-                          onClick={() =>
-                            run(() => respondFriendRequestAction(item.id, true))
-                          }
-                          className="rounded-full btn-chunky bg-cta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-                        >
+                        <Button variant="primary" size="sm" type="button" disabled={pending} onClick={() => run(() => respondFriendRequestAction(item.id, true)) }>
                           Kabul
-                        </button>
-                        <button
-                          type="button"
-                          disabled={pending}
-                          onClick={() =>
-                            run(() => respondFriendRequestAction(item.id, false))
-                          }
-                          className="rounded-full border border-edge px-3 py-1.5 text-xs font-medium text-ink-muted disabled:opacity-60"
-                        >
+                        </Button>
+                        <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => run(() => respondFriendRequestAction(item.id, false)) }>
                           Reddet
-                        </button>
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -395,14 +352,9 @@ export function FriendsView({
                   className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
                 />
               </label>
-              <button
-                type="button"
-                onClick={doSearch}
-                disabled={pending}
-                className="shrink-0 rounded-full btn-chunky bg-cta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-              >
+              <Button variant="primary" size="md" type="button" onClick={doSearch} disabled={pending}>
                 Ara
-              </button>
+              </Button>
             </div>
 
             {results === null ? null : results.length === 0 ? (
@@ -413,11 +365,7 @@ export function FriendsView({
               <ul className="mt-4 flex flex-col gap-2.5">
                 {results.map((item) => (
                   <li key={item.user_id}>
-                    <button
-                      type="button"
-                      onClick={() => openCard(item.username)}
-                      className="flex w-full items-center gap-3 rounded-2xl border border-edge bg-card p-3 text-left transition-colors hover:border-primary/60"
-                    >
+                    <Button variant="secondary" size="md" block type="button" onClick={() => openCard(item.username)}>
                       <Avatar url={item.avatar_url} name={item.username} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-ink">
@@ -431,7 +379,7 @@ export function FriendsView({
                         name="chevron-right"
                         className="h-4 w-4 shrink-0 text-ink-muted"
                       />
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>

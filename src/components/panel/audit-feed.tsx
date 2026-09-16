@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 import { Icon } from "@/components/ui/icon";
 import type { AuditRow } from "@/lib/panel/queries";
@@ -302,12 +303,9 @@ export function AuditFilters({
         />
       </label>
 
-      <button
-        type="submit"
-        className="btn-chunky bg-cta rounded-full px-4 py-2 text-xs font-semibold text-white"
-      >
+      <Button variant="primary" size="sm" type="submit">
         Filtrele
-      </button>
+      </Button>
 
       <Link
         href="/admin/denetim"

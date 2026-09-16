@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 import { Icon } from "@/components/ui/icon";
 
@@ -193,13 +194,9 @@ export function Celebration({
           </div>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-6 w-full rounded-full btn-chunky bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
-        >
+        <Button variant="primary" size="lg" block type="button" onClick={onClose}>
           Devam
-        </button>
+        </Button>
       </div>
     </div>
   );

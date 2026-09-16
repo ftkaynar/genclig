@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import {
@@ -42,13 +43,9 @@ export function RewardArchiveButton({ rewardId }: { rewardId: string }) {
 
   if (!confirming) {
     return (
-      <button
-        type="button"
-        onClick={() => setConfirming(true)}
-        className="rounded-full border border-status-danger/50 px-3 py-1 text-[11px] font-medium text-status-danger hover:bg-status-danger/10"
-      >
+      <Button variant="danger" size="sm" type="button" onClick={() => setConfirming(true)}>
         Kaldır
-      </button>
+      </Button>
     );
   }
 
@@ -62,13 +59,9 @@ export function RewardArchiveButton({ rewardId }: { rewardId: string }) {
       >
         {pending ? "..." : "Onayla"}
       </button>
-      <button
-        type="button"
-        onClick={() => setConfirming(false)}
-        className="rounded-full border border-edge px-3 py-1 text-[11px] text-ink-muted"
-      >
+      <Button variant="secondary" size="sm" type="button" onClick={() => setConfirming(false)}>
         Vazgeç
-      </button>
+      </Button>
     </span>
   );
 }

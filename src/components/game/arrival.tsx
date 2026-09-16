@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { Icon } from "@/components/ui/icon";
@@ -214,13 +215,9 @@ export function Arrival({
             </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={() => setClosed(true)}
-            className="btn-chunky bg-cta relative mt-5 w-full rounded-full px-5 py-3 text-base font-bold text-white"
-          >
+          <Button variant="primary" size="lg" block type="button" onClick={() => setClosed(true)}>
             Devam et
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -249,13 +246,9 @@ export function Arrival({
           >
             Rozetlerime bak
           </Link>
-          <button
-            type="button"
-            onClick={() => setClosed(true)}
-            className="mt-2 w-full rounded-full border border-edge px-5 py-2 text-sm text-ink-muted"
-          >
+          <Button variant="secondary" size="md" block type="button" onClick={() => setClosed(true)}>
             Kapat
-          </button>
+          </Button>
         </div>
       </div>
     );

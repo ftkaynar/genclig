@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import {
@@ -106,44 +107,22 @@ export function ModerationQueue({
 
             <div className="mt-3 flex flex-wrap gap-2">
               {row.is_deleted ? (
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => run(() => moderateRestoreAction(row.message_id))}
-                  className="rounded-full border border-edge px-3.5 py-1.5 text-xs font-medium text-ink disabled:opacity-60"
-                >
+                <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => run(() => moderateRestoreAction(row.message_id))}>
                   Geri aç
-                </button>
+                </Button>
               ) : (
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => run(() => moderateDeleteAction(row.message_id))}
-                  className="rounded-full border border-status-danger/50 px-3.5 py-1.5 text-xs font-semibold text-status-danger disabled:opacity-60"
-                >
+                <Button variant="danger" size="sm" type="button" disabled={pending} onClick={() => run(() => moderateDeleteAction(row.message_id))}>
                   Sil
-                </button>
+                </Button>
               )}
 
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() =>
-                  setMuteFor(muteFor === row.message_id ? null : row.message_id)
-                }
-                className="rounded-full border border-edge px-3.5 py-1.5 text-xs font-medium text-ink-muted disabled:opacity-60"
-              >
+              <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => setMuteFor(muteFor === row.message_id ? null : row.message_id) }>
                 Kullanıcıyı sustur
-              </button>
+              </Button>
 
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => run(() => resolveReportAction(row.message_id))}
-                className="rounded-full border border-edge px-3.5 py-1.5 text-xs font-medium text-ink-muted disabled:opacity-60"
-              >
+              <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => run(() => resolveReportAction(row.message_id))}>
                 Raporu kapat
-              </button>
+              </Button>
             </div>
 
             {muteFor === row.message_id ? (
@@ -179,50 +158,17 @@ export function ModerationQueue({
                 />
 
                 <div className="mt-2.5 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() =>
-                      run(() =>
-                        muteUserAction({
-                          userId: row.author_id,
-                          channelId: null,
-                          minutes: muteMinutes,
-                          reason: muteReason,
-                        }),
-                      )
-                    }
-                    className="btn-chunky bg-cta rounded-full px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-                    hidden={!canMuteGlobally}
-                  >
+                  <Button variant="primary" size="sm" type="button" disabled={pending} onClick={() => run(() => muteUserAction({ userId: row.author_id, channelId: null, minutes: muteMinutes, reason: muteReason, }), ) } hidden={!canMuteGlobally}>
                     Tüm kanallarda sustur
-                  </button>
+                  </Button>
 
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() =>
-                      run(() =>
-                        muteUserAction({
-                          userId: row.author_id,
-                          channelId: row.channel_id,
-                          minutes: muteMinutes,
-                          reason: muteReason,
-                        }),
-                      )
-                    }
-                    className="btn-chunky bg-cta rounded-full px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-                  >
+                  <Button variant="primary" size="sm" type="button" disabled={pending} onClick={() => run(() => muteUserAction({ userId: row.author_id, channelId: row.channel_id, minutes: muteMinutes, reason: muteReason, }), ) }>
                     Bu kanalda sustur
-                  </button>
+                  </Button>
 
-                  <button
-                    type="button"
-                    onClick={() => setMuteFor(null)}
-                    className="rounded-full border border-edge px-4 py-1.5 text-xs font-medium text-ink-muted"
-                  >
+                  <Button variant="secondary" size="sm" type="button" onClick={() => setMuteFor(null)}>
                     Vazgeç
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : null}
