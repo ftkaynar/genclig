@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Icon } from "@/components/ui/icon";
 import { redeemRewardAction } from "@/lib/rewards/actions";
 
 /*
@@ -122,28 +121,23 @@ export function RedeemPanel({
           </div>
         </div>
       ) : (
-        <button
+        /*
+          AL butonu gold varyant: Token harcayan aksiyonlar altın.
+          Uygunken ayrıca nefes alıyor (.reward-ready) — ekranın en
+          dikkat çeken öğesi o olmalı.
+        */
+        <Button
+          variant="gold"
+          size="lg"
+          block
           type="button"
           onClick={() => setConfirming(true)}
           disabled={!eligible}
-          className={`btn-chunky w-full rounded-full px-4 py-3.5 text-base font-bold uppercase tracking-wide text-white transition-all disabled:cursor-not-allowed ${
-            eligible
-              ? "reward-ready bg-status-success"
-              : "bg-edge text-ink-muted"
-          }`}
+          icon={eligible ? "gift" : undefined}
+          className={eligible ? "reward-ready" : ""}
         >
-          {eligible ? (
-            <span className="inline-flex items-center gap-2">
-              <Icon name="gift" className="h-5 w-5" />
-              {cost} Token ile al
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-2">
-              <Icon name="lock" className="h-5 w-5" />
-              Şartlar karşılanmadı
-            </span>
-          )}
-        </button>
+          {eligible ? `${cost} Token ile al` : "Şartlar karşılanmadı"}
+        </Button>
       )}
     </>
   );

@@ -956,6 +956,7 @@
   .tile-stagger,
   .anim-stagger,
   .reward-ready,
+  .reward-shine::after,
   .confetti-bit,
   .vip-holo-text {
     animation: none;
@@ -1337,4 +1338,58 @@
 .scroll-arrow:active {
   opacity: 1;
   transform: translateY(-50%) scale(0.9);
+}
+
+/* ---------------------------------------------------------------------------
+   Ödül kartı v4 — alınabilir durumu (D31 FAZ O2)
+
+   Altın nefes + ışık süpürmesi. Nefes 2600ms: mağaza ızgarasında beş-altı
+   kart aynı anda uygun olabiliyor ve hızlı nabız ekranı titretirdi.
+
+   Süpürme 3.2s'de bir geçiyor ve yalnız ALINABİLİR kartta: her kartta
+   olsaydı "bu özel" sinyali kaybolurdu.
+   --------------------------------------------------------------------------- */
+@keyframes genclig-ready-gold {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(245 179 1 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px 3px rgb(245 179 1 / 0.4);
+  }
+}
+
+.reward-ready {
+  animation: genclig-ready-gold 2600ms ease-in-out infinite;
+}
+
+@keyframes genclig-shine {
+  0% {
+    transform: translateX(-120%) rotate(18deg);
+  }
+  45%,
+  100% {
+    transform: translateX(320%) rotate(18deg);
+  }
+}
+
+.reward-shine {
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.reward-shine::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: 0;
+  width: 40%;
+  height: 180%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(255 255 255 / 0.3),
+    transparent
+  );
+  animation: genclig-shine 3200ms ease-in-out infinite;
 }

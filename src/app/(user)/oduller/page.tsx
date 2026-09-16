@@ -41,6 +41,23 @@ export default async function RewardsPage() {
     Öne çıkan tek kart kaldırıldı (aşağıdaki nota bakın); bu sayaç
     onun yerini tutuyor ve hiçbir ödülü kayırmıyor.
   */
+  /*
+    En yakın alınabilir ödül (D30'dan borç).
+
+    Yalnız TOKEN eksiği olanlar arasında en ucuzu: seviye ya da rozet
+    eksiğini "biraz daha Token topla" diye göstermek yanlış hedef
+    verirdi — o ödüller Token biriktirerek açılmıyor.
+  */
+  const nearest = rewards
+    .filter(
+      (reward) =>
+        points.level >= reward.min_level &&
+        (!reward.required_badge_id ||
+          myBadges.has(reward.required_badge_id)) &&
+        points.coin < reward.coin_cost,
+    )
+    .sort((a, b) => a.coin_cost - b.coin_cost)[0];
+
   const readyCount = rewards.filter(
     (reward) =>
       points.level >= reward.min_level &&
@@ -68,6 +85,9 @@ export default async function RewardsPage() {
     requiredBadgeName: reward.required_badge_id
       ? (badgeNames.get(reward.required_badge_id) ?? null)
       : null,
+    // Kutucuktaki sart rozetleri bu ikisini gosteriyor.
+    minLevel: reward.min_level,
+    cost: reward.coin_cost,
   });
 
   return (
@@ -80,19 +100,40 @@ export default async function RewardsPage() {
         HUD'un hemen altında duruyor (top-[57px] HUD yüksekliği).
       */}
       <div className="sticky top-[57px] z-10 border-b border-edge bg-surface/95 px-4 py-2.5 backdrop-blur">
-        <div className="flex items-center justify-between rounded-xl bg-card px-3.5 py-2">
-          <span className="text-xs text-ink-muted">
-            Bakiyen
-            {readyCount > 0 ? (
-              <span className="ml-1.5 rounded-full bg-status-success/15 px-1.5 py-0.5 text-[10px] font-bold text-status-success">
-                {readyCount} ödül hazır
+        <div className="rounded-xl bg-card px-3.5 py-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-ink-muted">
+              Bakiyen
+              {readyCount > 0 ? (
+                <span className="ml-1.5 rounded-full bg-coin/20 px-1.5 py-0.5 text-[10px] font-bold text-coin">
+                  {readyCount} ödül hazır
+                </span>
+              ) : null}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
+              <Icon name="coins" className="h-4 w-4" />
+              {formatPoints(points.coin)} Token
+            </span>
+          </div>
+
+          {/*
+            Bir sonraki hedef: kullanıcı "ne kadar daha" sorusuna
+            listeyi tarayarak değil tek satırda cevap alsın. Hedef
+            yoksa (her şey alınabilir ya da hiçbiri Token'la
+            açılmıyor) satır hiç basılmıyor.
+          */}
+          {nearest ? (
+            <p className="mt-1.5 flex items-center gap-1 border-t border-edge pt-1.5 text-[11px] text-ink-muted">
+              <Icon name="target" className="h-3 w-3 shrink-0 text-coin" />
+              <strong className="font-bold text-coin">
+                {nearest.coin_cost - points.coin} Token
+              </strong>
+              sonra:
+              <span className="min-w-0 truncate font-semibold text-ink">
+                {nearest.title}
               </span>
-            ) : null}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
-            <Icon name="coins" className="h-4 w-4" />
-            {formatPoints(points.coin)} Token
-          </span>
+            </p>
+          ) : null}
         </div>
       </div>
 
