@@ -1709,3 +1709,85 @@
   background-image: linear-gradient(135deg, #ffd977, #f5b301);
   box-shadow: 0 2px 8px rgb(217 119 6 / 0.45);
 }
+
+/* ---------------------------------------------------------------------------
+   Token görsel kimliği (D34 FAZ TK)
+
+   ÖLÇÜLEN SORUN: Token 29 dosyada 60 yerde `bg-coin/15 text-coin` ile
+   gösteriliyordu. Koyu zeminde %15 opak sarı dolgu + soluk sarı metin,
+   para birimi gibi değil etiket gibi okunuyordu. Oyunun ekonomisi olan
+   şey ekranın en silik öğesiydi.
+   --------------------------------------------------------------------------- */
+
+/*
+  Token sayısı: altın gradyanlı metin.
+
+  Düz #f5b301 denendi ve elendi — koyu zeminde hardal gibi okunuyor ve
+  "metal" hissi vermiyor. Gradyan, rakamlara jetonun kendi malzemesini
+  veriyor.
+
+  background-clip desteklenmeyen tarayıcıda metin altın renge düşüyor
+  (color fallback'i @supports dışında duruyor), yani hiçbir yerde
+  görünmez metin kalmıyor.
+*/
+.token-amount {
+  color: #f5b301;
+  font-variant-numeric: tabular-nums;
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .token-amount {
+    background-image: linear-gradient(180deg, #ffd966 0%, #f5b301 55%, #d97706 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Koyu zeminde gradyanın alt ucu kaybolmasın diye ince bir taban. */
+    text-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+  }
+}
+
+/*
+  Token hapı: altın kenar + iç ışıltı + koyu altın zemin.
+
+  Kenar TAM altın, dolgu koyu: ters kombinasyon (altın dolgu + koyu
+  metin) denendi ve elendi — kart üzerinde ödül hapları zaten altın
+  dolgulu ve iki farklı "altın yüzey" birbirini bastırıyordu. Kenarlı
+  hap, dolgulu hapın yanında da kendini ayırıyor.
+*/
+.token-pill {
+  background-image: linear-gradient(
+    180deg,
+    rgb(245 179 1 / 0.18),
+    rgb(217 119 6 / 0.1)
+  );
+  border: 1px solid rgb(245 179 1 / 0.55);
+  box-shadow:
+    inset 0 1px 0 rgb(255 217 102 / 0.28),
+    0 1px 6px rgb(217 119 6 / 0.22);
+}
+
+/*
+  Dolgun altın hap: görev kartlarındaki ödül gösteriminde kullanılıyor.
+  Metin koyu — altın üzerinde beyaz WCAG AA'yı geçmiyor (D32'de
+  ölçülmüştü: cyan üzerinde beyaz 1.9:1, altında da benzer).
+*/
+.token-solid {
+  background-image: linear-gradient(135deg, #ffd966, #f5b301 55%, #d97706);
+  color: #3a2a00;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 2px 6px rgb(217 119 6 / 0.35);
+}
+
+/*
+  XP'nin dolgun karşılığı: cyan gradyan. Token altın olunca XP'nin de
+  aynı ağırlıkta olması gerekiyor — yoksa iki ödül aynı satırda farklı
+  ligde görünüyor.
+*/
+.xp-solid {
+  background-image: linear-gradient(135deg, #7df3ff, #22d3ee 55%, #0891b2);
+  color: #06283a;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 2px 6px rgb(8 145 178 / 0.35);
+}

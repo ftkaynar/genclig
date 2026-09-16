@@ -5,7 +5,7 @@ import Image from "next/image";
 import { BellRefresher } from "@/components/notifications/bell-refresher";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Icon } from "@/components/ui/icon";
+import { TokenAmount, TokenIcon } from "@/components/ui/token";
 import { getViewerProfile, getViewerUser } from "@/lib/auth/viewer";
 import { formatPoints, getUserPoints } from "@/lib/points/queries";
 
@@ -166,10 +166,11 @@ export async function UserHud({ title }: { title?: string }) {
           <Link
             href="/oduller"
             aria-label={`${points.coin} Token, Ödüller'e git`}
-            className="press-soft inline-flex min-h-[40px] items-center gap-1 rounded-full bg-coin/15 px-2.5 text-xs font-bold text-coin"
+            className="token-pill press-soft inline-flex min-h-[40px] items-center gap-1 rounded-full px-2.5 text-xs font-bold"
           >
-            <Icon name="coins" className="h-3.5 w-3.5" />
-            {formatPoints(points.coin)} Token
+            <TokenIcon className="h-4 w-4" id="hud" />
+            <TokenAmount value={formatPoints(points.coin)} />
+            <span className="token-amount">Token</span>
           </Link>
           <BellRefresher />
           <NotificationBell />

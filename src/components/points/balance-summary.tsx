@@ -1,4 +1,5 @@
 import { Icon } from "@/components/ui/icon";
+import { TokenAmount, TokenIcon } from "@/components/ui/token";
 import { LevelRing } from "@/components/ui/level-ring";
 import { formatPoints, type UserPoints } from "@/lib/points/queries";
 
@@ -46,9 +47,10 @@ export function BalanceSummary({
       </div>
 
       <div className="mt-3.5 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/25 px-3 py-1.5 text-xs font-semibold text-white">
-          <Icon name="coins" className="h-3.5 w-3.5" />
-          {formatPoints(points.coin)} Token
+        <span className="token-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold">
+          <TokenIcon className="h-4 w-4" id="bal" />
+          <TokenAmount value={formatPoints(points.coin)} />
+          <span className="token-amount">Token</span>
         </span>
 
         {/* Bugünkü kazanç yalnızca sıfırdan büyükse gösteriliyor: "bugün 0 XP"

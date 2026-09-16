@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { TaskReward } from "@/components/ui/task-reward";
 
 /*
   Zincir tamamlama kutlaması (D33 FAZ Z).
@@ -127,13 +128,13 @@ export function ChainCelebration({
         </p>
         <p className="mt-1 text-lg font-bold text-ink">{title}</p>
 
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <span className="reward-pill inline-flex items-center gap-1 rounded-full bg-xp px-3 py-1 text-sm font-extrabold text-[#06283a]">
-            <Icon name="zap" className="h-4 w-4" />+{bonusXp}
-          </span>
-          <span className="reward-pill inline-flex items-center gap-1 rounded-full bg-coin px-3 py-1 text-sm font-extrabold text-[#3a2a00]">
-            <Icon name="coins" className="h-4 w-4" />+{bonusToken}
-          </span>
+        <div className="mt-4 flex items-center justify-center">
+          <TaskReward
+            xp={bonusXp}
+            coin={bonusToken}
+            size="lg"
+            className="justify-center"
+          />
         </div>
 
         <div className="mt-6">

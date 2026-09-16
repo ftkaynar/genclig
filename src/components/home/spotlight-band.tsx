@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Countdown } from "@/components/tasks/countdown";
 import { taskIconName } from "@/components/tasks/task-card";
 import { Icon } from "@/components/ui/icon";
+import { TaskReward } from "@/components/ui/task-reward";
 import { formatRemaining } from "@/lib/tasks/labels";
 import type { TaskRow } from "@/lib/tasks/queries";
 import {
@@ -64,16 +65,14 @@ export function SpotlightBand({ task }: { task: TaskRow }) {
               Yalnız çift değeri göstermek "bu görev zaten böyle
               değerliymiş" diye okunuyordu; fark görünmeliydi.
             */}
-            <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="reward-pill inline-flex items-center gap-1 rounded-full bg-xp px-2 py-0.5 text-[11px] font-extrabold text-[#06283a]">
-                <Icon name="zap" className="h-3 w-3" />+{task.xp * 2}
-                <s className="ml-0.5 font-bold opacity-60">+{task.xp}</s>
-              </span>
-              <span className="reward-pill inline-flex items-center gap-1 rounded-full bg-coin px-2 py-0.5 text-[11px] font-extrabold text-[#3a2a00]">
-                <Icon name="coins" className="h-3 w-3" />+{task.coin * 2}
-                <s className="ml-0.5 font-bold opacity-60">+{task.coin}</s>
-              </span>
-            </span>
+            <TaskReward
+              xp={task.xp * 2}
+              coin={task.coin * 2}
+              strikeXp={task.xp}
+              strikeCoin={task.coin}
+              size="md"
+              className="mt-1.5"
+            />
 
             <span className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-coin">
               <Icon name="timer" className="h-3.5 w-3.5" />

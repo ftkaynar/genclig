@@ -1,4 +1,5 @@
 import { Icon } from "./icon";
+import { TokenPill } from "./token";
 
 /*
   Ortak "hap" bileşenleri.
@@ -43,15 +44,22 @@ export function CoinPill({
    */
   unit?: boolean;
 }) {
+  /*
+    D34 FAZ TK: Token kimliği TokenPill'e devredildi.
+
+    CoinPill adı KORUNDU — 29 dosyada 60 kullanım var ve hepsini tek
+    dilimde yeniden adlandırmak, görsel bir dilimi dosya taşımaya
+    çevirirdi. Burada artık yalnız yeni bileşene yönlendirme var;
+    eski soluk reçete (bg-coin/15 + text-coin + lucide coins) kalktı.
+  */
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full bg-coin/15 px-2.5 py-1 text-xs font-semibold text-coin ${className}`}
-    >
-      <Icon name="coins" className="h-3.5 w-3.5" />
-      {prefix}
-      {value}
-      {unit ? " Token" : null}
-    </span>
+    <TokenPill
+      value={value}
+      prefix={prefix}
+      unit={unit}
+      size="md"
+      className={className}
+    />
   );
 }
 

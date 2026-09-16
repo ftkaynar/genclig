@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { Icon } from "@/components/ui/icon";
+import { TokenIcon } from "@/components/ui/token";
 
 /*
   Görev tamamlama kutlaması.
@@ -185,8 +186,8 @@ export function Celebration({
               <span className="text-sm font-semibold">XP</span>
             </span>
 
-            <span className="flex items-baseline gap-1 rounded-2xl bg-coin/15 px-4 py-2.5 text-coin">
-              <Icon name="coins" className="h-5 w-5 self-center" />
+            <span className="token-pill flex items-baseline gap-1 rounded-2xl px-4 py-2.5">
+              <TokenIcon className="h-5 w-5 self-center" id="celeb" />
               <span className="text-2xl font-black tabular-nums">
                 +{data.coin}
               </span>

@@ -5,6 +5,7 @@ import { RewardTile, type Eligibility } from "@/components/rewards/reward-tile";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { Icon } from "@/components/ui/icon";
+import { TokenIcon } from "@/components/ui/token";
 import { EmptyState } from "@/components/ui/pills";
 import { formatPoints, getUserPoints } from "@/lib/points/queries";
 import { getBadgeNames, getMyBadgeIds, listRewards } from "@/lib/rewards/queries";
@@ -110,8 +111,8 @@ export default async function RewardsPage() {
                 </span>
               ) : null}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-coin/15 px-3 py-1 text-sm font-bold text-coin">
-              <Icon name="coins" className="h-4 w-4" />
+            <span className="token-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold">
+              <TokenIcon className="h-4 w-4" id="pool" />
               {formatPoints(points.coin)} Token
             </span>
           </div>

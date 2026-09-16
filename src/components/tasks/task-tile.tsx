@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Countdown } from "./countdown";
 import { taskIconName, taskTone } from "./task-card";
 import { Icon } from "@/components/ui/icon";
+import { TokenReward, XpReward } from "@/components/ui/task-reward";
 import { taskArtUrl } from "@/lib/tasks/art";
 import { TASK_STATE_STYLE, taskCardState } from "@/lib/tasks/labels";
 import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
@@ -237,20 +238,17 @@ export function TaskTile({
             gördüğü şey ne kazanacağı olsun.
           */}
           <span className="flex items-center gap-1">
-            <span
-              className={`reward-pill inline-flex items-center gap-0.5 rounded-full bg-xp px-1.5 py-0.5 font-extrabold text-[#06283a] ${
-                small ? "text-[10px]" : "text-[11px]"
-              }`}
-            >
-              <Icon name="zap" className="h-3 w-3" />+{task.xp}
-            </span>
-            <span
-              className={`reward-pill inline-flex items-center gap-0.5 rounded-full bg-coin px-1.5 py-0.5 font-extrabold text-[#3a2a00] ${
-                small ? "text-[10px]" : "text-[11px]"
-              }`}
-            >
-              <Icon name="coins" className="h-3 w-3" />+{task.coin}
-            </span>
+            <XpReward
+              value={task.xp}
+              size={small ? "sm" : "md"}
+              className="reward-pill"
+            />
+            <TokenReward
+              value={task.coin}
+              size={small ? "sm" : "md"}
+              className="reward-pill"
+              iconId={`tile-${task.id}`}
+            />
             {distanceLabel ? (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-ink-muted">
                 <Icon name="map-pin" className="h-2.5 w-2.5" />

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { ChainCelebration } from "@/components/chains/chain-celebration";
 import { RewardFab } from "@/components/rewards/reward-fab";
 import { Icon } from "@/components/ui/icon";
+import { TaskReward } from "@/components/ui/task-reward";
 import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
@@ -137,12 +138,11 @@ export default async function ChainDetailPage({
               <Icon name="gift" className="h-4 w-4 text-coin" />
               {chain.awarded ? "Zincir bonusu kazanıldı" : "Zincir bonusu"}
             </span>
-            <span className="reward-pill inline-flex items-center gap-0.5 rounded-full bg-xp px-2 py-0.5 text-[11px] font-extrabold text-[#06283a]">
-              <Icon name="zap" className="h-3 w-3" />+{chain.bonus_xp}
-            </span>
-            <span className="reward-pill inline-flex items-center gap-0.5 rounded-full bg-coin px-2 py-0.5 text-[11px] font-extrabold text-[#3a2a00]">
-              <Icon name="coins" className="h-3 w-3" />+{chain.bonus_token}
-            </span>
+            <TaskReward
+              xp={chain.bonus_xp}
+              coin={chain.bonus_token}
+              size="md"
+            />
           </div>
         </section>
 
@@ -214,12 +214,11 @@ export default async function ChainDetailPage({
                       </span>
 
                       <span className="mt-1 flex items-center gap-1">
-                        <span className="reward-pill inline-flex items-center gap-0.5 rounded-full bg-xp px-1.5 py-0.5 text-[10px] font-extrabold text-[#06283a]">
-                          <Icon name="zap" className="h-3 w-3" />+{step.xp}
-                        </span>
-                        <span className="reward-pill inline-flex items-center gap-0.5 rounded-full bg-coin px-1.5 py-0.5 text-[10px] font-extrabold text-[#3a2a00]">
-                          <Icon name="coins" className="h-3 w-3" />+{step.coin}
-                        </span>
+                        <TaskReward
+                          xp={step.xp}
+                          coin={step.coin}
+                          size="sm"
+                        />
                         {isNext ? (
                           <span className="ml-1 rounded-full bg-indigo px-2 py-0.5 text-[10px] font-bold text-white">
                             Sıradaki

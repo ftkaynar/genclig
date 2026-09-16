@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { RedeemPanel } from "@/components/rewards/redeem-panel";
 import { Icon } from "@/components/ui/icon";
+import { TokenIcon } from "@/components/ui/token";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { getViewerUser } from "@/lib/auth/viewer";
@@ -147,7 +148,7 @@ export default async function RewardDetailPage({
           className="anim-stagger mt-3 inline-flex items-center gap-1.5 rounded-full bg-coin/20 px-3.5 py-1.5 text-base font-bold text-coin"
           style={{ "--i": 3 } as React.CSSProperties}
         >
-          <Icon name="coins" className="h-4.5 w-4.5" />
+          <TokenIcon className="h-5 w-5" id="reward" />
           {reward.coin_cost} Token
         </span>
 

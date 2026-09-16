@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { HScroll } from "@/components/ui/h-scroll";
 import { Icon } from "@/components/ui/icon";
+import { TokenReward, XpReward } from "@/components/ui/task-reward";
 import { chainPercent, type ChainRow } from "@/lib/chains/queries";
 
 /*
@@ -91,14 +92,17 @@ export function ChainStrip({ chains }: { chains: ChainRow[] }) {
                     </span>
                   ) : (
                     <>
-                      <span className="reward-pill inline-flex items-center gap-0.5 rounded-full bg-xp px-1.5 py-0.5 text-[10px] font-extrabold text-[#06283a]">
-                        <Icon name="zap" className="h-3 w-3" />+
-                        {chain.bonus_xp}
-                      </span>
-                      <span className="reward-pill inline-flex items-center gap-0.5 rounded-full bg-coin px-1.5 py-0.5 text-[10px] font-extrabold text-[#3a2a00]">
-                        <Icon name="coins" className="h-3 w-3" />+
-                        {chain.bonus_token}
-                      </span>
+                      <XpReward
+                        value={chain.bonus_xp}
+                        size="sm"
+                        className="reward-pill"
+                      />
+                      <TokenReward
+                        value={chain.bonus_token}
+                        size="sm"
+                        className="reward-pill"
+                        iconId={`chain-${chain.chain_id}`}
+                      />
                     </>
                   )}
                 </span>
