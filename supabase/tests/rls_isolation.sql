@@ -1259,3 +1259,65 @@ select has_function_privilege('anon', 'public.my_stats()', 'execute') as anon_my
 \echo '=========================================================='
 select count(*) as provinces_toplam from public.provinces;
 select count(*) as profiles_toplam from public.profiles;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 33: push abonelikleri -- kendi satirlari (D30)'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+
+insert into public.push_subscriptions (user_id, endpoint, p256dh, auth)
+values ('00000000-0000-0000-0000-00000000000b', 'https://push.test/b', 'p', 'a');
+
+select count(*) as b_gordugu_abonelik from public.push_subscriptions;
+\echo '(1 olmali: kendi aboneligini yazip goruyor)'
+rollback;
+
+/*
+  Reddedilen yazim AYRI islemde.
+
+  Ayni islemde birakilsaydi RLS reddi islemi abort ediyor ve sonraki
+  select hic kosmuyordu; yani iddia sessizce hicbir sey sinamiyordu
+  (D26 dersi: abort olan islemde iddia yalan soyler).
+*/
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+insert into public.push_subscriptions (user_id, endpoint, p256dh, auth)
+values ('00000000-0000-0000-0000-00000000000c', 'https://push.test/c', 'p', 'a');
+\echo '(yukarida RLS hatasi bekleniyor: baskasi adina abonelik)'
+rollback;
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+select count(*) as c_gordugu_abonelik from public.push_subscriptions;
+\echo '(0 olmali: C, B nin aboneligini gormemeli)'
+rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO 34: siralama odul ayarlari -- oku evet, yaz hayir (D30)'
+\echo '=========================================================='
+
+begin;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+set local role authenticated;
+
+select count(*) as c_gordugu_ayar from public.leaderboard_reward_settings;
+\echo '(12 olmali: ayarlar herkese acik, odul tesvikin kendisi)'
+
+update public.leaderboard_reward_settings set xp = 99999;
+\echo '(yukarida 0 satir guncellenmeli: RLS reddi hata DEGIL, sessiz 0)'
+
+select count(*) as bozulan_ayar from public.leaderboard_reward_settings
+where xp = 99999;
+\echo '(0 olmali)'
+
+-- dagitim fonksiyonu client'a kapali
+select public.award_leaderboard_rewards('turkiye', 'week', '2026-W01');
+\echo '(yukarida yetki hatasi bekleniyor: dagitim elle cagrilamaz)'
+rollback;
