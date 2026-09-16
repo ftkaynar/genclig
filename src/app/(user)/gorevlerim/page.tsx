@@ -96,7 +96,7 @@ export default async function MySubmissionsPage({
         </ul>
       </nav>
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {rows.length === 0 ? (
           <EmptyState
             icon="list-checks"

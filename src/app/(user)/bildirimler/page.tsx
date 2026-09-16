@@ -38,7 +38,7 @@ export default async function NotificationsPage() {
       */}
       <MarkReadOnOpen unread={unreadCount} />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {notifications.length === 0 ? (
           <EmptyState
             icon="bell"

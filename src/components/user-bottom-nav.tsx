@@ -28,11 +28,38 @@ export type BottomNavKey = (typeof ITEMS)[number]["key"];
 
 export function UserBottomNav({ active }: { active: BottomNavKey }) {
   return (
+    /*
+      ÖLÇÜLEN SORUN (D31 FAZ NAV): gezinme bazı ekranlarda kayıyordu.
+
+      KÖK SEBEP İKİ PARÇA:
+
+      1. `position: sticky` kullanılıyordu, `fixed` değil. Sticky öğe
+         AKIŞTA kalıyor ve konumu kapsayıcısının yüksekliğine bağlı.
+         Sayfa kapsayıcıları `min-h-dvh` ile ölçülüyor; iOS'ta URL
+         çubuğu açılıp kapandıkça `dvh` DEĞİŞİYOR, kapsayıcı yeniden
+         ölçülüyor ve sticky gezinme gözle görülür biçimde zıplıyordu.
+         `/topluluk` ayrıca `h-dvh` kullanıyor — farklı kapsayıcı,
+         farklı davranış; tutarsızlığın ikinci kaynağı buydu.
+
+      2. Hiçbir yerde `env(safe-area-inset-bottom)` YOKTU (koddaki
+         kullanım sayısı ölçüldü: 0). Ana ekran çubuğu olan
+         telefonlarda gezinmenin alt kenarı jest çubuğunun altında
+         kalıyor, sekmeler yarım görünüyordu.
+
+      DÜZELTME: `fixed inset-x-0 bottom-0` + iç kapta `mx-auto
+      max-w-md` (uygulama ortalanmış, fixed öğe kapsayıcıdan çıkıyor)
+      + güvenli alan dolgusu. Artık kaydırmadan ve kapsayıcı
+      yüksekliğinden TAMAMEN bağımsız.
+
+      İçerik alt boşluğu `.has-bottom-nav` ile veriliyor (globals.css):
+      gezinme akıştan çıktığı için altında kalan içeriği artık kimse
+      itmiyor.
+    */
     <nav
       aria-label="Ana gezinme"
-      className="sticky bottom-0 z-30 border-t border-edge bg-card"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-edge bg-card pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="flex items-end justify-between px-2 pb-2 pt-1.5">
+      <ul className="mx-auto flex w-full max-w-md items-end justify-between px-2 pb-2 pt-1.5 sm:max-w-3xl lg:max-w-5xl">
         {ITEMS.map((item) => {
           const isActive = item.key === active;
 

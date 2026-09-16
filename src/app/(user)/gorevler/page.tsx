@@ -108,7 +108,7 @@ export default async function TasksPage({
         />
       </div>
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {upcoming.length > 0 ? (
           <section className="mb-5">
             <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-indigo">

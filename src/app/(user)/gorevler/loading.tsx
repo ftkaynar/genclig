@@ -14,7 +14,7 @@ export default function Loading() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHudSkeleton title="Görevler" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         <SkeletonChips count={3} />
         <div className="mt-2">
           <SkeletonChips count={3} />

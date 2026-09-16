@@ -115,7 +115,7 @@ export default async function ProfilePage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Profil" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {/*
           GENÇLİG Kimlik Kartı profilin merkezinde ve ortalı. İstatlar
           hesaplanamadıysa (yeni hesap, hiç davranış yok) kart

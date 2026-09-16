@@ -37,7 +37,7 @@ export default async function MyReportsPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHeader title="Bildirimlerim" signedIn />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {reports.length === 0 ? (
           <EmptyState
             icon="megaphone"

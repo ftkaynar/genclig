@@ -26,7 +26,7 @@ export default async function FriendsPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Arkadaşlar" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         <FriendsView friends={friends} requests={requests} />
       </main>
 

@@ -1275,3 +1275,27 @@
 .xp-fill[data-empty="true"]::after {
   display: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Alt gezinme boşluğu (D31 FAZ NAV)
+
+   Gezinme artık `fixed` (bkz. user-bottom-nav.tsx) ve akıştan çıktı;
+   altında kalan içeriği kimse itmiyor. Bu yüzden gezinmeyi kullanan her
+   sayfanın gövdesi kadar boşluk bırakıyor.
+
+   57px gezinme yüksekliği + güvenli alan. Tek yerde: her sayfaya ayrı
+   `pb-` yazmak, birini unutunca son satırın gezinmenin altında
+   kalmasıyla sonuçlanıyordu.
+   --------------------------------------------------------------------------- */
+@utility has-bottom-nav {
+  padding-bottom: calc(57px + env(safe-area-inset-bottom));
+}
+
+/*
+  Yapışkan öğeler de gezinmenin üstünde durmalı. Ortadaki yükseltilmiş
+  Görevler dairesi gezinmenin üst kenarından 22px taşıyor; bu yüzden
+  yapışkan bantlar 85px + güvenli alan yukarıda.
+*/
+@utility above-bottom-nav {
+  bottom: calc(85px + env(safe-area-inset-bottom));
+}

@@ -32,7 +32,7 @@ export default async function SettingsPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHeader title="Ayarlar" signedIn />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         <section className="rounded-2xl border border-edge bg-card p-4">
           <AvatarUpload
             userId={user.id}

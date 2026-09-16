@@ -14,7 +14,7 @@ export default function Loading() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHudSkeleton title="Takımım" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         <SkeletonHero />
         <div className="mt-4">
           <SkeletonList count={3} />

@@ -69,7 +69,7 @@ export default async function UserHomePage() {
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
         <UserHud />
 
-        <main className="flex flex-1 flex-col items-center justify-center px-4 py-8">
+        <main className="flex flex-1 flex-col items-center justify-center px-4 py-8 has-bottom-nav">
           <section className="brand-gradient w-full rounded-3xl px-6 py-10 text-center shadow-lg">
             <Image
               src="/brand/logo-mark.png"
@@ -163,7 +163,7 @@ export default async function UserHomePage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud />
 
-      <main className="flex-1 px-4 pb-4">
+      <main className="flex-1 px-4 pb-4 has-bottom-nav">
         {announcement ? (
           <AnnouncementBanner announcement={announcement} />
         ) : null}

@@ -57,7 +57,7 @@ export default async function DiscoverPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Keşfet" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         <DiscoverView
           tasks={tasks}
           mapTasks={mapTasks}

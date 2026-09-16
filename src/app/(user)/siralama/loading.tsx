@@ -26,7 +26,7 @@ export default function Loading() {
         <SkeletonBlock className="mt-3 h-9 w-full rounded-full" />
       </div>
 
-      <main className="flex-1 px-4 pb-8 pt-4">
+      <main className="flex-1 px-4 pb-8 pt-4 has-bottom-nav">
         <SkeletonList count={6} />
       </main>
 

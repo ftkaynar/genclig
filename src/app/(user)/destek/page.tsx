@@ -23,7 +23,7 @@ export default async function SupportPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Destek" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         <SupportView faq={faq} tickets={tickets} />
       </main>
 

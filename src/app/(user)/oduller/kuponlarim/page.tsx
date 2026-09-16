@@ -28,7 +28,7 @@ export default async function MyCouponsPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHud title="Kuponlarım" />
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {redemptions.length === 0 ? (
           <EmptyState
             icon="gift"

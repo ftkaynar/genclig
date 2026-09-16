@@ -13,7 +13,7 @@ export default function Loading() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
       <UserHudSkeleton />
 
-      <main className="flex-1 px-4 pb-4">
+      <main className="flex-1 px-4 pb-4 has-bottom-nav">
         <div className="mt-3">
           <SkeletonHero />
         </div>

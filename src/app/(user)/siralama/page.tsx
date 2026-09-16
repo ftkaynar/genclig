@@ -101,7 +101,7 @@ export default async function LeaderboardPage({
         pb-8: "benim sıram" kartı akıştaki yerinden ~28px yukarı kayıyor;
         bu pay olmadan listenin son satırı kartın altında kalıyordu.
       */}
-      <main className="flex-1 px-4 pb-8 pt-4">
+      <main className="flex-1 px-4 pb-8 pt-4 has-bottom-nav">
         <RewardStrip settings={rewardSettings} period={period} />
 
         {isTeams ? (
@@ -252,7 +252,7 @@ export default async function LeaderboardPage({
         değmiyor.
       */}
       {myRank ? (
-        <div className="sticky bottom-[85px] z-20 mx-4 rounded-2xl border border-edge bg-card px-3.5 py-2.5 shadow-lg">
+        <div className="above-bottom-nav sticky z-20 mx-4 rounded-2xl border border-edge bg-card px-3.5 py-2.5 shadow-lg">
           <div className="flex items-center gap-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
               {myRank.rank}

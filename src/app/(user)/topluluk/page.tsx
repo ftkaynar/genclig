@@ -49,7 +49,7 @@ export default async function CommunityPage() {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
         <UserHud title="Topluluk" />
-        <main className="flex-1 px-4 py-4">
+        <main className="flex-1 px-4 py-4 has-bottom-nav">
           <EmptyState
             icon="users"
             title="Önce ilini ayarla"

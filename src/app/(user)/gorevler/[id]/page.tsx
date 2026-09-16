@@ -109,7 +109,7 @@ export default async function TaskDetailPage({
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-4">
+      <main className="flex-1 px-4 py-4 has-bottom-nav">
         {/* Kapak: görsel yoksa kategoriye göre marka renkli blok. */}
         <div
           aria-hidden
