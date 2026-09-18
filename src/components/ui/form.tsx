@@ -4,12 +4,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 
-/*
-  Kimlik ekranlarının ortak kabuğu.
+import { AuthBackground } from "@/components/auth/auth-background";
 
-  Gradyan bir sahne üzerinde cam efektli (backdrop-blur) kart. Sahne sayfanın
-  tamamını kaplıyor ve tema ne olursa olsun koyu kalıyor: giriş ekranı markanın
-  ilk izlenimi, açık temada soluk bir forma dönüşmesi istenmedi.
+/*
+  Kimlik ekranlarının ortak kabuğu (D35 FAZ A — baştan).
+
+  ÖNCEKİ DURUM üç ayrı sorundan oluşuyordu:
+
+  1. Kap `max-w-md` (448px) idi ve form kartı onu tamamen dolduruyordu;
+     geniş ekranda inputlar ve butonlar orantısız uzuyordu. Artık
+     `max-w-sm` (384px) — bir kimlik formunun okunabilir satır
+     uzunluğu bu, daha genişi göz için tarama işine dönüyor.
+
+  2. Arka plan marka gradyanıydı; ürünün kendi fotoğrafı varken soyut
+     bir gradyan ilk izlenimi harcıyordu. Artık giris.png.
+
+  3. Logo `logo-mark.png` idi (opak kutu). Şeffaf logo fotoğrafın
+     üstünde çerçevesiz duruyor.
+
+  Sahne tema ne olursa olsun KOYU kalıyor: giriş ekranı markanın ilk
+  izlenimi, açık temada soluk bir forma dönüşmesi istenmedi.
 */
 export function AuthShell({
   title,
@@ -23,29 +37,34 @@ export function AuthShell({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="brand-gradient relative min-h-dvh">
-      {/* Gradyanı koyulaştıran örtü: form kartının kontrastı için. */}
-      <div aria-hidden className="absolute inset-0 bg-brand/55" />
+    <div className="relative min-h-dvh overflow-hidden bg-brand">
+      {/* Form ekranlarında fotoğraf hafif bulanık: içerik önde kalsın. */}
+      <AuthBackground blur />
 
-      <main className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
-        <Link href="/" className="mx-auto mb-7 flex flex-col items-center gap-2.5">
+      <main
+        className="relative z-10 mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-5"
+        style={{
+          /*
+            Güvenli alan: çentikli telefonlarda form üst çentiğin,
+            alt çubukta ise jest çubuğunun altında kalıyordu.
+          */
+          paddingTop: "max(2.5rem, env(safe-area-inset-top))",
+          paddingBottom: "max(2.5rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <Link href="/" className="auth-enter mx-auto mb-6 flex flex-col items-center gap-2">
           <Image
-            src="/brand/logo-mark.png"
+            src="/brand/transparan-logo.png"
             alt="GençLİG"
-            width={64}
-            height={64}
-            className="h-16 w-16 drop-shadow-lg"
+            width={72}
+            height={72}
+            className="auth-logo h-16 w-16"
             priority
           />
-          <span className="text-2xl font-black tracking-tight text-white">
-            GençLİG
-          </span>
-          <span className="text-xs text-white/70">
-            Dijitalde başla, gerçek hayatta fark yarat.
-          </span>
+          <span className="wordmark text-xl">GençLİG</span>
         </Link>
 
-        <section className="auth-card anim-rise rounded-3xl border border-white/15 bg-white/10 p-6 shadow-2xl backdrop-blur-xl">
+        <section className="auth-card anim-rise rounded-3xl border border-white/15 p-6 shadow-2xl">
           <h1 className="text-lg font-bold tracking-tight text-white">
             {title}
           </h1>
@@ -56,13 +75,12 @@ export function AuthShell({
         </section>
 
         {footer ? (
-          <div className="mt-5 text-center text-sm text-white/70">{footer}</div>
+          <div className="mt-5 text-center text-sm text-white/75">{footer}</div>
         ) : null}
       </main>
     </div>
   );
 }
-
 export function TextField({
   label,
   name,
@@ -87,7 +105,7 @@ export function TextField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-ink">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
       <input
         name={name}
         type={type}
@@ -96,9 +114,9 @@ export function TextField({
         autoComplete={autoComplete}
         placeholder={placeholder}
         defaultValue={defaultValue}
-        className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+        className="auth-field w-full rounded-xl px-3.5 py-2.5 text-base"
       />
-      {hint ? <span className="mt-1.5 block text-xs text-ink-muted">{hint}</span> : null}
+      {hint ? <span className="mt-1.5 block text-xs text-white/55">{hint}</span> : null}
     </label>
   );
 }
@@ -124,13 +142,13 @@ export function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-ink">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
       <select
         name={name}
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-base text-ink disabled:opacity-50 focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+        className="auth-field w-full rounded-xl px-3.5 py-2.5 text-base disabled:opacity-50"
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -139,7 +157,7 @@ export function SelectField({
           </option>
         ))}
       </select>
-      {hint ? <span className="mt-1.5 block text-xs text-ink-muted">{hint}</span> : null}
+      {hint ? <span className="mt-1.5 block text-xs text-white/55">{hint}</span> : null}
     </label>
   );
 }

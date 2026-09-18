@@ -12,7 +12,7 @@ export function AppHeader({ title }: { title: string }) {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <Image
-            src="/brand/logo-mark.png"
+            src="/brand/transparan-logo.png"
             alt=""
             width={28}
             height={28}

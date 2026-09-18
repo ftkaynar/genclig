@@ -136,6 +136,33 @@ function redirectIfNeeded(
   pathname: string,
   signedIn: boolean,
 ): NextResponse {
+  /*
+    Oturumsuz ziyaretçinin ana sayfası: karşılama ekranı (D35 FAZ A).
+
+    REWRITE, redirect DEĞİL — adres çubuğunda `/` kalıyor. Yönlendirme
+    yapılsaydı ziyaretçi `/karsilama` adresini görür ve paylaşırdı;
+    oysa ürünün adresi `/`.
+
+    Neden gerekli: `(user)/loading.tsx` route group kökünde duruyor ve
+    altındaki HER segmentin yükleme yedeği. Oturumsuz `/` isteğinde
+    önce alt gezinmeli, HUD'lu tam uygulama iskeleti çiziliyordu
+    (ölçüldü). Karşılama ekranı `(auth)` grubunda olduğu için o
+    iskeleti hiç almıyor.
+
+    Çerezler KORUNUYOR: `response` üzerinden gelen Set-Cookie başlıkları
+    yeni yanıta kopyalanıyor. Kopyalanmasaydı yenilenen oturum token'ı
+    tarayıcıya hiç ulaşmazdı.
+  */
+  if (!signedIn && pathname === "/") {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = "/karsilama";
+    const rewritten = NextResponse.rewrite(rewriteUrl, { request });
+    for (const cookie of response.cookies.getAll()) {
+      rewritten.cookies.set(cookie);
+    }
+    return rewritten;
+  }
+
   if (!signedIn && matches(pathname, PROTECTED_PATHS)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/giris";

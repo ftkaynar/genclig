@@ -3,6 +3,7 @@ import { RewardFab } from "@/components/rewards/reward-fab";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { AnnouncementBanner } from "@/components/home/announcement-banner";
 import { FeaturedTask } from "@/components/home/featured-task";
 import { SpotlightBand } from "@/components/home/spotlight-band";
@@ -73,48 +74,16 @@ export default async function UserHomePage() {
     redirect("/onboarding");
   }
 
+  /*
+    Oturumsuz ziyaretçi: ÇIPLAK karşılama ekranı (D35 FAZ A).
+
+    ÖNCEKİ DURUM: bu dalda UserHud, RewardFab ve UserBottomNav üçü de
+    çiziliyordu (ölçüldü). Hesabı olmayan birine beş sekmeli bir
+    uygulama gezinmesi göstermek hem yalan (hiçbiri çalışmıyor) hem de
+    dikkat dağıtıcıydı.
+  */
   if (!viewer) {
-    return (
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-surface">
-        <UserHud />
-
-        <main className="flex flex-1 flex-col items-center justify-center px-4 py-8 has-bottom-nav">
-          <section className="brand-gradient w-full rounded-3xl px-6 py-10 text-center shadow-lg">
-            <Image
-              src="/brand/logo-mark.png"
-              alt="GençLİG logosu"
-              width={96}
-              height={96}
-              className="mx-auto h-24 w-24"
-              priority
-            />
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-white">
-              GençLİG
-            </h1>
-            <p className="mt-2 text-sm text-white/80">
-              Şehrinde görev yap, puan kazan.
-            </p>
-
-            <Link
-              href="/kayit"
-              className="mt-7 block w-full rounded-full btn-chunky bg-cta px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              Hemen başla
-            </Link>
-            <Link
-              href="/giris"
-              className="mt-3 block w-full rounded-full border border-white/40 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              Giriş yap
-            </Link>
-          </section>
-        </main>
-      <RewardFab />
-
-
-        <UserBottomNav active="home" />
-      </div>
-    );
+    return <WelcomeScreen />;
   }
 
   const [
@@ -400,6 +369,15 @@ export default async function UserHomePage() {
           </section>
         ) : null}
       </main>
+
+      {/*
+        Ödül FAB'ı ana sayfada da (D35 FAZ A bulgusu).
+
+        ÖLÇÜLDÜ: FAB 15 kullanıcı sayfasında vardı ama GİRİŞLİ ana
+        sayfada yoktu — yalnız oturumsuz dalda duruyordu. Yani
+        kullanıcının en çok indiği ekranda mağaza kısayolu yoktu.
+      */}
+      <RewardFab />
 
       <UserBottomNav active="home" />
     </div>
