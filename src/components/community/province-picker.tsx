@@ -57,7 +57,7 @@ export function ProvincePicker({
         onClick={() => setOpen(true)}
         className="press-soft flex min-h-[40px] w-full items-center gap-2 rounded-xl border border-edge bg-card px-3 text-left"
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary-ink">
           <Icon name="map-pin" className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
@@ -65,7 +65,7 @@ export function ProvincePicker({
             {currentName}
           </span>
         </span>
-        <span className="shrink-0 text-[11px] font-semibold text-primary">
+        <span className="shrink-0 text-[11px] font-semibold text-primary-ink">
           Değiştir
         </span>
         <Icon
@@ -119,7 +119,7 @@ export function ProvincePicker({
                       }}
                       className={`press-soft flex min-h-[48px] w-full items-center gap-2 rounded-xl px-3 text-left text-sm ${
                         isCurrent
-                          ? "bg-primary/15 font-bold text-primary"
+                          ? "bg-primary/15 font-bold text-primary-ink"
                           : "font-medium text-ink hover:bg-card"
                       }`}
                     >

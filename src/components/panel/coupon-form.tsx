@@ -35,7 +35,7 @@ export function CouponForm() {
         </p>
       ) : null}
       {notice ? (
-        <p role="status" className="rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary">
+        <p role="status" className="rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary-ink">
           {notice}
         </p>
       ) : null}
@@ -45,7 +45,7 @@ export function CouponForm() {
         onChange={(event) => setCode(event.target.value.toUpperCase())}
         placeholder="ABCD1234"
         maxLength={8}
-        className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-center font-mono text-lg tracking-widest text-ink placeholder:text-ink-muted/60"
+        className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-center font-mono text-lg tracking-widest text-ink placeholder:text-ink-muted"
       />
 
       <button

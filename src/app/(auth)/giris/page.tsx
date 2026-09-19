@@ -21,7 +21,7 @@ export default async function SignInPage({
       footer={
         <>
           Hesabın yok mu?{" "}
-          <Link href="/kayit" className="font-semibold text-primary hover:underline">
+          <Link href="/kayit" className="font-semibold text-primary-ink hover:underline">
             Hesap aç
           </Link>
         </>

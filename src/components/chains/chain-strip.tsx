@@ -21,7 +21,7 @@ export function ChainStrip({ chains }: { chains: ChainRow[] }) {
     <section className="mb-4">
       <div className="mb-2 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-          <Icon name="list-checks" className="h-4 w-4 text-indigo" />
+          <Icon name="list-checks" className="h-4 w-4 text-indigo-ink" />
           Zincirler
         </h2>
 
@@ -37,7 +37,7 @@ export function ChainStrip({ chains }: { chains: ChainRow[] }) {
         {chains.length > 3 ? (
           <Link
             href="/zincirler"
-            className="inline-flex items-center gap-0.5 text-xs font-medium text-indigo hover:underline"
+            className="inline-flex items-center gap-0.5 text-xs font-medium text-indigo-ink hover:underline"
           >
             Tümü
             <Icon name="chevron-right" className="h-3.5 w-3.5" />

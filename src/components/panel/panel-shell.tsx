@@ -85,7 +85,7 @@ export function KpiCard({
 }) {
   const toneClass =
     tone === "primary"
-      ? "text-primary"
+      ? "text-primary-ink"
       : tone === "warning"
         ? "text-status-warning"
         : tone === "danger"

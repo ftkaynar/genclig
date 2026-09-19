@@ -37,7 +37,7 @@ export function LevelPath({
   return (
     <section className="mt-5">
       <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-        <Icon name="trending-up" className="h-4 w-4 text-primary" />
+        <Icon name="trending-up" className="h-4 w-4 text-primary-ink" />
         Seviye Yolu
       </h2>
       <p className="mt-0.5 text-[11px] text-ink-muted">
@@ -85,7 +85,7 @@ export function LevelPath({
                     isCurrent
                       ? "brand-gradient node-pulse flex h-12 w-12 items-center justify-center rounded-full text-base font-bold text-white"
                       : reached
-                        ? "flex h-10 w-10 items-center justify-center rounded-full bg-primary/25 text-sm font-bold text-primary ring-2 ring-primary/40"
+                        ? "flex h-10 w-10 items-center justify-center rounded-full bg-primary/25 text-sm font-bold text-primary-ink ring-2 ring-primary/40"
                         : "flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-edge bg-card text-sm font-bold text-ink-muted"
                   }
                 >
@@ -115,7 +115,7 @@ export function LevelPath({
               >
                 <span
                   className={`block text-sm font-semibold ${
-                    isCurrent ? "text-primary" : reached ? "text-ink" : "text-ink-muted"
+                    isCurrent ? "text-primary-ink" : reached ? "text-ink" : "text-ink-muted"
                   }`}
                 >
                   Seviye {node.level}
@@ -150,7 +150,7 @@ export function LevelPath({
                         }}
                       />
                     </span>
-                    <span className="mt-0.5 block text-[10px] font-medium text-primary">
+                    <span className="mt-0.5 block text-[10px] font-medium text-primary-ink">
                       Seviye {nodes[index + 1].level} için{" "}
                       {nodes[index + 1].minXp - currentXp} XP
                     </span>

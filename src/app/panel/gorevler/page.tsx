@@ -79,7 +79,7 @@ export default async function PanelTasksPage() {
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Link
                   href={`/panel/gorevler/${task.id}/duzenle`}
-                  className="rounded-full border border-primary/50 inline-flex min-h-[40px] items-center px-3.5 text-[13px] font-medium text-primary hover:bg-primary/10"
+                  className="rounded-full border border-primary/50 inline-flex min-h-[40px] items-center px-3.5 text-[13px] font-medium text-primary-ink hover:bg-primary/10"
                 >
                   Düzenle
                 </Link>

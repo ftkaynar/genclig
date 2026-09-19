@@ -82,7 +82,7 @@ export function ReviewQueue({ items }: { items: ReviewItem[] }) {
             <p className="text-sm font-semibold text-ink">{item.taskTitle}</p>
             {/* Belediye adı: süper admin kuyruğunda hangi belediyeye ait
                 olduğu görünsün diye. Global görevde "Genel". */}
-            <span className="mt-1 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            <span className="mt-1 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary-ink">
               {item.municipalityName ?? "Genel"}
             </span>
             <p className="mt-1 text-xs text-ink-muted">

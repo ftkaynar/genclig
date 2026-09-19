@@ -60,7 +60,7 @@ export const AUDIT_ACTION: Record<
   "announcement.send": {
     label: "Duyuru gönderdi",
     icon: "bell",
-    tone: "bg-primary/15 text-primary",
+    tone: "bg-primary/15 text-primary-ink",
   },
   "role.grant": {
     label: "Rol verdi",
@@ -75,12 +75,12 @@ export const AUDIT_ACTION: Record<
   "task.create": {
     label: "Görev oluşturdu",
     icon: "list-checks",
-    tone: "bg-indigo/15 text-indigo",
+    tone: "bg-indigo/15 text-indigo-ink",
   },
   "task.status": {
     label: "Görev durumu",
     icon: "activity",
-    tone: "bg-indigo/15 text-indigo",
+    tone: "bg-indigo/15 text-indigo-ink",
   },
   "reward.redeem": {
     label: "Ödül alındı",
@@ -100,7 +100,7 @@ export const AUDIT_ACTION: Record<
   "channel.migrate": {
     label: "Kanal taşıma",
     icon: "globe",
-    tone: "bg-primary/15 text-primary",
+    tone: "bg-primary/15 text-primary-ink",
   },
 };
 

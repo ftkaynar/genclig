@@ -156,7 +156,7 @@ export default async function TaskDetailPage({
         */}
         <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-edge bg-card px-3.5 py-3">
           <p className="flex items-center gap-2 text-sm">
-            <Icon name="building-2" className="h-4 w-4 shrink-0 text-primary" />
+            <Icon name="building-2" className="h-4 w-4 shrink-0 text-primary-ink" />
             <span className="text-ink-muted">Görevi açan:</span>
             <span className="min-w-0 flex-1 truncate font-semibold text-ink">
               {taskIssuer(task)}
@@ -224,7 +224,7 @@ export default async function TaskDetailPage({
         */}
         {task.timeState === "upcoming" && task.starts_at ? (
           <div className="mt-4 rounded-2xl border-2 border-indigo/50 bg-gradient-to-br from-indigo/10 to-primary/10 p-4 text-center">
-            <p className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo">
+            <p className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo-ink">
               <Icon name="calendar-clock" className="h-4 w-4" />
               Henüz başlamadı
             </p>

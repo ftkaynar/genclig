@@ -95,7 +95,7 @@ export default async function NotificationsPage() {
                       </p>
                     ) : null}
 
-                    <span className="mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium text-primary">
+                    <span className="mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium text-primary-ink">
                       Aç
                       <Icon name="chevron-right" className="h-3 w-3" />
                     </span>

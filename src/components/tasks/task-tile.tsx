@@ -308,7 +308,7 @@ export function TaskTile({
               */}
               {!isPlatformIssuer(task) ? (
                 <>
-                  <Icon name="building-2" className="h-3 w-3 shrink-0 text-indigo" />
+                  <Icon name="building-2" className="h-3 w-3 shrink-0 text-indigo-ink" />
                   <span className="truncate">{taskIssuer(task)}</span>
                 </>
               ) : null}

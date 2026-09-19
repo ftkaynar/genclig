@@ -101,7 +101,7 @@ export default async function AdminPage() {
 
       <section className="mt-5">
         <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-ink">
-          <Icon name="activity" className="h-4 w-4 text-primary" />
+          <Icon name="activity" className="h-4 w-4 text-primary-ink" />
           Son aktiviteler
         </h2>
         <AuditFeed rows={audit} />

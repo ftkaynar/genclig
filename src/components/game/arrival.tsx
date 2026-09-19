@@ -227,7 +227,7 @@ export function Arrival({
 
           {unlocked.length > 0 ? (
             <div className="relative mt-4 rounded-2xl bg-surface p-3 text-left">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-primary-ink">
                 Yeni açılanlar
               </p>
               <ul className="mt-1.5 flex flex-col gap-1">
@@ -286,7 +286,7 @@ export function Arrival({
   // ------------------------------------------------ kazanç: sayan şerit
   return (
     <div className="anim-stagger mb-3 flex items-center gap-2.5 rounded-2xl border border-primary/40 bg-primary/10 px-3.5 py-2.5">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary-ink">
         <Icon name="sparkles" className="h-4.5 w-4.5" />
       </span>
 

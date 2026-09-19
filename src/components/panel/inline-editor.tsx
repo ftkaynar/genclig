@@ -85,7 +85,7 @@ export function InlineEditor({
         </p>
       ) : null}
       {notice ? (
-        <p role="status" className="mt-2 text-xs text-primary">
+        <p role="status" className="mt-2 text-xs text-primary-ink">
           {notice}
         </p>
       ) : null}

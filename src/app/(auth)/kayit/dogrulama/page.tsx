@@ -27,7 +27,7 @@ export default async function VerifyNoticePage({
           : "Adresine bir doğrulama bağlantısı gönderdik."
       }
       footer={
-        <Link href="/giris" className="font-semibold text-primary hover:underline">
+        <Link href="/giris" className="font-semibold text-primary-ink hover:underline">
           Giriş sayfasına dön
         </Link>
       }

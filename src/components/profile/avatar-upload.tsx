@@ -136,7 +136,7 @@ export function AvatarUpload({
         {step ? (
           <p className="mt-1.5 text-xs text-ink-muted">{step}</p>
         ) : sizeNote ? (
-          <p className="mt-1.5 text-xs text-primary">{sizeNote}</p>
+          <p className="mt-1.5 text-xs text-primary-ink">{sizeNote}</p>
         ) : null}
 
         {error ? (

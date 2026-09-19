@@ -279,7 +279,7 @@ export default async function ProfilePage() {
               icon="list-checks"
               value={String(stats.approvedTasks)}
               label="Görev"
-              tone="text-primary"
+              tone="text-primary-ink"
             />
           </div>
 
@@ -301,7 +301,7 @@ export default async function ProfilePage() {
 
         <section className="anim-stagger mt-4 rounded-2xl border border-edge bg-card p-4" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Icon name="award" className="h-4 w-4 text-primary" />
+            <Icon name="award" className="h-4 w-4 text-primary-ink" />
             Rozetlerim ({earnedCount}/{badges.length})
           </h2>
 
@@ -324,7 +324,7 @@ export default async function ProfilePage() {
 
         <section className="anim-stagger mt-4 rounded-2xl border border-edge bg-card p-4" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Icon name="trending-up" className="h-4 w-4 text-primary" />
+            <Icon name="trending-up" className="h-4 w-4 text-primary-ink" />
             İstatistiklerim
           </h2>
 
@@ -361,7 +361,7 @@ export default async function ProfilePage() {
 
         <section className="anim-stagger mt-4 rounded-2xl border border-edge bg-card p-4" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Icon name="activity" className="h-4 w-4 text-primary" />
+            <Icon name="activity" className="h-4 w-4 text-primary-ink" />
             Son aktiviteler
           </h2>
 

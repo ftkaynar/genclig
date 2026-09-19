@@ -94,7 +94,7 @@ function RunnerUp({
 
       <span
         className={`mt-2 max-w-full truncate text-xs font-semibold ${
-          highlight ? "text-primary" : "text-ink"
+          highlight ? "text-primary-ink" : "text-ink"
         }`}
       >
         {entry.name}
@@ -152,7 +152,7 @@ export function Podium({
 
         <span
           className={`mt-2 max-w-full truncate text-sm font-bold ${
-            firstMine ? "text-primary" : "text-ink"
+            firstMine ? "text-primary-ink" : "text-ink"
           }`}
         >
           {first.name}

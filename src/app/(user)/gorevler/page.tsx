@@ -184,7 +184,7 @@ export default async function TasksPage({
         {activeCategory ? (
           <Link
             href={`/gorevler${activeScope ? `?kapsam=${activeScope}` : ""}`}
-            className="press-soft mb-4 inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 text-[13px] font-semibold text-primary"
+            className="press-soft mb-4 inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 text-[13px] font-semibold text-primary-ink"
           >
             <Icon name="chevron-right" className="h-4 w-4 rotate-180" />
             {activeCategoryName || "Tüm görevler"}
@@ -194,7 +194,7 @@ export default async function TasksPage({
 
         {upcoming.length > 0 ? (
           <section className="mb-5">
-            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-indigo">
+            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-indigo-ink">
               <Icon name="calendar-clock" className="h-4 w-4" />
               Yaklaşan
             </h2>

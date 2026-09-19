@@ -114,7 +114,7 @@ export function ScopeTabs({
                     aria-current={isActive ? "page" : undefined}
                     className={`press-soft flex min-h-[40px] items-center gap-1.5 rounded-xl border px-3.5 text-[13px] font-medium ${
                       isActive
-                        ? "border-primary bg-primary/15 text-primary"
+                        ? "border-primary bg-primary/15 text-primary-ink"
                         : "border-edge bg-surface text-ink-muted hover:text-ink"
                     }`}
                   >

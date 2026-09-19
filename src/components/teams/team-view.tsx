@@ -296,7 +296,7 @@ export function TeamView({
                     {member.role === "captain" ? (
                       <Icon
                         name="shield"
-                        className="h-3.5 w-3.5 shrink-0 text-primary"
+                        className="h-3.5 w-3.5 shrink-0 text-primary-ink"
                       />
                     ) : null}
                   </span>

@@ -295,7 +295,7 @@ export default async function UserHomePage() {
             </h2>
             <Link
               href="/gorevler"
-              className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline"
+              className="inline-flex items-center gap-0.5 text-xs font-medium text-primary-ink hover:underline"
             >
               Tümünü gör
               <Icon name="chevron-right" className="h-3.5 w-3.5" />
@@ -349,7 +349,7 @@ export default async function UserHomePage() {
               <h2 className="text-sm font-semibold text-ink">Son bildirimler</h2>
               <Link
                 href="/bildirimler"
-                className="text-xs font-medium text-primary hover:underline"
+                className="text-xs font-medium text-primary-ink hover:underline"
               >
                 Tümü
               </Link>

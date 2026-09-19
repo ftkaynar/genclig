@@ -158,7 +158,7 @@ export function ChatView({
         belirsiz olması başlı başına bir risk.
       */}
       <p className="mx-4 mt-3 flex items-center gap-1.5 rounded-xl border border-edge bg-card px-3.5 py-2 text-[11px] text-ink-muted">
-        <Icon name="globe" className="h-3.5 w-3.5 shrink-0 text-primary" />
+        <Icon name="globe" className="h-3.5 w-3.5 shrink-0 text-primary-ink" />
         <span>
           Bu sohbet <strong className="text-ink">{channel.district_name}</strong>
           {" "}kanalı. Türkiye&apos;nin her yerinden okunabilir ve
@@ -262,7 +262,7 @@ export function ChatView({
                       <span className="text-[11px] font-semibold text-ink">
                         {message.username}
                       </span>
-                      <span className="rounded-full bg-primary/15 px-1.5 text-[9px] font-bold text-primary">
+                      <span className="rounded-full bg-primary/15 px-1.5 text-[9px] font-bold text-primary-ink">
                         {message.level}
                       </span>
                     </button>

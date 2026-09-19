@@ -37,7 +37,7 @@ export function IconPicker({
         onClick={() => setOpen((prev) => !prev)}
         className="flex w-full items-center gap-2.5 rounded-xl border border-edge bg-surface px-3 py-2 text-left text-sm text-ink"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-card text-primary">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-card text-primary-ink">
           <Icon name={value} className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1 truncate">
@@ -78,7 +78,7 @@ export function IconPicker({
                     }}
                     className={
                       name === value
-                        ? "flex h-10 w-full items-center justify-center rounded-lg border border-primary bg-primary/10 text-primary"
+                        ? "flex h-10 w-full items-center justify-center rounded-lg border border-primary bg-primary/10 text-primary-ink"
                         : "flex h-10 w-full items-center justify-center rounded-lg border border-edge bg-surface text-ink-muted hover:text-ink"
                     }
                   >

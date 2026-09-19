@@ -35,7 +35,7 @@ export default async function SignUpPage({
       footer={
         <>
           Zaten hesabın var mı?{" "}
-          <Link href="/giris" className="font-semibold text-primary hover:underline">
+          <Link href="/giris" className="font-semibold text-primary-ink hover:underline">
             Giriş yap
           </Link>
         </>

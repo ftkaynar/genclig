@@ -170,7 +170,7 @@ export function ReportForm({
       {success ? (
         <p
           role="status"
-          className="rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary"
+          className="rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary-ink"
         >
           {success}
         </p>
@@ -223,7 +223,7 @@ export function ReportForm({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           placeholder="Kısa bir başlık"
-          className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-ink-muted/70"
+          className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-ink-muted"
         />
         <span className="mt-1.5 block text-xs text-ink-muted">
           En az 5 karakter.
@@ -237,7 +237,7 @@ export function ReportForm({
           onChange={(event) => setDescription(event.target.value)}
           rows={4}
           placeholder="Ne olduğunu anlat"
-          className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-ink-muted/70"
+          className="w-full rounded-xl border border-edge bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-ink-muted"
         />
         <span className="mt-1.5 block text-xs text-ink-muted">
           En az 15 karakter.
@@ -267,7 +267,7 @@ export function ReportForm({
         </div>
 
         {coords ? (
-          <p className="mt-2 text-xs text-primary">
+          <p className="mt-2 text-xs text-primary-ink">
             {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)} · ±{coords.accuracy} m
           </p>
         ) : (
@@ -280,7 +280,7 @@ export function ReportForm({
           value={addressText}
           onChange={(event) => setAddressText(event.target.value)}
           placeholder="Adres veya tarif (isteğe bağlı)"
-          className="mt-2.5 w-full rounded-xl border border-edge bg-card px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted/70"
+          className="mt-2.5 w-full rounded-xl border border-edge bg-card px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted"
         />
       </div>
 

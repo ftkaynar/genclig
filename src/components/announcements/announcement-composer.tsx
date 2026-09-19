@@ -205,7 +205,7 @@ export function AnnouncementComposer({
                 {item.body}
               </p>
               <p className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-ink-muted">
-                <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary-ink">
                   {AUDIENCE_LABEL[item.audience] ?? item.audience}
                   {item.municipality_name ? ` · ${item.municipality_name}` : ""}
                 </span>

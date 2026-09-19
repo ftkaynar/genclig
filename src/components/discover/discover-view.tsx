@@ -68,13 +68,13 @@ function StripHeader({
   return (
     <div className="mb-2 flex items-center justify-between gap-3">
       <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-        <Icon name={icon} className="h-4 w-4 text-primary" />
+        <Icon name={icon} className="h-4 w-4 text-primary-ink" />
         {title}
       </h2>
       {href ? (
         <Link
           href={href}
-          className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline"
+          className="inline-flex items-center gap-0.5 text-xs font-medium text-primary-ink hover:underline"
         >
           Tümünü gör
           <Icon name="chevron-right" className="h-3.5 w-3.5" />

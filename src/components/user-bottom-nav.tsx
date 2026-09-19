@@ -113,7 +113,7 @@ export function UserBottomNav({ active }: { active: BottomNavKey }) {
                   <span
                     className={`text-[11px] transition-colors duration-[var(--motion-fast)] ${
                       isActive
-                        ? "font-bold text-primary"
+                        ? "font-bold text-primary-ink"
                         : "font-medium text-ink-muted"
                     }`}
                   >
@@ -140,7 +140,7 @@ export function UserBottomNav({ active }: { active: BottomNavKey }) {
                 <span
                   className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-[var(--motion-fast)] ease-out group-active:scale-90 ${
                     isActive
-                      ? "-translate-y-0.5 bg-primary/15 text-primary"
+                      ? "-translate-y-0.5 bg-primary/15 text-primary-ink"
                       : "text-ink-muted group-hover:text-ink"
                   }`}
                 >
@@ -155,7 +155,7 @@ export function UserBottomNav({ active }: { active: BottomNavKey }) {
                 <span
                   className={`text-[10px] transition-colors duration-[var(--motion-fast)] ${
                     isActive
-                      ? "font-bold text-primary"
+                      ? "font-bold text-primary-ink"
                       : "font-medium text-ink-muted"
                   }`}
                 >

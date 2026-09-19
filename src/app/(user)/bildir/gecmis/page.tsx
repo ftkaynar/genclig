@@ -96,7 +96,7 @@ export default async function MyReportsPage() {
                     href={`https://www.openstreetmap.org/?mlat=${report.lat}&mlon=${report.lng}#map=18/${report.lat}/${report.lng}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-1.5 inline-block text-xs font-medium text-primary hover:underline"
+                    className="mt-1.5 inline-block text-xs font-medium text-primary-ink hover:underline"
                   >
                     Haritada gör
                   </a>

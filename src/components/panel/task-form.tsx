@@ -192,7 +192,7 @@ export function TaskForm({
       {notice ? (
         <p
           role="status"
-          className="mb-3 rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary"
+          className="mb-3 rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 text-sm font-medium text-primary-ink"
         >
           {notice}
         </p>
@@ -521,7 +521,7 @@ export function TaskForm({
 }
 
 const inputClass =
-  "w-full rounded-xl border border-edge bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted/70";
+  "w-full rounded-xl border border-edge bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted";
 
 function Field({
   label,

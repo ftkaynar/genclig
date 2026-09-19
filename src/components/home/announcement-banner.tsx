@@ -74,7 +74,7 @@ export function AnnouncementBanner({
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold uppercase tracking-wide text-primary">
+          <span className="block text-[10px] font-bold uppercase tracking-wide text-primary-ink">
             Duyuru
           </span>
           <span className="mt-0.5 block text-sm font-semibold text-ink">

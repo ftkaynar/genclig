@@ -83,7 +83,7 @@ export function CategoryRows({
         return (
           <section key={group.slug}>
             <div className="mb-2 flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary-ink">
                 <Icon name={group.icon ?? "list-checks"} className="h-4 w-4" />
               </span>
 
@@ -100,7 +100,7 @@ export function CategoryRows({
               {group.tasks.length > 3 ? (
                 <Link
                   href={href}
-                  className="flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline"
+                  className="flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-primary-ink hover:underline"
                 >
                   Tümünü gör
                   <Icon name="chevron-right" className="h-3.5 w-3.5" />

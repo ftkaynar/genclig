@@ -122,7 +122,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                             style={{ width: `${ratio}%` }}
                           />
                         </span>
-                        <span className="mt-0.5 text-[9px] font-semibold text-primary">
+                        <span className="mt-0.5 text-[9px] font-semibold text-primary-ink">
                           {badge.progress.current}/{badge.progress.target}
                         </span>
                       </>
@@ -187,7 +187,7 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                     }}
                   />
                 </span>
-                <p className="mt-1 text-sm font-semibold text-primary">
+                <p className="mt-1 text-sm font-semibold text-primary-ink">
                   {open.progress.current} / {open.progress.target}
                 </p>
               </div>

@@ -172,7 +172,7 @@ export function FormAlert({
   const tone =
     kind === "error"
       ? "border-status-danger/40 bg-status-danger/10 text-status-danger"
-      : "border-primary/40 bg-primary/10 text-primary";
+      : "border-primary/40 bg-primary/10 text-primary-ink";
 
   return (
     <p role="alert" className={`rounded-xl border px-3.5 py-2.5 text-sm ${tone}`}>

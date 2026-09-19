@@ -44,7 +44,7 @@ export function ChainCard({
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
             chain.awarded
               ? "bg-status-success/15 text-status-success"
-              : "bg-indigo/15 text-indigo"
+              : "bg-indigo/15 text-indigo-ink"
           }`}
         >
           <Icon
@@ -68,7 +68,7 @@ export function ChainCard({
         <span className="text-ink-muted">
           {chain.done_count} / {chain.step_count} adım
         </span>
-        <span className={chain.awarded ? "text-status-success" : "text-indigo"}>
+        <span className={chain.awarded ? "text-status-success" : "text-indigo-ink"}>
           %{percent}
         </span>
       </span>

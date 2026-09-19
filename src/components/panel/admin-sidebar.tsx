@@ -118,7 +118,7 @@ function NavList({
       {ADMIN_NAV.map((group) => (
         <div key={group.title}>
           {!collapsed ? (
-            <p className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
+            <p className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
               {group.title}
             </p>
           ) : (
@@ -142,7 +142,7 @@ function NavList({
                     title={collapsed ? item.label : undefined}
                     className={`group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium transition-colors ${
                       active
-                        ? "bg-primary/15 text-primary"
+                        ? "bg-primary/15 text-primary-ink"
                         : "text-ink-muted hover:bg-surface hover:text-ink"
                     } ${collapsed ? "justify-center" : ""}`}
                   >

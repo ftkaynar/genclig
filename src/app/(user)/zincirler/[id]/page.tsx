@@ -86,7 +86,7 @@ export default async function ChainDetailPage({
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
                 chain.awarded
                   ? "bg-status-success/15 text-status-success"
-                  : "bg-indigo/15 text-indigo"
+                  : "bg-indigo/15 text-indigo-ink"
               }`}
             >
               <Icon
@@ -111,7 +111,7 @@ export default async function ChainDetailPage({
             <span className="text-ink">
               {chain.done_count} / {chain.step_count} adım
             </span>
-            <span className={chain.awarded ? "text-status-success" : "text-indigo"}>
+            <span className={chain.awarded ? "text-status-success" : "text-indigo-ink"}>
               %{percent}
             </span>
           </p>

@@ -217,7 +217,7 @@ export function ChainEditor({
                 key={taskId}
                 className="flex items-center gap-2 rounded-xl border border-edge bg-surface px-2.5 py-1.5"
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo/15 text-[11px] font-bold text-indigo">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo/15 text-[11px] font-bold text-indigo-ink">
                   {index + 1}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-[13px] text-ink">
@@ -319,7 +319,7 @@ export function ChainEditor({
             className="rounded-2xl border border-edge bg-card p-3.5"
           >
             <p className="flex items-center gap-2 text-sm font-bold text-ink">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo/15 text-indigo">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo/15 text-indigo-ink">
                 <Icon name={chain.icon ?? "list-checks"} className="h-4 w-4" />
               </span>
               <span className="min-w-0 flex-1 truncate">{chain.title}</span>

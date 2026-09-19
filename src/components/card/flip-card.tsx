@@ -128,7 +128,7 @@ export function FlipCard({
             style={{ aspectRatio: "100 / 152" }}
           >
             <div className="flex h-full flex-col overflow-y-auto">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-primary-ink">
                 İstat kırılımı
               </p>
 
@@ -141,7 +141,7 @@ export function FlipCard({
                         <span className="text-[11px] font-semibold text-ink">
                           {meta.name}
                         </span>
-                        <span className="text-[11px] font-bold tabular-nums text-primary">
+                        <span className="text-[11px] font-bold tabular-nums text-primary-ink">
                           {value}
                         </span>
                       </div>
@@ -161,7 +161,7 @@ export function FlipCard({
                 })}
               </ul>
 
-              <p className="mt-2.5 text-[11px] font-bold uppercase tracking-wide text-primary">
+              <p className="mt-2.5 text-[11px] font-bold uppercase tracking-wide text-primary-ink">
                 Özet
               </p>
               <div className="mt-1 grid grid-cols-3 gap-1">
@@ -191,7 +191,7 @@ export function FlipCard({
 
               {badges.length > 0 ? (
                 <>
-                  <p className="mt-2.5 text-[11px] font-bold uppercase tracking-wide text-primary">
+                  <p className="mt-2.5 text-[11px] font-bold uppercase tracking-wide text-primary-ink">
                     Rozetler
                   </p>
                   <ul className="mt-1 flex flex-wrap gap-1">

@@ -203,7 +203,7 @@ export function FriendsView({
                   <span className="block text-[11px] text-ink-muted">XP</span>
                 </span>
                 <span className="rounded-xl bg-surface px-2 py-2.5">
-                  <span className="block text-base font-bold text-primary">
+                  <span className="block text-base font-bold text-primary-ink">
                     {card.badge_count ?? 0}
                   </span>
                   <span className="block text-[11px] text-ink-muted">Rozet</span>

@@ -28,6 +28,23 @@
 
   --text-strong: #111a2e;
   --text-muted: #4a5878;
+  /*
+    METİN İÇİN marka tonu (D36 FAZ CL).
+
+    ÖLÇÜLEN SORUN: #7c3aed koyu kartın (#131c2e) üstünde 2.99:1 —
+    küçük metin için gereken 4.5:1'in çok altında, hatta ikon/büyük
+    metin eşiği 3:1'in bile altında. Uygulamadaki 68 `text-primary`
+    kullanımının neredeyse tamamı bağlantı ve küçük etiket;
+    "genel soluk görünüyor" şikâyetinin ölçülebilir kaynağı buydu.
+
+    DOLGU tonu (--color-primary) DEĞİŞMİYOR: düğme zemini olarak beyaz
+    yazıyla iyi çalışıyor ve markanın rengi o. Değişen yalnız METNİN
+    tonu, üstelik temaya göre: açık temada taban mor, koyu temada bir
+    kademe açığı. Tek sabit açık ton denendi ve elendi — koyuda okunan
+    #a78bfa beyaz kartta 2.72:1'e düşüyor, sorun yer değiştiriyordu.
+  */
+  --brand-ink: #7c3aed;
+  --indigo-ink: #4f46e5;
 }
 
 :root[data-theme="dark"] {
@@ -39,6 +56,9 @@
 
   --text-strong: #f3f6fc;
   --text-muted: #97a6c7;
+  /* Koyu kartta 6.26:1 ve 5.71:1 (taban tonlar 2.99 ve 3.81 veriyordu). */
+  --brand-ink: #a78bfa;
+  --indigo-ink: #818cf8;
 }
 
 @theme inline {
@@ -70,6 +90,13 @@
   --color-edge: var(--surface-border);
   --color-ink: var(--text-strong);
   --color-ink-muted: var(--text-muted);
+  /*
+    Metin ve ikon için okunabilir marka tonları. Dolgular (düğme zemini,
+    gradyan, çip arkaplanı) yukarıdaki --color-primary / --color-indigo
+    ile kalıyor; ayrım bilinçli, gerekçe --brand-ink tanımında.
+  */
+  --color-primary-ink: var(--brand-ink);
+  --color-indigo-ink: var(--indigo-ink);
 
   --color-status-success: #22c55e;
   --color-status-warning: #f59e0b;
@@ -903,6 +930,26 @@
     rgb(212 160 44 / 0.9),
     transparent
   );
+}
+
+/*
+  BRONZ KADEMEDE ÇİZGİ YOK (D36 FAZ CL).
+
+  Çizgi ALTIN gradyanı (rgb(212 160 44)). Altın, gümüş ve efsane
+  kartlarında çerçeveyle aynı aileden ve OVR bloğunu alttaki
+  madalyondan ayırıyor. Bronz çerçeve ise bakır (#b07b4f → #7a4a24):
+  orada aynı çizgi kartın hiçbir yerinde karşılığı olmayan yabancı bir
+  altın şerit olarak duruyor ve ayırma işini de görmüyor — bronz
+  kartta OVR bloğu zaten en sade hâli.
+
+  Çizgiyi bronzun kendi bakırına boyamak denendi ve elendi: bakır
+  çizgi bakır çerçevenin içinde görünmüyor, yani görünmeyen bir öğe
+  için bir kural daha yazmış oluyorduk.
+
+  Kartın geri kalanına dokunulmadı (dilim DOKUNMA listesi).
+*/
+.vipcard-bronze .vip-rule {
+  display: none;
 }
 
 /* İstat barı. */

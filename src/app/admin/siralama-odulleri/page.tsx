@@ -48,7 +48,7 @@ export default async function LeaderboardRewardsPage() {
 
       <section className="mt-6">
         <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-ink">
-          <Icon name="list-checks" className="h-4 w-4 text-primary" />
+          <Icon name="list-checks" className="h-4 w-4 text-primary-ink" />
           Geçmiş dağıtımlar
         </h2>
 

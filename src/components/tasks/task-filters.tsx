@@ -126,7 +126,7 @@ export function TypeChips({
                 aria-current={isActive ? "page" : undefined}
                 className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                   isActive
-                    ? "border-primary bg-primary/15 text-primary"
+                    ? "border-primary bg-primary/15 text-primary-ink"
                     : "border-edge bg-card text-ink-muted hover:text-ink"
                 }`}
               >

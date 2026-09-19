@@ -74,12 +74,12 @@ export function RedeemPanel({
 
             <div className="p-4">
               <p className="text-[11px] text-ink-muted">Kupon kodun</p>
-              <p className="mt-1.5 rounded-xl bg-surface px-3 py-3 font-mono text-xl font-bold tracking-[0.25em] text-primary">
+              <p className="mt-1.5 rounded-xl bg-surface px-3 py-3 font-mono text-xl font-bold tracking-[0.25em] text-primary-ink">
                 {code}
               </p>
               <Link
                 href="/oduller/kuponlarim"
-                className="mt-3 inline-block text-xs font-semibold text-primary hover:underline"
+                className="mt-3 inline-block text-xs font-semibold text-primary-ink hover:underline"
               >
                 Kuponlarıma git
               </Link>
