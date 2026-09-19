@@ -12,6 +12,8 @@ export type RewardRow = {
   required_badge_id: string | null;
   stock: number | null;
   municipality_id: string | null;
+  /** FAB'daki "YENİ" rozeti bu alandan besleniyor (D35 FAZ F). */
+  created_at: string | null;
 };
 
 export type RedemptionRow = {
@@ -34,7 +36,7 @@ export async function listRewards(): Promise<RewardRow[]> {
   const { data } = await supabase
     .from("rewards")
     .select(
-      "id,title,description,image_url,coin_cost,min_level,required_badge_id,stock,municipality_id",
+      "id,title,description,image_url,coin_cost,min_level,required_badge_id,stock,municipality_id,created_at",
     )
     .eq("status", "active")
     .order("coin_cost");
