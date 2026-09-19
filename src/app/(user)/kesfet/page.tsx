@@ -3,7 +3,6 @@ import { RewardFab } from "@/components/rewards/reward-fab";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { getViewerProfile } from "@/lib/auth/viewer";
-import { } from "@/lib/discover/queries";
 import { getTaskCategories } from "@/lib/reference/queries";
 import { getSubmissionMap, listFeedTasks } from "@/lib/tasks/queries";
 import type { SubmissionSummary } from "@/lib/tasks/queries";

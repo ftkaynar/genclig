@@ -82,12 +82,29 @@ export const EMPTY_TASK: TaskFormValues = {
   status: "draft",
 };
 
+/*
+  YALNIZ İKİ TİP (D38 FAZ K / M36a).
+
+  ÖLÇÜLEN SORUN: bu liste beş tip sunuyordu — Günlük, Haftalık, Aylık
+  dahil. Ama `FEED_TASK_TYPES` yalnız "continuous" ve "instant" kabul
+  ediyor ve grep'te diğer üç değer kodun BAŞKA HİÇBİR YERİNDE
+  geçmiyordu. Personel "Günlük" seçince görev kaydediliyor, `active`
+  oluyor ve uygulamada hiç görünmüyordu: ne feed'de, ne haritada, ne
+  keşfet sayacında. Keşfet'te "Fatih (3)" yazarken veritabanında
+  Fatih'te 4 görev olmasının sebebi buydu.
+
+  Üçünü feed'e eklemek denendi ve elendi: haftalık/aylık ritmi
+  hesaplayan kod hiç yazılmamış, `taskCardState` tekrar davranışını
+  yalnız `continuous`'a veriyor. Görünür yapmak, ritmi tutulmayan
+  görevleri sessizce yanlış çalıştırmak olurdu.
+
+  "Günlük"ün yapması beklenen şeyi `continuous` zaten yapıyor: görev
+  günü penceresinde (06:00) tekrarlanabiliyor ve günlük sınır ayrı bir
+  sütunda (`daily_submission_limit`).
+*/
 const TYPES = [
   { value: "continuous", label: "Sürekli" },
   { value: "instant", label: "Anlık" },
-  { value: "daily", label: "Günlük" },
-  { value: "weekly", label: "Haftalık" },
-  { value: "monthly", label: "Aylık" },
 ];
 
 const SCOPES = [
