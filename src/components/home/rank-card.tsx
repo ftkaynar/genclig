@@ -43,50 +43,54 @@ type Scope = {
   Renk + ikon BİRLİKTE: yeşil/kırmızı tek başına ayırt edici değil
   (kırmızı-yeşil renk körlüğü en yaygın tür). Ok yönü kesin söylüyor.
 
-  'none' = İLK GÜN: henüz karşılaştırılacak bir dün yok.
-
-  ÖNCEKİ DURUM: bu durumda hiçbir şey basılmıyordu. Gerekçesi "nötr bir
-  çizgi 'değişmedi' demek olur, oysa bilinmiyor" idi — mantık doğruydu
-  ama sonucu yanlış: üç kartın da yanı bomboş kalıyordu ve proje sahibi
-  özelliği "yapılmamış" sandı (D37 teşhisi: bulutta yalnız bugünün 3
-  snapshot satırı vardı, önceki günden 0).
-
-  Sessizlik, "bilinmiyor"u anlatmıyor. Artık nötr bir tire + "Yarın
-  karşılaştırılacak" ipucu var: dikkat çekmeden "veri birikiyor" diyor.
-  Renk ink-muted, yani üç yönün hiçbiriyle karışmıyor — sarı eşittir
-  "dün de aynıydı", gri tire "dün yok" demek.
+  'none' = İLK GÜN: henüz karşılaştırılacak bir dün yok. Nötr GRİ tire
+  çiziliyor, başka bir şey değil. Sarı tire "dün de aynıydı", gri tire
+  "dün yok" demek; ikisi renkle ayrılıyor.
 */
 const TREND = {
-  up: { icon: "trending-up", className: "text-status-success", label: "yükseldi" },
-  down: { icon: "trending-down", className: "text-status-danger", label: "düştü" },
-  same: { icon: "minus", className: "text-coin", label: "değişmedi" },
+  up: { shape: "trend-up", label: "yükseldi" },
+  down: { shape: "trend-down", label: "düştü" },
+  same: { shape: "trend-same", label: "değişmedi" },
 } as const;
 
-/** İlk gün: karşılaştırma yok, ama boşluk da bırakılmıyor. */
-function TrendPending() {
-  return (
-    <span
-      title="Yarın karşılaştırılacak"
-      className="trend-pending inline-flex items-center text-ink-muted"
-    >
-      <Icon name="minus" className="h-4 w-4" strokeWidth={3} />
-      <span className="sr-only">
-        Karşılaştırma için henüz veri yok, yarın karşılaştırılacak
-      </span>
-    </span>
-  );
-}
+/*
+  YÖN İŞARETİ LUCIDE İKONU DEĞİL, SAF ŞEKİL (D38 FAZ T).
 
-function TrendArrow({ dir }: { dir: string }) {
+  ÖNCEKİ DURUM: `trending-up` / `trending-down` kullanılıyordu. Bunlar
+  bir GRAFİK ikonu — zikzak bir çizgi ve ucunda küçük bir ok. 16px'te
+  kartın içinde "görev ikonu" gibi okunuyordu ve yön bilgisi
+  kaybolyordu. Ok, ikon değil İŞARET olmalı.
+
+  Dolu üçgen (▲/▼) CSS kenarlıklarıyla çiziliyor: lucide'da dolu üçgen
+  yok ve `triangle` içi boş, 8px'te seçilmiyor. Unicode ▲ karakteri
+  denendi ve elendi — yazı tipine göre boyutu ve hizası oynuyor,
+  Android'de sayıdan büyük çıkıyordu. Kenarlık üçgeni her yerde aynı.
+
+  "Aynı" için üçgen değil kısa bir tire: eşitlik bir yön değil.
+*/
+function TrendMark({ dir }: { dir: string }) {
   const t = TREND[dir as keyof typeof TREND];
-  if (!t) return <TrendPending />;
+
+  /*
+    Önceki gün verisi yok: nötr gri tire, AÇIKLAMA METNİ YOK.
+
+    D37'de altına "Trend okları yarın başlıyor." cümlesi konmuştu;
+    kaldırıldı. Kartın altına açıklama yazmak ekranı kirletiyor ve üç
+    sütunluk sıkı bir bloğa dördüncü bir satır ekliyor. İşaretin
+    kendisi zaten "henüz bir şey yok" diyor.
+  */
+  if (!t) {
+    return (
+      <span aria-hidden className="trend-mark trend-none" />
+    );
+  }
 
   return (
     <span
       title={`Önceki kayda göre ${t.label}`}
-      className={`inline-flex items-center ${t.className}`}
+      className="inline-flex items-center"
     >
-      <Icon name={t.icon} className="h-4 w-4" strokeWidth={3} />
+      <span aria-hidden className={`trend-mark ${t.shape}`} />
       <span className="sr-only">Önceki kayda göre {t.label}</span>
     </span>
   );
@@ -128,26 +132,6 @@ function RankCounter({ to }: { to: number }) {
 }
 
 export function RankCard({ scopes }: { scopes: Scope[] }) {
-  /*
-    İLK GÜN AÇIKLAMASI (D37 FAZ T).
-
-    Tire ikonunun `title` ipucu masaüstünde çalışıyor ama bu bir mobil
-    uygulama; dokunmatik ekranda hover yok, yani ipucu hiç okunmuyor.
-    Bu yüzden açıklama bloğun ALTINDA tek satır.
-
-    Kart BAŞINA değil blok başına: üç kartın altına üç ayrı "yarın
-    karşılaştırılacak" yazmak, 390px'te üç sütunlu ritmi bozuyor ve
-    aynı cümleyi üç kez okutuyordu.
-
-    Yalnızca sırası OLAN ve hepsi 'none' olan durumda çıkıyor. Bir
-    kapsamda bile ok varsa mekanizma görünür biçimde çalışıyor demektir
-    ve cümle gereksiz gürültü olurdu.
-  */
-  const siralananlar = scopes.filter((scope) => scope.rank !== null);
-  const ilkGun =
-    siralananlar.length > 0 &&
-    siralananlar.every((scope) => !TREND[scope.dir as keyof typeof TREND]);
-
   return (
     <section
       className="anim-stagger mt-5"
@@ -190,7 +174,7 @@ export function RankCard({ scopes }: { scopes: Scope[] }) {
                   </>
                 )}
               </span>
-              {scope.rank === null ? null : <TrendArrow dir={scope.dir} />}
+              {scope.rank === null ? null : <TrendMark dir={scope.dir} />}
             </span>
 
             <span className="mt-1.5 text-[11px] font-semibold text-ink">
@@ -203,12 +187,6 @@ export function RankCard({ scopes }: { scopes: Scope[] }) {
         ))}
       </div>
 
-      {ilkGun ? (
-        <p className="mt-1.5 flex items-center gap-1 text-[10px] text-ink-muted">
-          <Icon name="minus" className="h-3 w-3 shrink-0" strokeWidth={3} />
-          Bugünkü sıran kaydedildi. Trend okları yarın başlıyor.
-        </p>
-      ) : null}
     </section>
   );
 }

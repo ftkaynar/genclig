@@ -1497,15 +1497,63 @@
 }
 
 /*
-  İlk gün tiresi (D37 FAZ T).
+  Sıra trendi işareti (D36 FAZ HR, D38 FAZ T'de yeniden yazıldı).
 
-  Üç yön okundan daha SİLİK: bu bir durum değil, durumun henüz
-  bilinmediğinin işareti. Aynı opaklıkta çizmek denendi ve elendi —
-  gri tire sarı eşittir işaretiyle aynı ağırlıkta durunca ikisi
-  karışıyor ve "dün de aynıydı" gibi okunuyordu.
+  ÖNCEKİ DURUM: lucide `trending-up` / `trending-down` kullanılıyordu.
+  Bunlar GRAFİK ikonu — zikzak bir çizgi ve ucunda küçük bir ok. 16px'te
+  kartın içinde "görev ikonu" gibi okunuyor, yön bilgisi kayboluyordu.
+  İşaret ikon değil ŞEKİL olmalı: dolu üçgen ve tire.
+
+  Gri tire ile sarı tire aynı ağırlıkta çizilmiyor: "dün de aynıydı"
+  ile "karşılaştıracak dün yok" renk ve opaklıkla ayrılıyor.
 */
-.trend-pending {
-  opacity: 0.55;
+.trend-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+}
+
+/*
+  Üçgen kenarlık hilesiyle çiziliyor.
+
+  Lucide'da dolu üçgen yok; `triangle` içi boş ve bu boyutta
+  seçilmiyor. Unicode üçgen karakteri denendi ve elendi — yazı tipine
+  göre boyutu ve hizası oynuyor, Android'de sayıdan büyük çıkıyordu.
+
+  Yön SQL tarafında çevriliyor: sıralamada KÜÇÜK sayı iyidir, yani
+  12'den 5'e geçmek "yükseldi" ama sayı düşmüştür.
+*/
+.trend-up {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 7px solid var(--color-status-success);
+}
+
+.trend-down {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--color-status-danger);
+}
+
+/*
+  "Değişmedi" üçgen DEĞİL tire: eşitlik bir yön değil, üçgen çizmek
+  onu üçüncü bir yön gibi gösteriyordu.
+*/
+.trend-same {
+  width: 9px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: var(--color-coin);
+}
+
+/* Önceki gün verisi yok: aynı tire, nötr gri ve daha silik. */
+.trend-none {
+  width: 9px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: var(--color-ink-muted);
+  opacity: 0.5;
 }
 /* ---------------------------------------------------------------------------
    Ana sayfa sıra sayısı (D36 FAZ HR)
