@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import { Icon } from "@/components/ui/icon";
+import { BadgeMedal } from "./badge-medal";
 import { badgeTone } from "@/lib/profile/badge-tones";
 
 export type BadgeItem = {
@@ -82,27 +82,17 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
                     : "border-edge bg-surface hover:border-primary/40"
                 }`}
               >
-                <span className="relative">
-                  <span
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-                      badge.earned
-                        ? `badge-earned ${tone.box}`
-                        : tone.lockedBox
-                    }`}
-                  >
-                    <Icon name={badge.icon ?? "award"} className="h-6 w-6" />
-                  </span>
-
-                  {/* Kilit rozeti: ikonun üstünde, onu gizlemeden. */}
-                  {!badge.earned ? (
-                    <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-edge bg-card">
-                      <Icon
-                        name="lock"
-                        className="h-2.5 w-2.5 text-ink-muted"
-                      />
-                    </span>
-                  ) : null}
-                </span>
+                {/*
+                  Madalya (D36 FAZ RZ). Kilit ikonu da madalyanın kendi
+                  katmanı — eskiden ayrı bir mutlak konumlu rozetti ve
+                  madalya küçüldüğünde orantısı bozuluyordu.
+                */}
+                <BadgeMedal
+                  icon={badge.icon}
+                  tone={tone}
+                  earned={badge.earned}
+                  size="md"
+                />
 
                 <span
                   className={`mt-1.5 line-clamp-2 text-[11px] font-semibold ${
@@ -153,14 +143,13 @@ export function BadgeGrid({ badges }: { badges: BadgeItem[] }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-brand/80 px-6 backdrop-blur-sm"
         >
           <div className="anim-pop w-full max-w-sm rounded-3xl border border-edge bg-card p-6 text-center">
-            <span
-              className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
-                open.earned
-                  ? `badge-earned ${badgeTone(open.slug).box}`
-                  : badgeTone(open.slug).lockedBox
-              }`}
-            >
-              <Icon name={open.icon ?? "award"} className="h-8 w-8" />
+            <span className="flex justify-center">
+              <BadgeMedal
+                icon={open.icon}
+                tone={badgeTone(open.slug)}
+                earned={open.earned}
+                size="lg"
+              />
             </span>
 
             <p className="mt-3 text-lg font-bold text-ink">{open.name}</p>

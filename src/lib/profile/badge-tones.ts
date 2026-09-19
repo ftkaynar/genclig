@@ -20,62 +20,61 @@
 export type BadgeTone = {
   /** Kazanılmış rozetin kart çerçevesi ve zemini. */
   card: string;
-  /** Kazanılmış rozetin ikon kutusu. */
-  box: string;
-  /** Kilitli rozetin ikon kutusu: aynı renk, kısılmış. */
-  lockedBox: string;
   /** Kazanılma tarihi yazısı. */
   text: string;
   /** Seviye Yolu'ndaki kilometre taşı hapı. */
   chip: string;
+  /*
+    Madalyanın ham rengi (D36 FAZ RZ).
+
+    Tailwind sınıfı YETMİYOR: madalya metal halkası, iç disk ve ikon
+    için `color-mix` ile türetilmiş üç ayrı ton gerekiyor ve bunlar
+    CSS'te hesaplanıyor — bir sınıf adıyla gradyan kurulamıyor. Değer
+    CSS değişkeni olarak (--medal) geçiyor ve türevleri orada çıkıyor.
+  */
+  hex: string;
 };
 
 const CYAN: BadgeTone = {
   card: "border-cyan/50 bg-cyan/10",
-  box: "bg-cyan/20 text-cyan",
-  lockedBox: "bg-cyan/10 text-cyan/45",
   text: "text-cyan",
   chip: "bg-cyan/15 text-cyan",
+  hex: "#22d3ee",
 };
 
 const GREEN: BadgeTone = {
   card: "border-status-success/50 bg-status-success/10",
-  box: "bg-status-success/20 text-status-success",
-  lockedBox: "bg-status-success/10 text-status-success/45",
   text: "text-status-success",
   chip: "bg-status-success/15 text-status-success",
+  hex: "#22c55e",
 };
 
 const INDIGO: BadgeTone = {
   card: "border-indigo/50 bg-indigo/10",
-  box: "bg-indigo/20 text-indigo",
-  lockedBox: "bg-indigo/10 text-indigo/45",
   text: "text-indigo",
   chip: "bg-indigo/15 text-indigo",
+  hex: "#6366f1",
 };
 
 const MAGENTA: BadgeTone = {
   card: "border-magenta/50 bg-magenta/10",
-  box: "bg-magenta/20 text-magenta",
-  lockedBox: "bg-magenta/10 text-magenta/45",
   text: "text-magenta",
   chip: "bg-magenta/15 text-magenta",
+  hex: "#ec4899",
 };
 
 const VIOLET: BadgeTone = {
   card: "border-primary/50 bg-primary/10",
-  box: "bg-primary/20 text-primary",
-  lockedBox: "bg-primary/10 text-primary/45",
   text: "text-primary",
   chip: "bg-primary/15 text-primary",
+  hex: "#7c3aed",
 };
 
 const AMBER: BadgeTone = {
   card: "border-amber/50 bg-amber/10",
-  box: "bg-amber/20 text-amber",
-  lockedBox: "bg-amber/10 text-amber/45",
   text: "text-amber",
   chip: "bg-amber/15 text-amber",
+  hex: "#f59e0b",
 };
 
 /*
@@ -85,18 +84,16 @@ const AMBER: BadgeTone = {
 */
 const RED: BadgeTone = {
   card: "border-status-danger/50 bg-status-danger/10",
-  box: "bg-status-danger/20 text-status-danger",
-  lockedBox: "bg-status-danger/10 text-status-danger/45",
   text: "text-status-danger",
   chip: "bg-status-danger/15 text-status-danger",
+  hex: "#ef4444",
 };
 
 const GOLD: BadgeTone = {
   card: "border-coin/50 bg-coin/10",
-  box: "bg-coin/20 text-coin",
-  lockedBox: "bg-coin/10 text-coin/45",
   text: "text-coin",
   chip: "bg-coin/15 text-coin",
+  hex: "#f5b301",
 };
 
 /*
