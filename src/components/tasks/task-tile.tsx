@@ -92,6 +92,18 @@ export function TaskTile({
   const done = state === "done";
 
   /*
+    Süreklilik kartın ZAMAN DURUMUNDAN bağımsız (D36 FAZ TK): rozet
+    "bu görev tekrarlanabilir" diyor, hap "şu an ne yapmalıyım" diyor.
+    `hasStatePill` yalnızca yan yana yer paylaşımı için — rozet o
+    durumda kompakt çiziliyor.
+  */
+  const isContinuous = task.type === "continuous";
+  const hasStatePill =
+    (upcoming && Boolean(task.starts_at)) ||
+    (timed && Boolean(task.ends_at)) ||
+    state === "repeat";
+
+  /*
     Kapak görseli. Yoksa kategori gradyanı devrede kalıyor — görsel
     yüklemek yönetim tarafında ZORUNLU değil, aksi halde görev
     yayınlamak görsel beklemeye takılırdı.
@@ -283,9 +295,20 @@ export function TaskTile({
           */}
           {!isPlatformIssuer(task) || task.location_label ? (
             <span className="flex min-w-0 items-center gap-1 text-[10px] font-medium text-ink-muted">
+              {/*
+                İKONLAR RENKLİ (D36 FAZ TK).
+
+                İkisi de metinle aynı soluk griydi (text-ink-muted) ve
+                10px'te gri bir bina ile gri bir pin birbirinden ayırt
+                edilmiyordu; satır tek bir gri lekeye dönüşüyordu.
+                Renk iki bilgiyi ayırıyor: kurum mor-indigo (marka
+                kimliği, "kim"), konum cyan (XP ile aynı aile, "nerede").
+                Metin muted kalıyor — renklendirilmesi kart başlığıyla
+                yarışırdı.
+              */}
               {!isPlatformIssuer(task) ? (
                 <>
-                  <Icon name="building-2" className="h-3 w-3 shrink-0" />
+                  <Icon name="building-2" className="h-3 w-3 shrink-0 text-indigo" />
                   <span className="truncate">{taskIssuer(task)}</span>
                 </>
               ) : null}
@@ -295,15 +318,36 @@ export function TaskTile({
                   {!isPlatformIssuer(task) ? (
                     <span aria-hidden className="shrink-0 opacity-50">·</span>
                   ) : null}
-                  <Icon name="map-pin" className="h-3 w-3 shrink-0" />
+                  <Icon name="map-pin" className="h-3 w-3 shrink-0 text-cyan" />
                   <span className="truncate">{task.location_label}</span>
                 </>
               ) : null}
             </span>
           ) : null}
 
-          {/* Zaman durumu en altta. */}
-          <span className="mt-auto block">
+          {/*
+            Zaman durumu en altta.
+
+            SÜREKLİLİK ARTIK AYRI BİR EKSEN (D36 FAZ TK).
+
+            ÖLÇÜLEN SORUN: bu blok tek bir ya-o-ya-bu zinciriydi ve
+            "Sürekli" rozeti zincirin SON dalıydı. Yani sürekli bir
+            görev "Bugün tekrar yap" durumuna geçtiği anda sürekli
+            olduğu bilgisi kartla birlikte kayboluyordu; 06:00'da tik
+            kalkınca kullanıcı aynı kartı bambaşka bir görev gibi
+            görüyordu.
+
+            İkisi farklı soru yanıtlıyor: hap "şu an ne yapmalıyım",
+            rozet "bu görev tekrarlanabilir mi". Biri diğerinin yerine
+            geçemez. Artık yan yana duruyorlar ve rozet sürekli
+            görevlerde HER durumda görünüyor.
+
+            Rozet ayrıca artık yalnız `type === "continuous"` olduğunda
+            çiziliyor: eski zincirde tarihi olmayan HER görev son dala
+            düşüyordu, yani tek seferlik bir görev de "Sürekli" rozeti
+            alabiliyordu.
+          */}
+          <span className="mt-auto flex flex-wrap items-center gap-1">
             {upcoming && task.starts_at ? (
               <span className="upcoming-pill inline-flex max-w-full items-center gap-1 truncate rounded-full px-2 py-0.5 text-[10px] font-bold text-white">
                 <Icon name="calendar-clock" className="h-3 w-3 shrink-0" />
@@ -338,14 +382,20 @@ export function TaskTile({
                 <Icon name="flame" className="h-3 w-3" />
                 Bugün tekrar yap
               </span>
-            ) : (
-              /*
-                Sürekli rozeti v2: yeşil yuvarlak + iki dairesel ok.
-                Nabız ikonu (activity) canlı/aktif anlatıyordu,
-                TEKRARLANABİLİRLİK anlatmıyordu.
-              */
-              <ContinuousBadge />
-            )}
+            ) : null}
+
+            {/*
+              Sürekli rozeti v2: yeşil yuvarlak + iki dairesel ok.
+              Nabız ikonu (activity) canlı/aktif anlatıyordu,
+              TEKRARLANABİLİRLİK anlatmıyordu.
+
+              Yanında başka bir hap varsa kompakt varyant: 160px'lik
+              döşemede iki tam boy hap yan yana sığmıyor ve ikisi de
+              kırpılıyordu.
+            */}
+            {isContinuous ? (
+              <ContinuousBadge compact={small || hasStatePill} />
+            ) : null}
           </span>
         </span>
 

@@ -165,7 +165,7 @@ export default async function TaskDetailPage({
 
           {task.location_label ? (
             <p className="flex items-center gap-2 text-sm">
-              <Icon name="map-pin" className="h-4 w-4 shrink-0 text-magenta" />
+              <Icon name="map-pin" className="h-4 w-4 shrink-0 text-cyan" />
               <span className="text-ink-muted">Konum:</span>
               <span className="min-w-0 flex-1 font-semibold text-ink">
                 {task.location_label}
