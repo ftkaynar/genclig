@@ -127,44 +127,54 @@ export function TaskTile({
           } items-center justify-center bg-gradient-to-br ${taskTone(task)}`}
         >
           {artUrl ? (
-            /*
-              Görsel <img> değil arka plan: kart 3/4 oranında ve kapak her
-              zaman tam kaplamalı. next/image denendi ve elendi — 4 KB'lık
-              yer tutucu SVG'ler için optimizasyon hattı kazanç değil
-              fazladan istek getiriyordu. Gerçek WEBP'ler geldiğinde tekrar
-              değerlendirilecek.
-            */
-            <span
-              aria-hidden
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${artUrl})` }}
-            />
+            <>
+              {/*
+                Görsel <img> değil arka plan: kart 3/4 oranında ve kapak her
+                zaman tam kaplamalı (bg-cover = object-cover). next/image
+                denendi ve elendi — 4 KB'lık yer tutucu SVG'ler için
+                optimizasyon hattı kazanç değil fazladan istek getiriyordu.
+                Gerçek WEBP'ler geldiğinde tekrar değerlendirilecek.
+              */}
+              <span
+                aria-hidden
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${artUrl})` }}
+              />
+              {/*
+                Okunurluk perdesi. Kapaksız kartta ikonun arkasında düz
+                kategori gradyanı var; kapaklı kartta fotoğraf var ve
+                fotoğrafın parlaklığı kareden kareye değişiyor. Perde
+                olmadan aynı ikon bir kartta okunuyor, diğerinde
+                kayboluyordu — ikon iki kartta AYNI görünsün diye
+                fotoğrafın üstü ortada koyulaştırılıyor.
+              */}
+              <span aria-hidden className="tile-art-scrim absolute inset-0" />
+            </>
           ) : (
             <span aria-hidden className="tile-pattern absolute inset-0" />
           )}
 
           {/*
-            Kategori ikonu. Kapak görseli varsa küçülüp sol alta çekiliyor:
-            görsel zaten konuyu anlatıyor, ortadaki büyük ikon onu örtüyordu.
+            Kategori ikonu — kapak görseli OLSA DA OLMASA DA aynı yerde ve
+            aynı boyutta. Kapak alanı `items-center justify-center`
+            olduğu için chip `relative` kaldıkça iki durumda da tam
+            ortada duruyor; boyut `artUrl`'den bağımsız.
+
+            İki tur denendi ve elendi (D38, D39): (1) kapaklı kartta
+            ikonu 32px'e küçültüp sağ alta çekmek — cam chip fotoğrafın
+            üstünde soluk bir leke gibi durdu; (2) kapaklı kartta ikonu
+            hiç çizmemek — kart kimliğini kaybetti, kategori yalnız
+            fotoğraftan okunur oldu. Karar: ikon sabit, fotoğraf arkaya,
+            araya okunurluk perdesi.
           */}
           <span
-            className={`tile-chip flex items-center justify-center rounded-2xl ${
-              artUrl
-                ? "absolute bottom-1.5 right-1.5 h-8 w-8"
-                : small
-                  ? "relative h-12 w-12"
-                  : "relative h-[58px] w-[58px]"
+            className={`tile-chip relative flex items-center justify-center rounded-2xl ${
+              small ? "h-12 w-12" : "h-[58px] w-[58px]"
             }`}
           >
             <Icon
               name={taskIconName(task)}
-              className={
-                artUrl
-                  ? "h-4 w-4 text-white"
-                  : small
-                    ? "h-6 w-6 text-white"
-                    : "h-8 w-8 text-white"
-              }
+              className={small ? "h-6 w-6 text-white" : "h-8 w-8 text-white"}
               strokeWidth={2.1}
             />
           </span>

@@ -50,8 +50,14 @@ export function WelcomeScreen() {
             GençLİG
           </h1>
 
+          {/*
+            D39: %80 beyazdan TAM beyaza çıkarıldı. Perdeler inceltilince
+            bu satır fotoğrafın en parlak yerine (gökyüzü) denk geliyor ve
+            kontrastı 3.21:1'e düşüyordu. Metni parlatmak, perdeyi
+            koyulaştırmaktan ucuz: fotoğraf net kalıyor.
+          */}
           <p
-            className="auth-enter mt-2.5 text-sm font-medium text-white/80"
+            className="auth-enter mt-2.5 text-sm font-medium text-white"
             style={{ "--i": 2 } as React.CSSProperties}
           >
             Şehrini değiştir, kartını parlat.

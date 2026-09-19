@@ -38,8 +38,13 @@ export function AuthShell({
 }) {
   return (
     <div className="relative min-h-dvh overflow-hidden bg-brand">
-      {/* Form ekranlarında fotoğraf hafif bulanık: içerik önde kalsın. */}
-      <AuthBackground blur />
+      {/*
+        D39: fotoğraf artık bulanık DEĞİL. Kartın kendi
+        `backdrop-filter: blur(18px)` kuralı kartın arkasını zaten
+        bulanıklaştırıyor; tüm fotoğrafı bulanıklaştırmak yalnız
+        kartın DIŞINI, yani manzaranın görünen tek kısmını söndürüyordu.
+      */}
+      <AuthBackground />
 
       <main
         className="relative z-10 mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-5"

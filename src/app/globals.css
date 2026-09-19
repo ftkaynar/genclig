@@ -474,6 +474,35 @@
 }
 
 /*
+  Kapak fotoğrafı ile ikon arasındaki okunurluk perdesi (D39).
+
+  İki katman: ortadaki radyal ikonun oturduğu daireyi koyulaştırıyor,
+  dikey gradyan üst köşedeki zorluk rozeti ile alttaki vitrin
+  kurdelesinin zeminini topluyor. Ortada %42, kenarlarda %10-26 —
+  fotoğraf net kalsın diye kasten hafif.
+
+  DENENEN VE ELENEN: tek düze `bg-black/35`. Elendi — fotoğrafın
+  tamamını eşit söndürüyordu, kapak koymanın anlamı kalmıyordu.
+  Perdenin ağırlığı ikonun olduğu yerde toplanıyor.
+*/
+.tile-art-scrim {
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgb(0 0 0 / 0.42) 0%,
+      rgb(0 0 0 / 0.34) 26%,
+      rgb(0 0 0 / 0.1) 58%,
+      rgb(0 0 0 / 0) 76%
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.26) 0%,
+      rgb(0 0 0 / 0.04) 42%,
+      rgb(0 0 0 / 0.22) 100%
+    );
+}
+
+/*
   Ödül hapı: dolgun, hafif kabartma. Kazanç kartın en dikkat çeken
   öğesi olmalı — kullanıcı "ne kazanacağım"ı başlıktan önce görüyor.
 */

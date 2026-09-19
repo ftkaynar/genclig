@@ -16,16 +16,30 @@ import Image from "next/image";
     1. Alttan yukarı güçlü koyu degrade — buton ve metin bölgesi
     2. Üstten aşağı orta güçte degrade — logo ve wordmark bölgesi
 
-  Ayrıca hafif bir genel koyulaştırma (bg-brand/25): fotoğraf çok
-  doygun ve arayüz öğeleri onun üstünde "yüzüyor" gibi duruyordu.
+  D39 — PERDELER ÖLÇÜLEREK İNCELTİLDİ. Önceki hâlde fotoğrafın
+  ortasında bile %25 genel karartma vardı, form ekranlarında üstüne
+  `blur-sm` biniyordu ve manzara seçilmiyordu. Üçü de gitti/azaldı:
+
+    - genel karartma  %25 -> %10
+    - üst perde       %85/%45 -> %62/%24 (yükseklik 2/5 aynı)
+    - alt perde       opak/%75, yükseklik 3/5 -> %86/%38, 1/2
+    - form ekranı bulanıklığı -> KALDIRILDI
+
+  Bulanıklık gereksizdi: form kartının kendisi `backdrop-filter:
+  blur(18px)` taşıyor, yani kartın ARKASINI zaten bulanıklaştırıyor.
+  Tüm fotoğrafı ayrıca bulanıklaştırmak kartın dışındaki alanı —
+  fotoğrafın görünen tek kısmını — boşuna söndürüyordu.
+
+  Sınır metin okunurluğu: her perde, kontrast ölçümünün izin verdiği
+  en düşük değere indirildi (kanıt NIGHT-REPORT-20).
 
   `priority`: bu görsel ilk ekranın kendisi; tembel yüklenirse
   kullanıcı bir an boş koyu ekran görüyor.
 
-  `quality={72}`: 2.2 MB'lık kaynak tam kalitede gereksiz — arkada
-  perdelerin altında duruyor ve fark edilmiyor.
+  `quality={82}`: perdeler inceldiği için fotoğraf artık gerçekten
+  görünüyor; 72'de gökyüzü gradyanında bantlanma ölçüldü.
 */
-export function AuthBackground({ blur = false }: { blur?: boolean }) {
+export function AuthBackground() {
   return (
     /*
       -z-10 KULLANILMIYOR (ölçüldü).
@@ -42,19 +56,19 @@ export function AuthBackground({ blur = false }: { blur?: boolean }) {
         alt=""
         fill
         priority
-        quality={72}
+        quality={82}
         sizes="100vw"
-        className={`object-cover object-center ${blur ? "scale-105 blur-sm" : ""}`}
+        className="object-cover object-center"
       />
 
-      {/* Genel koyulaştırma. */}
-      <div className="absolute inset-0 bg-brand/25" />
+      {/* Genel koyulaştırma — fotoğraf ile arayüzü ayıracak kadar, o kadar. */}
+      <div className="absolute inset-0 bg-brand/10" />
 
       {/* Alt perde: buton bölgesi. */}
-      <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#050210] via-[#050210]/75 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#050210]/86 via-[#050210]/38 to-transparent" />
 
       {/* Üst perde: logo bölgesi — parlak gökyüzünü bastırıyor. */}
-      <div className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-[#050210]/85 via-[#050210]/45 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-[#050210]/62 via-[#050210]/24 to-transparent" />
     </div>
   );
 }
