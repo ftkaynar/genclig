@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { HScroll } from "@/components/ui/h-scroll";
 import { Icon } from "@/components/ui/icon";
 import { PERIODS, SCOPES } from "@/lib/leaderboard/queries";
 
@@ -56,7 +55,12 @@ export function ScopeTabs({
 }) {
   return (
     <div className="px-4 pb-3 pt-3">
-      <div className="rounded-2xl border border-edge bg-card p-2">
+      {/*
+        Tek filtre kartı: hafif iç gölge kartı zeminden ayırıyor.
+        Üç ayrı kutu denendi ve elendi (D32 FAZ SR2) — ekranın üçte
+        biri filtreye gidiyordu.
+      */}
+      <div className="filter-card rounded-2xl border border-edge bg-card p-2">
         {/* ------------------------------------------ 1. Bireysel | Takım */}
         <div
           role="group"
@@ -103,31 +107,48 @@ export function ScopeTabs({
         </div>
 
         {/* ------------------------------------------------ 2. Alan çipleri */}
-        <nav aria-label="Alan" className="mt-2 px-2">
-          <HScroll as="ul" ariaLabel="Alan filtresi">
+        {/*
+          YATAY KAYDIRMA KALDIRILDI (D38 FAZ S).
+
+          ÖNCEKİ DURUM: dört çip `HScroll` içindeydi — kaydırılabilir bir
+          şerit, kenarlarında ok düğmeleri ve solma maskesi. Dört öğe
+          390px'e RAHAT sığıyor; kaydırma da oklar da hiç gerekmiyordu
+          ve ekranın sağında "burada daha çok şey var" izlenimi
+          veriyordu.
+
+          Artık dört EŞİT sütun: `grid-cols-4`. Çipler kartın sol ve sağ
+          kenarına tam hizalı, aralarındaki boşluk eşit. Etiketler
+          12px — 13px'te "Türkiye" 77px'lik sütuna sığmıyordu.
+
+          `flex-wrap` denendi ve elendi: dar ekranda dördüncü çip alt
+          satıra düşüyor ve blok bir satır büyüyordu; eşit ızgara her
+          genişlikte tek satır.
+        */}
+        <nav aria-label="Alan" className="mt-2">
+          <ul className="grid grid-cols-4 gap-1.5">
             {AREA_SCOPES.map((item) => {
               const isActive = item.key === scope;
               return (
-                <li key={item.key} className="shrink-0">
+                <li key={item.key}>
                   <Link
                     href={href(item.key, period, isTeams)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`press-soft flex min-h-[40px] items-center gap-1.5 rounded-xl border px-3.5 text-[13px] font-medium ${
+                    className={`press-soft flex min-h-[40px] items-center justify-center gap-1 rounded-xl px-1 text-[12px] font-semibold ${
                       isActive
-                        ? "border-primary bg-primary/15 text-primary-ink"
-                        : "border-edge bg-surface text-ink-muted hover:text-ink"
+                        ? "chip-active text-white"
+                        : "border border-edge bg-surface font-medium text-ink-muted hover:text-ink"
                     }`}
                   >
                     <Icon
                       name={SCOPE_ICON[item.key] ?? "trophy"}
-                      className="h-4 w-4"
+                      className="h-4 w-4 shrink-0"
                     />
                     {item.label}
                   </Link>
                 </li>
               );
             })}
-          </HScroll>
+          </ul>
         </nav>
 
         {/* ---------------------------------------------------- 3. Dönem */}
@@ -140,10 +161,10 @@ export function ScopeTabs({
                   <Link
                     href={href(scope, item.key, isTeams)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`press-soft flex min-h-[40px] items-center justify-center rounded-xl border text-[13px] transition-colors ${
+                    className={`press-soft flex min-h-[40px] items-center justify-center rounded-xl text-[13px] transition-colors ${
                       isActive
-                        ? "border-xp/60 bg-xp/15 font-bold text-xp"
-                        : "border-edge bg-surface font-medium text-ink-muted hover:text-ink"
+                        ? "chip-active font-bold text-white"
+                        : "border border-edge bg-surface font-medium text-ink-muted hover:text-ink"
                     }`}
                   >
                     {item.label}
