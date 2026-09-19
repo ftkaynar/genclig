@@ -1456,3 +1456,44 @@ join public.badges b on b.id = ub.badge_id
 where b.slug = 'rls-sezon' and ub.user_id = :'A';
 \echo '(1 olmali)'
 rollback;
+
+\echo ''
+\echo '=========================================================='
+\echo 'SENARYO Z: test verisini GERI AL (D38 FAZ Z)'
+\echo '=========================================================='
+
+/*
+  Bu dosya 27 yazımı bilerek TRANSACTION DIŞINDA yapıyor: RLS senaryoları
+  rol değiştirerek okuma yapıyor ve fikstür verisinin COMMIT'lenmiş
+  olması gerekiyor. Dolayısıyla satırlar koşu bitince veritabanında
+  kalıyordu.
+
+  ÖLÇÜLEN SONUÇ: kalan açık task_submissions satırları, alfabetik
+  olarak hemen sonra koşan stat_decay.sql'in ilk insert'ini
+  `task_submissions_open_unique` ile çarpıyor; o dosya abort ediyor ve
+  YEDİ iddiası hiç koşmuyordu. Abort eden test ne GECTI ne HATA satırı
+  ürettiği için sayaçta da sıralı listede de görünmüyordu (aynı sınıf
+  sorun D37'de team_leaderboard_scope.sql'de yakalanmıştı).
+
+  Dosyanın BAŞINDAKİ temizlik (SENARYO 0) yalnız kendi koşusunu
+  kurtarıyordu, sonraki dosyaları değil. Temizlik artık SONDA da var;
+  baştaki duruyor çünkü yarıda kesilen bir koşudan sonra da temiz
+  başlamak gerekiyor.
+*/
+
+delete from auth.users where id in (:'A', :'B', :'C');
+delete from public.provinces where id > 81;
+delete from public.municipalities where slug in ('rls-duyuru-bld', 'rls-inc-bld');
+delete from public.tasks where title in ('RLS gunluk gorev', 'RLS belediye gorevi', 'Senaryo 9 gunluk gorev', 'RLS limit gorevi', 'RLS limit gunluk gorev');
+delete from public.badges where slug = 'rls-sezon';
+/*
+  levels GERI ALINMIYOR: dosya 397. satirda seviye 2 esigini 100'e
+  cekiyor ama tohum degeri ZATEN 100 (bulut referansinda dogrulandi),
+  yani o update bir no-op. "Geri alma" diye 250 yazmak veriyi
+  BOZUYORDU -- once oyle yazip olcumle yakaladim.
+*/
+
+select count(*) as kalan_kullanici from auth.users where id in (:'A', :'B', :'C');
+select count(*) as kalan_teslim from public.task_submissions
+where user_id in (:'A', :'B', :'C');
+\echo '(ikisi de 0 olmali)'

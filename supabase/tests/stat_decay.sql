@@ -43,9 +43,33 @@ begin
   values (v_user, 'decaytest')
   on conflict (id) do nothing;
 
-  -- On onaylı teslim, ardışık günlerde (streak de dolsun)
+  /*
+    On onaylı teslim, ardışık günlerde (streak de dolsun).
+
+    FİKSTÜR YALNIZ `continuous` GÖREVLERDEN (D38 FAZ Z).
+
+    ÖNCEKİ DURUM: `from public.tasks order by created_at offset (v_i % 9)`
+    — tip filtresi yoktu. Döngü 10 turda 9 offset kullanıyor, yani bir
+    offset İKİ KEZ geliyor ve aynı göreve iki teslim yazılıyor.
+    `task_submissions_open_unique` indeksi (task_id, user_id,
+    period_key) üzerinde tekil ve yalnız `task_type <> 'continuous'`
+    satırlara uygulanıyor; o konumdaki görev sürekli DEĞİLSE ikinci
+    insert çakışıyor, işlem abort ediyor ve dosyanın YEDİ iddiası hiç
+    koşmuyor.
+
+    Konumsal offset, canlı tablodan fikstür seçtiği için görev havuzu
+    her değiştiğinde farklı davranıyordu — testin geçmesi veriye bağlı
+    kalmıştı. Sürekli göreve bağlamak indeks yüklemini tamamen devre
+    dışı bırakıyor: sürekli görevler zaten tekrar edilebilir.
+  */
   for v_i in 1..10 loop
-    select id into v_task from public.tasks order by created_at limit 1 offset (v_i % 9);
+    select id into v_task from public.tasks
+    where type = 'continuous' and status = 'active'
+    order by created_at
+    limit 1 offset (v_i % greatest(1, (
+      select count(*) from public.tasks
+      where type = 'continuous' and status = 'active'
+    )));
 
     insert into public.task_submissions (user_id, task_id, status, created_at)
     values (v_user, v_task, 'approved', now() - ((10 - v_i) || ' days')::interval);
