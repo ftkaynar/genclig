@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -25,14 +24,24 @@ import { Icon } from "@/components/ui/icon";
   ortasında kalırsa içeriğin tam üstünde durur ve durumu daha da
   kötüleştirir. Yatayda iki kararlı nokta var, dikeyde serbest.
 
-  Konum localStorage'da: her ekranda yeni bir FAB örneği monte ediliyor
-  (sunucu bileşeni her sayfada ayrı çağrılıyor), bu yüzden konum React
-  ağacında tutulamaz. Sunucuya yazmak da denenmedi — kişisel ve
-  cihaza özgü bir tercih, oraya taşımak gereksiz bir tur demekti.
+  KONUM sessionStorage'DA, localStorage'da DEĞİL (D36 FAZ FB).
+
+  Her ekranda yeni bir FAB örneği monte ediliyor (sunucu bileşeni her
+  sayfada ayrı çağrılıyor), bu yüzden konum React ağacında tutulamaz.
+  Ama kalıcı olarak da saklanmıyor: her yeni açılış SAĞ ORTADAN
+  başlıyor.
+
+  Neden: taşınan FAB kullanıcının o anki ekranındaki bir engeli
+  aşmak için taşınıyor — "şu kartın üstünden çekil" gibi anlık bir
+  ihtiyaç. localStorage ile bu geçici karar kalıcı hale geliyordu ve
+  kullanıcı haftalar sonra FAB'ı beklemediği bir köşede buluyordu.
+  Oturum boyunca korunuyor, sonraki açılışta bilinen yerine dönüyor.
+
+  Sunucuya yazmak da denenmedi — kişisel ve cihaza özgü bir tercih,
+  oraya taşımak gereksiz bir tur demekti.
 */
 
 const POS_KEY = "genclig.reward-fab.pos";
-const TIP_KEY = "genclig.reward-fab.tip";
 
 type Side = "left" | "right";
 type Pos = { side: Side; topPct: number };
@@ -72,9 +81,9 @@ function subscribe(onChange: () => void): () => void {
   return () => listeners.delete(onChange);
 }
 
-function readLocal(): string {
+function readStored(): string {
   try {
-    return window.localStorage.getItem(POS_KEY) ?? "";
+    return window.sessionStorage.getItem(POS_KEY) ?? "";
   } catch {
     // Gizli sekme ya da site verisi kapalı: varsayılan konum.
     return "";
@@ -87,7 +96,7 @@ function emptySnapshot(): string {
 
 function writePos(pos: Pos): void {
   try {
-    window.localStorage.setItem(POS_KEY, JSON.stringify(pos));
+    window.sessionStorage.setItem(POS_KEY, JSON.stringify(pos));
   } catch {
     // Yazılamıyorsa konum bu oturumda geçerli, kalıcı değil.
   }
@@ -126,7 +135,7 @@ export function RewardFabButton({
   /** Alınabilir ödüllerden en az biri YENİ (son 7 gün). */
   hasNew: boolean;
 }) {
-  const raw = useSyncExternalStore(subscribe, readLocal, emptySnapshot);
+  const raw = useSyncExternalStore(subscribe, readStored, emptySnapshot);
   const stored = parsePos(raw);
 
   const [drag, setDrag] = useState<DragState>({ kind: "idle" });
@@ -148,43 +157,6 @@ export function RewardFabButton({
     vy: 0,
     moved: false,
   });
-
-  /*
-    İpucu oturum başına bir kez — animasyonu başlatan sınıf EFFECT'TE
-    ekleniyor, render'da değil.
-
-    ÖLÇÜLEN SORUN: ilk sürüm ipucunu useSyncExternalStore ile
-    sessionStorage üzerinden okuyor, "görüldü" işaretini de kendi
-    effect'inde yazıyordu. İki effect yarışıyordu: deponun hydration
-    sonrası kontrolü yeniden render planlıyor, arkasından benim
-    effect'im işareti yazıyor, planlanan render getSnapshot'ı TEKRAR
-    çağırıp artık "görüldü" okuyordu. Sonuç: ipucu HİÇ görünmüyordu
-    (headless Chrome ölçümünde iki sayfada da false).
-
-    Şimdi ipucu her zaman DOM'da ama CSS ile gizli; görünürlüğü tek bir
-    sınıf açıyor. State yok, depo yok, hydration uyuşmazlığı yok —
-    sunucu ile istemci aynı işaretlemeyi üretiyor.
-  */
-  const tipRef = useRef<HTMLSpanElement | null>(null);
-
-  useEffect(() => {
-    const el = tipRef.current;
-    if (!el) return;
-
-    try {
-      if (window.sessionStorage.getItem(TIP_KEY)) return;
-      window.sessionStorage.setItem(TIP_KEY, "1");
-    } catch {
-      /*
-        Oturum deposu kapalı (gizli sekme, site verisi engelli): ipucu
-        hiç gösterilmiyor. Her sayfada göstermek denendi ve elendi —
-        bir kerelik ipucu kalıcı bir gürültüye dönüşüyordu.
-      */
-      return;
-    }
-
-    el.classList.add("reward-fab-tip-show");
-  }, []);
 
   function onPointerDown(event: React.PointerEvent<HTMLAnchorElement>) {
     // Yalnız birincil düğme / tek dokunuş. Sağ tık sürükleme başlatmıyor.
@@ -320,11 +292,20 @@ export function RewardFabButton({
       ? ({ "--fab-top": stored.topPct } as CSSProperties)
       : {};
 
+  /*
+    VARSAYILAN KONUM: SAĞ ORTA (D36 FAZ FB).
+
+    Önceden sağ ALT köşedeydi (.above-bottom-nav). Orası ekranın en
+    kalabalık yeri: alt gezinme, "benim sıram" bandı, görev kartının
+    ödül şeridi ve gönder düğmeleri hep o bölgede toplanıyor. Dikey
+    orta sağ kenar hem baş parmağın rahat eriştiği yer hem de içerik
+    akışının en seyrek noktası.
+  */
   const anchorClass = floating
     ? ""
     : stored
       ? `reward-fab-placed ${stored.side === "left" ? "left-4" : "right-4"}`
-      : "above-bottom-nav right-4";
+      : "reward-fab-default right-4";
 
   return (
     <Link
@@ -372,21 +353,31 @@ export function RewardFabButton({
 
         <Icon name="gift" className="relative z-10 h-6 w-6" />
 
-        {hasNew ? (
-          <span aria-hidden className="reward-fab-new">
-            YENİ
-          </span>
-        ) : hasReady ? (
-          /*
-            Yeni kampanya yoksa SADE NABIZ: "YENİ" etiketini her
-            alınabilir ödülde göstermek kelimeyi anlamsızlaştırıyordu —
-            her zaman yeni olan hiçbir zaman yeni değil.
-          */
-          <span aria-hidden className="reward-fab-dot" />
-        ) : null}
+        {/*
+          SADE NABIZ NOKTASI — alınabilir ödül varken.
 
-        <span aria-hidden ref={tipRef} className="reward-fab-tip">
-          Ödül Mağazası
+          "YENİ" hapı KALDIRILDI (D36 FAZ FB): aşağıdaki kalıcı etiket
+          zaten "Yeni Ödüller!" yazıyor. Aynı 56px'lik dairenin
+          köşesinde iki ayrı "yeni" işareti, hangisinin ne demek
+          olduğunu belirsizleştiriyordu — kelime her zaman kazanır,
+          hap gereksizdi.
+        */}
+        {hasReady ? <span aria-hidden className="reward-fab-dot" /> : null}
+
+        {/*
+          KALICI ETİKET (D36 FAZ FB).
+
+          Önceki sürümde oturum başına bir kez görünüp kaybolan bir
+          ipucu vardı. Kaybolan ipucu yalnızca ilk saniyelerde iş
+          görüyor; sonraki her ziyarette FAB tekrar "ne olduğu belirsiz
+          altın daire"ye dönüşüyordu. Etiket artık kalıcı ve düğmenin
+          ne yaptığını her an söylüyor.
+
+          aria-hidden: metin bağlantının aria-label'ında zaten var,
+          ekran okuyucuya iki kez okutmanın anlamı yok.
+        */}
+        <span aria-hidden className="reward-fab-label">
+          {hasNew ? "Yeni Ödüller!" : "Ödül Mağazası"}
         </span>
     </Link>
   );

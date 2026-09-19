@@ -957,7 +957,7 @@
   .reward-ready,
   .reward-fab,
   .reward-fab-ring,
-  .reward-fab-new,
+  .reward-fab-label,
   .reward-fab-dot,
   .reward-shine::after,
   .confetti-bit,
@@ -1602,41 +1602,12 @@
 }
 
 /*
-  "YENİ" kampanya rozeti.
+  Sade nabız — alınabilir ödül varken.
 
-  Kırmızı nokta (aşağıdaki .reward-fab-dot) "alabileceğin bir şey var"
-  diyor; bu rozet "ALABİLECEĞİN YENİ bir şey var" diyor. İkisi aynı
-  anda görünmüyor: aynı köşede iki işaret hangisinin ne demek olduğunu
-  belirsizleştiriyordu.
+  Eskiden yanında bir de "YENİ" hapı vardı; kaldırıldı (D36 FAZ FB),
+  çünkü kalıcı etiket zaten "Yeni Ödüller!" yazıyor. Aynı köşede iki
+  ayrı "yeni" işareti hangisinin ne demek olduğunu belirsizleştiriyordu.
 */
-.reward-fab-new {
-  position: absolute;
-  top: -7px;
-  right: -10px;
-  padding: 1px 5px;
-  border-radius: 9999px;
-  border: 2px solid #1a1200;
-  background-image: linear-gradient(135deg, #f43f5e, #b91c1c);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: 0.04em;
-  animation: genclig-fab-new 1800ms ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes genclig-fab-new {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.12);
-  }
-}
-
-/* Sade nabız: yeni kampanya yokken alınabilir ödül işareti. */
 .reward-fab-dot {
   position: absolute;
   top: -2px;
@@ -1661,17 +1632,22 @@
 }
 
 /*
-  Mini ipucu — oturum başına bir kez, kendi kendine kayboluyor.
+  KALICI ETİKET (D36 FAZ FB).
 
-  Gizlenmesi JS TIMER'IYLA DEĞİL animasyonla: zamanlayıcı bir effect
-  içinde state yazmak demekti ve `react-hooks/set-state-in-effect`
-  kuralına takılıyordu. forwards ile son kare kalıcı: ipucu bir daha
-  görünmüyor.
+  ÖNCEKİ DURUM: oturum başına bir kez görünüp 4 saniyede kaybolan bir
+  ipucu vardı. Kaybolan ipucu yalnızca ilk saniyelerde iş görüyor;
+  sonraki her ziyarette FAB yeniden "ne yaptığı belirsiz altın daire"
+  oluyordu. Etiket artık kalıcı.
 
-  4 saniye: bir kelime öbeğini okumak için yeterli, dikkat dağıtacak
-  kadar uzun değil.
+  ABARTISIZ: nabız yalnızca hafif bir opaklık/ölçek salınımı, 3.2
+  saniyede bir. Renk değiştiren ya da zıplayan bir balon denendi ve
+  elendi — sürekli görünen bir öğede agresif hareket, birkaç dakika
+  sonra rahatsız ediciye dönüşüyor.
+
+  Ok ucu (::after) etiketi düğmeye bağlıyor; bağsız bir balon ekranda
+  serbest yüzen ikinci bir nesne gibi duruyordu.
 */
-.reward-fab-tip {
+.reward-fab-label {
   position: absolute;
   right: calc(100% + 10px);
   top: 50%;
@@ -1679,55 +1655,81 @@
   white-space: nowrap;
   padding: 5px 10px;
   border-radius: 10px;
-  background-color: rgb(20 16 4 / 0.92);
+  background-image: linear-gradient(135deg, #1b1405, #2a1f07);
+  border: 1px solid rgb(245 179 1 / 0.45);
   color: #ffe9a8;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+  animation: genclig-fab-label 3200ms ease-in-out infinite;
+  /* Etiket sürüklemeyi yakalamamalı: parmak düğmeye gitmeli. */
   pointer-events: none;
-  /*
-    Varsayılan GİZLİ. İpucu her zaman DOM'da; animasyonu açan sınıfı
-    istemci bileşeni effect içinde ekliyor (gerekçesi orada). Koşullu
-    işaretleme denendi ve elendi: hydration uyuşmazlığı ya da hiç
-    görünmeme ile sonuçlanıyordu.
-  */
-  opacity: 0;
-  visibility: hidden;
 }
 
-.reward-fab-tip-show {
-  animation: genclig-fab-tip 4s ease-out forwards;
+/* Düğmeye bakan küçük ok ucu. */
+.reward-fab-label::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-top: -4px;
+  border: 4px solid transparent;
+  border-left-color: rgb(245 179 1 / 0.45);
 }
 
-/* Sol kenardayken ipucu SAĞA açılıyor, yoksa ekran dışına taşıyordu. */
-.reward-fab.left-4 .reward-fab-tip {
+/*
+  Sol kenardayken etiket SAĞA açılıyor, yoksa ekran dışına taşıyordu.
+  Ok ucu da yön değiştiriyor.
+*/
+.reward-fab.left-4 .reward-fab-label {
   right: auto;
   left: calc(100% + 10px);
 }
 
-@keyframes genclig-fab-tip {
-  /*
-    visibility her karede AÇIKÇA yazılıyor: taban kural gizli ve
-    animasyon yalnız opacity'yi değiştirseydi ipucu opaklığı 1 olsa da
-    görünmez kalırdı (ilk sürümde tam olarak bu oldu).
-  */
-  0% {
-    opacity: 0;
-    visibility: visible;
-    translate: 6px -50%;
-  }
-  12%,
-  80% {
-    opacity: 1;
-    visibility: visible;
-    translate: 0 -50%;
-  }
+.reward-fab.left-4 .reward-fab-label::after {
+  left: auto;
+  right: 100%;
+  border-left-color: transparent;
+  border-right-color: rgb(245 179 1 / 0.45);
+}
+
+/* Sürüklenirken etiket gizleniyor: parmağın altında okunmuyor zaten. */
+.reward-fab-dragging .reward-fab-label {
+  opacity: 0;
+}
+
+@keyframes genclig-fab-label {
+  0%,
   100% {
-    opacity: 0;
-    translate: 0 -50%;
-    visibility: hidden;
+    opacity: 0.88;
+    scale: 1;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.04;
   }
 }
 
+/*
+  VARSAYILAN KONUM: SAĞ ORTA (D36 FAZ FB).
+
+  Önceden sağ ALT köşeydi (.above-bottom-nav). Orası ekranın en
+  kalabalık yeri: alt gezinme, "benim sıram" bandı, görev kartının
+  ödül şeridi ve gönder düğmeleri hep orada toplanıyor. Dikey orta +
+  sağ kenar hem baş parmağın rahat eriştiği yer hem içerik akışının en
+  seyrek noktası.
+
+  margin-top: -28px — düğme yüksekliğinin yarısı (56/2), yani %50
+  gerçekten MERKEZ oluyor. translate kullanmak denendi ve elendi:
+  .reward-fab:active ve sürükleme durumu transform/scale yazıyor ve
+  ikisi birbirini eziyordu.
+*/
+.reward-fab-default {
+  top: 50%;
+  margin-top: -28px;
+  bottom: auto;
+}
 /*
   Kayıtlı konum.
 
