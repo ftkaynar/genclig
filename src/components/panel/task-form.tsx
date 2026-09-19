@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ArtPicker } from "./art-picker";
 import { IconPicker } from "./icon-picker";
 import { QuizEditor, type EditorQuestion } from "./quiz-editor";
+import { createClient } from "@/lib/supabase/client";
 import {
   saveQuizQuestionsAction,
   saveTaskAction,
@@ -32,6 +33,12 @@ export type TaskFormValues = {
   issuerName: string;
   /** İnsanın okuduğu kısa yer tanımı (M34a). */
   locationLabel: string;
+  /*
+    Görevin bölgesi (M35c). Keşfet konum filtresi bu iki alanı okuyor;
+    boş bırakılan görev hiçbir bölge seçiminde görünmüyor.
+  */
+  provinceId: string;
+  districtId: string;
   xp: string;
   coin: string;
   startsAt: string;
@@ -61,6 +68,8 @@ export const EMPTY_TASK: TaskFormValues = {
   artKey: "",
   issuerName: "",
   locationLabel: "",
+  provinceId: "",
+  districtId: "",
   xp: "50",
   coin: "50",
   startsAt: "",
@@ -118,22 +127,81 @@ export function TaskForm({
   initial,
   initialQuiz = [],
   categories,
+  provinces,
+  defaultArea,
   scope,
   onSaved,
 }: {
   initial: TaskFormValues;
+  /*
+    Yeni görevde ön dolu bölge (panelde personelin belediyesi).
+
+    AYRI PROP, çünkü birleştirme İSTEMCİDE yapılmak zorunda. Sunucu
+    bileşeninde `{...EMPTY_TASK, ...area}` yazmak denendi ve ÖLÇÜMLE
+    elendi: EMPTY_TASK bir "use client" modülünden geliyor ve sunucu
+    tarafında gerçek nesne değil istemci referansı. Yayılınca bütün
+    alanlar kayboluyor, forma yalnız kullanıcının elle doldurduğu
+    alanlar kalıyor ve saveTaskAction `input.xp` undefined ile
+    çöküyordu (dev log: "Cannot read properties of undefined (reading
+    'trim')"). Prop olarak geçilen EMPTY_TASK ise istemcide doğru
+    çözülüyor.
+  */
+  defaultArea?: { provinceId: string; districtId: string };
   /** Düzenlemede mevcut sorular; yeni görevde boş. */
   initialQuiz?: EditorQuestion[];
   categories: { id: number; name: string }[];
+  /*
+    İller sunucudan hazır geliyor (81 satır, referans önbelleğinden).
+    İlçeler İSTEMCİDE yükleniyor: 973 ilçenin tamamını her form
+    açılışında göndermek, kullanıcının yalnız birini seçeceği bir liste
+    için gereksiz yüktü. Aynı kademeli desen onboarding formunda da var.
+  */
+  provinces: { id: number; name: string }[];
   scope: "panel" | "admin";
   onSaved?: () => void;
 }) {
   const router = useRouter();
-  const [values, setValues] = useState<TaskFormValues>(initial);
+  const [values, setValues] = useState<TaskFormValues>(() => ({
+    ...initial,
+    ...(defaultArea ?? {}),
+  }));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [quiz, setQuiz] = useState<EditorQuestion[]>(initialQuiz);
+  const [districts, setDistricts] = useState<{ id: number; name: string }[]>(
+    [],
+  );
+
+  /*
+    Seçili ilin ilçeleri.
+
+    Bu effect yalnızca OKUYOR; seçimi temizlemek il seçicisinin kendi
+    olay işleyicisinde yapılıyor. Effect gövdesinde senkron setState
+    çağırmak `react-hooks/set-state-in-effect` kuralına takılıyor ve
+    zaten temizliğin doğal yeri kullanıcı etkileşimi (aynı gerekçe
+    onboarding formunda da yazılı).
+  */
+  useEffect(() => {
+    if (!values.provinceId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    createClient()
+      .from("districts")
+      .select("id,name")
+      .eq("province_id", Number(values.provinceId))
+      .order("name")
+      .then(({ data }) => {
+        if (!cancelled) setDistricts(data ?? []);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [values.provinceId]);
 
   const needsLocation =
     values.verification === "gps" || values.verification === "photo_gps";
@@ -482,6 +550,70 @@ export function TaskForm({
           <p className="mt-1 text-[11px] text-ink-muted">
             Kullanıcının okuduğu kısa yer tanımı. Koordinat değil.
           </p>
+        </Field>
+
+        {/*
+          BÖLGE — il + ilçe (D37 FAZ P / M35c).
+
+          ÖLÇÜLEN BORÇ: sütunlar M35c ile geldi ve keşfet konum filtresi
+          bunları okuyor, ama formda alan yoktu. Personelin açtığı her
+          yeni görev bölgesiz kalıyor ve hiçbir bölge seçiminde
+          görünmüyordu.
+
+          PANELDE ÖN DOLU AMA KİLİTLİ DEĞİL. Belediye çoğu zaman kendi
+          bölgesi için görev açıyor, o yüzden varsayılan personelin
+          belediyesinin il/ilçesi. Kilitlemek denendi ve elendi: (1)
+          büyükşehir belediyesi il genelinde iş açıyor ve tek ilçeye
+          hapsedilemez, (2) iki ilçenin ortak etkinliği (kıyı temizliği,
+          bölgeler arası turnuva) komşu ilçeye yazılmak zorunda.
+          Belediye bağlama (municipality_id) zaten sunucuda ve
+          değiştirilemiyor; bölge ise görevin NEREDE yapılacağını
+          söylüyor, kimin açtığını değil.
+        */}
+        <Field label="İl (konum filtresi için)">
+          <select
+            value={values.provinceId}
+            onChange={(event) => {
+              /*
+                İl değişince ilçe TEMİZLENİYOR. Olay işleyicisinde,
+                effect'te değil: başka ilin ilçesi seçili kalırsa
+                tutarsız bir çift yazılıyordu (aynı kural
+                onboarding-form.tsx'te).
+              */
+              set("provinceId", event.target.value);
+              set("districtId", "");
+            }}
+            className={inputClass}
+          >
+            <option value="">Bölgesiz</option>
+            {provinces.map((province) => (
+              <option key={province.id} value={String(province.id)}>
+                {province.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-ink-muted">
+            Boş bırakılan görev Keşfet&apos;teki bölge filtresinde
+            görünmez.
+          </p>
+        </Field>
+
+        <Field label="İlçe">
+          <select
+            value={values.districtId}
+            onChange={(event) => set("districtId", event.target.value)}
+            disabled={!values.provinceId}
+            className={inputClass}
+          >
+            <option value="">
+              {values.provinceId ? "İlçe seç" : "Önce il seç"}
+            </option>
+            {districts.map((district) => (
+              <option key={district.id} value={String(district.id)}>
+                {district.name}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <Field label="Görsel adresi (isteğe bağlı)" className="sm:col-span-2">

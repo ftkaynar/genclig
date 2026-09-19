@@ -30,6 +30,8 @@ type Input = {
   artKey: string;
   issuerName: string;
   locationLabel: string;
+  provinceId: string;
+  districtId: string;
   xp: string;
   coin: string;
   startsAt: string;
@@ -146,6 +148,22 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     return { error: "Konum doğrulamalı görevde enlem ve boylam zorunlu." };
   }
 
+  const provinceId = toNumberOrNull(input.provinceId);
+
+  /*
+    Konum doğrulamalı görevde bölge de zorunlu (D37 FAZ P).
+
+    Gerekçe: bu görevler haritada işaretleniyor ve Keşfet'te bölge
+    filtresiyle aranıyor. Koordinatı olup bölgesi olmayan bir görev
+    haritada görünüyor ama "Kadıköy" seçildiğinde kayboluyordu —
+    kullanıcı açısından tutarsız. Koordinatı olmayan görevlerde
+    (quiz, düz fotoğraf) bölge isteğe bağlı kalıyor; onların bir yeri
+    yok ve zorlamak personeli uydurmaya iterdi.
+  */
+  if (needsLocation && provinceId === null) {
+    return { error: "Konum doğrulamalı görevde il seçmelisin." };
+  }
+
   let municipalityId: string | null = null;
 
   if (input.scope === "panel") {
@@ -191,6 +209,14 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     */
     issuer_name: input.issuerName.trim() || null,
     location_label: input.locationLabel.trim() || null,
+    /*
+      Bölge (M35c). İlçe İLE BİRLİKTE il şart: ilçesiz bir il
+      yazılabilir (il geneli görev) ama ilsiz ilçe tutarsız bir satır
+      olurdu — keşfet filtresi ilçe üzerinden gruplarken ili de etiketde
+      gösteriyor.
+    */
+    province_id: provinceId,
+    district_id: provinceId === null ? null : toNumberOrNull(input.districtId),
     xp,
     coin,
     starts_at: toIsoOrNull(input.startsAt),

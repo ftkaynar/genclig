@@ -4,6 +4,7 @@ import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
 import { TaskForm } from "@/components/panel/task-form";
 import { PANEL_NAV } from "@/lib/panel/nav";
 import { getPanelContext } from "@/lib/panel/guard";
+import { getProvinces } from "@/lib/reference/queries";
 import {
   listTaskCategories,
   loadQuizForEdit,
@@ -35,7 +36,10 @@ export default async function EditPanelTaskPage({
     notFound();
   }
 
-  const categories = await listTaskCategories();
+  const [categories, provinces] = await Promise.all([
+    listTaskCategories(),
+    getProvinces(),
+  ]);
 
   return (
     <PanelShell
@@ -47,6 +51,7 @@ export default async function EditPanelTaskPage({
         initial={task}
         initialQuiz={quiz}
         categories={categories}
+        provinces={provinces}
         scope="panel"
       />
     </PanelShell>

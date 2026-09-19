@@ -9,6 +9,8 @@ import { getTaskCategories } from "@/lib/reference/queries";
 
 const ART_KEY = "tasks.art_key";
 const ISSUER_KEY = "tasks.issuer_name";
+/** M35c bölge alanları ayrı katman (bkz. lib/tasks/queries.ts). */
+const AREA_KEY = "tasks.province_id";
 
 /** Form için kategori listesi. */
 export async function listTaskCategories(): Promise<
@@ -44,11 +46,17 @@ function formFields(): string {
   const parts = [FORM_FIELDS_BASE];
   if (!isKnownMissing(ART_KEY)) parts.push("art_key");
   if (!isKnownMissing(ISSUER_KEY)) parts.push("issuer_name,location_label");
+  if (!isKnownMissing(AREA_KEY)) parts.push("province_id,district_id");
   return parts.join(",");
 }
 
 /** Eksik katmanı bir adım düşürür; düşürecek katman kalmadıysa false. */
 function degradeFormFields(): boolean {
+  // En yeni katman önce düşüyor; aynı sıra lib/tasks/queries.ts icinde.
+  if (!isKnownMissing(AREA_KEY)) {
+    markMissing(AREA_KEY);
+    return true;
+  }
   if (!isKnownMissing(ISSUER_KEY)) {
     markMissing(ISSUER_KEY);
     return true;
@@ -94,6 +102,8 @@ type TaskEditRow = {
   art_key?: string | null;
   issuer_name?: string | null;
   location_label?: string | null;
+  province_id?: number | null;
+  district_id?: number | null;
 };
 
 /** Var olan görevi form değerlerine çevirir. */
@@ -150,6 +160,8 @@ export async function loadTaskForEdit(
     artKey: ("art_key" in data ? data.art_key : null) ?? "",
     issuerName: data.issuer_name ?? "",
     locationLabel: data.location_label ?? "",
+    provinceId: data.province_id ? String(data.province_id) : "",
+    districtId: data.district_id ? String(data.district_id) : "",
     xp: String(data.xp ?? 0),
     coin: String(data.coin ?? 0),
     startsAt: toLocalInput(data.starts_at),
@@ -191,4 +203,32 @@ export async function loadQuizForEdit(taskId: string): Promise<
     options: row.options as { key: string; text: string }[],
     correctKey: row.correct_key as string,
   }));
+}
+
+/**
+ * Panelde yeni görev açarken bölge alanlarının varsayılanı.
+ *
+ * Personelin belediyesinin il/ilçesi. Belediye çoğu zaman kendi bölgesi
+ * için görev açıyor; her seferinde iki seçici doldurtmak gereksiz
+ * sürtünme. Kilit DEĞİL, yalnız başlangıç değeri — gerekçesi
+ * components/panel/task-form.tsx içindeki bölge alanlarında yazılı.
+ *
+ * Büyükşehir belediyesinde `district_id` null: o zaman yalnız il ön dolu
+ * geliyor ve personel ilçeyi kendisi seçiyor.
+ */
+export async function getPanelDefaultArea(
+  municipalityId: string,
+): Promise<{ provinceId: string; districtId: string }> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("municipalities")
+    .select("province_id,district_id")
+    .eq("id", municipalityId)
+    .maybeSingle();
+
+  return {
+    provinceId: data?.province_id ? String(data.province_id) : "",
+    districtId: data?.district_id ? String(data.district_id) : "",
+  };
 }

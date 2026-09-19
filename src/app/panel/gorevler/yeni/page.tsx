@@ -2,7 +2,11 @@ import { NoAccess, PanelShell } from "@/components/panel/panel-shell";
 import { EMPTY_TASK, TaskForm } from "@/components/panel/task-form";
 import { PANEL_NAV } from "@/lib/panel/nav";
 import { getPanelContext } from "@/lib/panel/guard";
-import { listTaskCategories } from "@/lib/panel/task-form-data";
+import { getProvinces } from "@/lib/reference/queries";
+import {
+  getPanelDefaultArea,
+  listTaskCategories,
+} from "@/lib/panel/task-form-data";
 
 export const metadata = { title: "Yeni görev — GençLİG Panel" };
 
@@ -12,7 +16,15 @@ export default async function NewPanelTaskPage() {
     return <NoAccess message="Bu sayfa belediye personeline açıktır." />;
   }
 
-  const categories = await listTaskCategories();
+  const [categories, provinces, area] = await Promise.all([
+    listTaskCategories(),
+    getProvinces(),
+    /*
+      Bölge ÖN DOLU geliyor: belediye çoğu zaman kendi bölgesi için
+      görev açıyor. Kilit değil — gerekçesi task-form.tsx icinde.
+    */
+    getPanelDefaultArea(context.municipalityId),
+  ]);
 
   return (
     <PanelShell
@@ -20,7 +32,13 @@ export default async function NewPanelTaskPage() {
       subtitle={`${context.municipalityName} · yeni görev`}
       nav={PANEL_NAV}
     >
-      <TaskForm initial={EMPTY_TASK} categories={categories} scope="panel" />
+      <TaskForm
+        initial={EMPTY_TASK}
+        defaultArea={area}
+        categories={categories}
+        provinces={provinces}
+        scope="panel"
+      />
     </PanelShell>
   );
 }
