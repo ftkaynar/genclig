@@ -21,6 +21,7 @@ import {
   VERIFICATION_LABEL,
   formatDateTime,
   taskCardState,
+  taskIssuer,
 } from "@/lib/tasks/labels";
 import { QuizRunner } from "@/components/quiz/quiz-runner";
 import { SubmitTask } from "@/components/tasks/submit-task";
@@ -145,6 +146,33 @@ export default async function TaskDetailPage({
         </h1>
 
         <p className="mt-2 text-sm text-ink-muted">{task.description}</p>
+
+        {/*
+          Görevi açan kurum + konum (D35 FAZ K).
+
+          Detayda BELİRGİN: kullanıcı görevi yapmadan önce "bunu kim
+          istiyor, nerede yapılıyor" sorusunu burada soruyor. Kartta tek
+          satıra sıkışan bilgi burada kendi bloğunda.
+        */}
+        <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-edge bg-card px-3.5 py-3">
+          <p className="flex items-center gap-2 text-sm">
+            <Icon name="building-2" className="h-4 w-4 shrink-0 text-primary" />
+            <span className="text-ink-muted">Görevi açan:</span>
+            <span className="min-w-0 flex-1 truncate font-semibold text-ink">
+              {taskIssuer(task)}
+            </span>
+          </p>
+
+          {task.location_label ? (
+            <p className="flex items-center gap-2 text-sm">
+              <Icon name="map-pin" className="h-4 w-4 shrink-0 text-magenta" />
+              <span className="text-ink-muted">Konum:</span>
+              <span className="min-w-0 flex-1 font-semibold text-ink">
+                {task.location_label}
+              </span>
+            </p>
+          ) : null}
+        </div>
 
         <div className="mt-4">
           <RewardBadges

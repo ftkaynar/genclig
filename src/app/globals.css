@@ -1900,3 +1900,27 @@
   background-color: rgb(255 255 255 / 0.18);
   border-color: rgb(255 255 255 / 0.45);
 }
+
+/*
+  Sürekli görev rozeti (D35 FAZ K).
+
+  Canlı yeşil gradyan + hafif iç parlaklık. Düz `bg-status-success`
+  denendi ve elendi — aynı yeşil "tamamlandı" mührü için kullanılıyor ve
+  iki farklı anlam aynı düz renkte çakışıyordu. Gradyan ve yuvarlak
+  form, döngü ikonuyla birlikte onu ayırıyor.
+*/
+.loop-badge {
+  background-image: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    0 1px 5px rgb(22 163 74 / 0.4);
+}
+
+/*
+  Kurum satırı: kartta tek satır, taşarsa kırpılıyor.
+  Konum etiketi aynı satırda ikinci parça olarak duruyor.
+*/
+.issuer-line {
+  color: rgb(255 255 255 / 0.85);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.55);
+}

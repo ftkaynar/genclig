@@ -28,6 +28,10 @@ export type TaskFormValues = {
   icon: string;
   /** public/task-art/ anahtarı; boş dize = görsel yok. */
   artKey: string;
+  /** Görevi açan kurum; boş = belediye adı, o da yoksa GençLİG (M34a). */
+  issuerName: string;
+  /** İnsanın okuduğu kısa yer tanımı (M34a). */
+  locationLabel: string;
   xp: string;
   coin: string;
   startsAt: string;
@@ -55,6 +59,8 @@ export const EMPTY_TASK: TaskFormValues = {
   teamBonusCoin: "0",
   icon: "list-checks",
   artKey: "",
+  issuerName: "",
+  locationLabel: "",
   xp: "50",
   coin: "50",
   startsAt: "",
@@ -450,6 +456,32 @@ export function TaskForm({
             onChange={(event) => set("capacity", event.target.value)}
             className={inputClass}
           />
+        </Field>
+
+        <Field label="Görevi açan kurum (isteğe bağlı)">
+          <input
+            value={values.issuerName}
+            onChange={(event) => set("issuerName", event.target.value)}
+            placeholder="Yeşil Adımlar Derneği"
+            maxLength={60}
+            className={inputClass}
+          />
+          <p className="mt-1 text-[11px] text-ink-muted">
+            Boş bırakılırsa belediye adı, o da yoksa GençLİG görünür.
+          </p>
+        </Field>
+
+        <Field label="Konum etiketi (isteğe bağlı)">
+          <input
+            value={values.locationLabel}
+            onChange={(event) => set("locationLabel", event.target.value)}
+            placeholder="Gülhane Parkı, Fatih"
+            maxLength={80}
+            className={inputClass}
+          />
+          <p className="mt-1 text-[11px] text-ink-muted">
+            Kullanıcının okuduğu kısa yer tanımı. Koordinat değil.
+          </p>
         </Field>
 
         <Field label="Görsel adresi (isteğe bağlı)" className="sm:col-span-2">

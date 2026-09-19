@@ -28,6 +28,8 @@ type Input = {
   teamBonusCoin: string;
   icon: string;
   artKey: string;
+  issuerName: string;
+  locationLabel: string;
   xp: string;
   coin: string;
   startsAt: string;
@@ -181,6 +183,14 @@ export async function saveTaskAction(input: Input): Promise<TaskSaveState> {
     */
     // Sütun yoksa aşağıda düşürülüyor; bkz. write().
     art_key: input.artKey.trim() || null,
+    /*
+      Kurum ve konum: boş dize null'a çevriliyor.
+
+      Boş dize saklamak, taskIssuer()'ın kademe kuralını bozardı —
+      "" dolu sayılıp belediye adına hiç düşülmezdi.
+    */
+    issuer_name: input.issuerName.trim() || null,
+    location_label: input.locationLabel.trim() || null,
     xp,
     coin,
     starts_at: toIsoOrNull(input.startsAt),

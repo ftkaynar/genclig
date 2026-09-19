@@ -55,6 +55,12 @@ export type TaskRow = {
   icon: string | null;
   /** public/task-art/ altındaki kapak görselinin anahtarı (art-01..art-20). */
   art_key: string | null;
+  /** Görevi açan kurum; boşsa belediye, o da boşsa GençLİG (M34a). */
+  issuer_name: string | null;
+  /** İnsanın okuduğu kısa yer tanımı (M34a). */
+  location_label: string | null;
+  /** Belediye adı — gömülü okuma; issuer_name boşken kullanılıyor. */
+  municipalities: { name: string } | null;
   task_categories: TaskCategory | null;
   /**
    * Geri sayımın sunucuda hesaplanmış ilk metni.
@@ -75,26 +81,60 @@ export type TaskRow = {
 };
 
 /*
-  Sorgu alanları iki parçaya ayrıldı.
+  Sorgu alanları KATMANLI.
 
-  art_key M30 ile geldi. Migration koşmamış bir veritabanında bu
-  sütunu istemek PostgREST'te 42703 veriyor ve SORGUNUN TAMAMI
-  hata dönüyor — tek bir yeni sütun yüzünden görev akışı komple
-  çöküyordu (ölçüldü: ana sayfa ve /gorevler 500).
+  Her migration yeni bir alan ekliyor ve koşmamış bir veritabanında o
+  alanı istemek PostgREST'te 42703 veriyor — SORGUNUN TAMAMI hata
+  dönüyor, yani tek bir yeni sütun görev akışını komple çökertiyor
+  (D32'de ölçüldü: ana sayfa ve /gorevler 500).
+
+  Bu yüzden alanlar üç katman:
+    BASE   her zaman var
+    ART    M30 (art_key)
+    ISSUER M34a (issuer_name, location_label, municipalities)
+
+  Katmanlar AYRI bayraklarla: bulutta M30 uygulanmış ama M34a
+  uygulanmamış olabiliyor (şu an tam olarak bu durumda). Hepsini tek
+  bayrağa bağlamak, issuer eksikken art_key'i de gereksiz yere
+  düşürmek demekti.
 */
 const TASK_FIELDS_BASE =
   "id,type,title,description,instructions,image_url,icon,xp,coin,difficulty,verification,scope,min_team_size,team_bonus_xp,team_bonus_coin,lat,lng,radius_m,starts_at,ends_at,capacity,task_categories(slug,name,icon)";
 
-/** M30 sonrası eklenen alanlar. */
+/** M30. */
 const TASK_FIELDS_ART = "art_key";
-
 const ART_KEY = "tasks.art_key";
+
+/** M34a. */
+const TASK_FIELDS_ISSUER =
+  "issuer_name,location_label,municipalities(name)";
+const ISSUER_KEY = "tasks.issuer_name";
 
 /** Şemanın desteklediği en geniş alan listesi. */
 function taskFields(): string {
-  return isKnownMissing(ART_KEY)
-    ? TASK_FIELDS_BASE
-    : `${TASK_FIELDS_BASE},${TASK_FIELDS_ART}`;
+  const parts = [TASK_FIELDS_BASE];
+  if (!isKnownMissing(ART_KEY)) parts.push(TASK_FIELDS_ART);
+  if (!isKnownMissing(ISSUER_KEY)) parts.push(TASK_FIELDS_ISSUER);
+  return parts.join(",");
+}
+
+/**
+ * Eksik katmanı bir adım düşürür; düşürecek katman kalmadıysa false.
+ *
+ * Önce ISSUER (en yeni), sonra ART. Hangi sütunun eksik olduğunu hata
+ * metninden ayrıştırmak denendi ve elendi — mesaj biçimi PostgREST
+ * sürümüne bağlı ve sessizce değişebiliyor.
+ */
+function degradeTaskFields(): boolean {
+  if (!isKnownMissing(ISSUER_KEY)) {
+    markMissing(ISSUER_KEY);
+    return true;
+  }
+  if (!isKnownMissing(ART_KEY)) {
+    markMissing(ART_KEY);
+    return true;
+  }
+  return false;
 }
 
 function withRemainingLabel(rows: unknown[]): TaskRow[] {
@@ -159,10 +199,9 @@ export async function listFeedTasks(
 
   let { data, error } = await build(taskFields());
 
-  // Sütun yoksa art_key'siz bir kez daha dene ve durumu hatırla.
-  if (error && isMissingSchema(error)) {
-    markMissing(ART_KEY);
-    ({ data, error } = await build(TASK_FIELDS_BASE));
+  // Eksik sütun varsa katmanları teker teker düşürerek yeniden dene.
+  while (error && isMissingSchema(error) && degradeTaskFields()) {
+    ({ data, error } = await build(taskFields()));
   }
 
   if (error) {
@@ -189,12 +228,10 @@ export async function getTask(id: string): Promise<TaskRow | null> {
   /*
     Buradaki hata eskiden YUTULUYORDU (`const { data }`) ve art_key
     olmayan bir şemada her görev detayı sessizce 404 oluyordu.
-    Artık eksik sütun fark ediliyor ve eski alan listesiyle
-    yeniden okunuyor.
+    Artık eksik katman düşürülüp yeniden okunuyor.
   */
-  if (error && isMissingSchema(error)) {
-    markMissing(ART_KEY);
-    ({ data, error } = await read(TASK_FIELDS_BASE));
+  while (error && isMissingSchema(error) && degradeTaskFields()) {
+    ({ data, error } = await read(taskFields()));
   }
 
   return data ? (withRemainingLabel([data])[0] ?? null) : null;

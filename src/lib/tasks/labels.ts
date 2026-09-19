@@ -246,3 +246,41 @@ export function taskCardState(
   // Reddedilen teslim kartı kilitlemiyor — kullanıcı yeniden deneyebilmeli.
   return isContinuous ? "repeat" : "none";
 }
+
+/* ---------------------------------------------------------------------------
+   Görevi açan kurum ve konum (D35 FAZ K)
+   --------------------------------------------------------------------------- */
+
+/** Platformun kendi açtığı görevlerde gösterilen ad. */
+export const DEFAULT_ISSUER = "GençLİG";
+
+/**
+ * Görevi kim açtı?
+ *
+ * Sıra: issuer_name > belediye adı > GençLİG.
+ *
+ * Üç kademe çünkü üç gerçek durum var: dışarıdan bir kurum talep etti,
+ * bir belediye açtı, ya da platformun kendisi açtı. Boş bırakmak
+ * kullanıcıya "bunu kim istiyor" sorusunu yanıtsız bırakıyordu; sahibi
+ * belli olmayan bir görev güven vermiyor.
+ */
+export function taskIssuer(task: {
+  issuer_name?: string | null;
+  municipalities?: { name: string } | null;
+}): string {
+  const issuer = task.issuer_name?.trim();
+  if (issuer) return issuer;
+
+  const municipality = task.municipalities?.name?.trim();
+  if (municipality) return municipality;
+
+  return DEFAULT_ISSUER;
+}
+
+/** Kurum GençLİG'in kendisi mi? Arayüz onu daha sade gösteriyor. */
+export function isPlatformIssuer(task: {
+  issuer_name?: string | null;
+  municipalities?: { name: string } | null;
+}): boolean {
+  return taskIssuer(task) === DEFAULT_ISSUER;
+}

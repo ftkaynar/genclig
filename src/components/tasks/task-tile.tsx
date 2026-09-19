@@ -3,9 +3,15 @@ import Link from "next/link";
 import { Countdown } from "./countdown";
 import { taskIconName, taskTone } from "./task-card";
 import { Icon } from "@/components/ui/icon";
+import { ContinuousBadge } from "./continuous-badge";
 import { TokenReward, XpReward } from "@/components/ui/task-reward";
 import { taskArtUrl } from "@/lib/tasks/art";
-import { TASK_STATE_STYLE, taskCardState } from "@/lib/tasks/labels";
+import {
+  TASK_STATE_STYLE,
+  isPlatformIssuer,
+  taskCardState,
+  taskIssuer,
+} from "@/lib/tasks/labels";
 import type { SubmissionSummary, TaskRow } from "@/lib/tasks/queries";
 
 /*
@@ -265,6 +271,37 @@ export function TaskTile({
             {task.title}
           </span>
 
+          {/*
+            Kurum + konum (D35 FAZ K).
+
+            Başlığın ALTINDA: önce ne yapılacağı, sonra kim istiyor.
+            Tek satır ve kırpılıyor — iki satıra taşırsa kartın
+            alt yarısını yutuyordu.
+
+            Platformun kendi görevinde kurum satırı GİZLİ: her kartta
+            "GençLİG" yazmak bilgi değil gürültü.
+          */}
+          {!isPlatformIssuer(task) || task.location_label ? (
+            <span className="flex min-w-0 items-center gap-1 text-[10px] font-medium text-ink-muted">
+              {!isPlatformIssuer(task) ? (
+                <>
+                  <Icon name="building-2" className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{taskIssuer(task)}</span>
+                </>
+              ) : null}
+
+              {task.location_label ? (
+                <>
+                  {!isPlatformIssuer(task) ? (
+                    <span aria-hidden className="shrink-0 opacity-50">·</span>
+                  ) : null}
+                  <Icon name="map-pin" className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{task.location_label}</span>
+                </>
+              ) : null}
+            </span>
+          ) : null}
+
           {/* Zaman durumu en altta. */}
           <span className="mt-auto block">
             {upcoming && task.starts_at ? (
@@ -302,10 +339,12 @@ export function TaskTile({
                 Bugün tekrar yap
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold text-ink-muted">
-                <Icon name="activity" className="h-3 w-3" />
-                Sürekli
-              </span>
+              /*
+                Sürekli rozeti v2: yeşil yuvarlak + iki dairesel ok.
+                Nabız ikonu (activity) canlı/aktif anlatıyordu,
+                TEKRARLANABİLİRLİK anlatmıyordu.
+              */
+              <ContinuousBadge />
             )}
           </span>
         </span>

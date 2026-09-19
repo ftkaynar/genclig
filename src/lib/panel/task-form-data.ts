@@ -8,6 +8,7 @@ import type { TaskFormValues } from "@/components/panel/task-form";
 import { getTaskCategories } from "@/lib/reference/queries";
 
 const ART_KEY = "tasks.art_key";
+const ISSUER_KEY = "tasks.issuer_name";
 
 /** Form için kategori listesi. */
 export async function listTaskCategories(): Promise<
@@ -31,6 +32,33 @@ function toLocalInput(iso: string | null): string {
 /** M30 öncesi de var olan alanlar. */
 const FORM_FIELDS_BASE =
   "id,title,description,instructions,type,category_id,verification,difficulty,scope,min_team_size,team_bonus_xp,team_bonus_coin,daily_submission_limit,icon,xp,coin,starts_at,ends_at,lat,lng,radius_m,capacity,image_url,status";
+
+/**
+ * Şemanın desteklediği en geniş alan listesi.
+ *
+ * Katmanlar ayrı: bulutta M30 uygulanmış ama M34a uygulanmamış olabiliyor.
+ * Hepsini tek bayrağa bağlamak, issuer eksikken art_key'i de gereksiz
+ * yere düşürmek demekti (aynı desen lib/tasks/queries.ts'te).
+ */
+function formFields(): string {
+  const parts = [FORM_FIELDS_BASE];
+  if (!isKnownMissing(ART_KEY)) parts.push("art_key");
+  if (!isKnownMissing(ISSUER_KEY)) parts.push("issuer_name,location_label");
+  return parts.join(",");
+}
+
+/** Eksik katmanı bir adım düşürür; düşürecek katman kalmadıysa false. */
+function degradeFormFields(): boolean {
+  if (!isKnownMissing(ISSUER_KEY)) {
+    markMissing(ISSUER_KEY);
+    return true;
+  }
+  if (!isKnownMissing(ART_KEY)) {
+    markMissing(ART_KEY);
+    return true;
+  }
+  return false;
+}
 
 /**
  * Düzenleme formunun okuduğu satır.
@@ -64,6 +92,8 @@ type TaskEditRow = {
   image_url: string | null;
   status: string | null;
   art_key?: string | null;
+  issuer_name?: string | null;
+  location_label?: string | null;
 };
 
 /** Var olan görevi form değerlerine çevirir. */
@@ -85,20 +115,15 @@ export async function loadTaskForEdit(
       .eq("id", id)
       .maybeSingle<TaskEditRow>();
 
-  let { data, error } = await read(
-    isKnownMissing(ART_KEY)
-      ? FORM_FIELDS_BASE
-      : `${FORM_FIELDS_BASE},art_key`,
-  );
+  let { data, error } = await read(formFields());
 
   /*
     art_key M30 ile geldi; sütun yoksa onsuz bir kez daha okunuyor.
     Hata eskiden YUTULUYORDU (`const { data }`) ve migration koşmamış bir
     veritabanında düzenleme formu hep boş açılıyordu.
   */
-  if (error && isMissingSchema(error)) {
-    markMissing(ART_KEY);
-    ({ data, error } = await read(FORM_FIELDS_BASE));
+  while (error && isMissingSchema(error) && degradeFormFields()) {
+    ({ data, error } = await read(formFields()));
   }
 
   if (!data) return null;
@@ -123,6 +148,8 @@ export async function loadTaskForEdit(
     icon: data.icon ?? "list-checks",
     // Sütun yoksa alan formda boş kalıyor; seçici de kaydetmeyecek.
     artKey: ("art_key" in data ? data.art_key : null) ?? "",
+    issuerName: data.issuer_name ?? "",
+    locationLabel: data.location_label ?? "",
     xp: String(data.xp ?? 0),
     coin: String(data.coin ?? 0),
     startsAt: toLocalInput(data.starts_at),
