@@ -114,6 +114,43 @@ export function DiscoverView({
   const [activeCategory, setActiveCategory] = useState<string>("");
 
   /*
+    KONUM FİLTRESİ (D36 FAZ KF).
+
+    Seçenekler GÖREVLERDEN türetiliyor, provinces/districts referans
+    tablolarından değil. İki sebep:
+
+    1. 81 il ve 973 ilçeyi istemciye taşımak, listenin %98'i boş
+       çıkacakken anlamsız bir yük. Görev havuzu bugün yedi ilçede.
+    2. Boş seçim üretmiyor: listede görünen her bölgede en az bir görev
+       VAR. Kullanıcı seçip boş ekranla karşılaşmıyor.
+
+    Kısıt yok: kullanıcı kendi bölgesine bağlı değil, listedeki her
+    bölgeyi seçebiliyor. Varsayılan "Tümü" — kendi bölgesine kilitlemek
+    keşfetmenin tam tersi olurdu. "Konumum" düğmesi hem haritayı
+    konumuna taşıyor hem filtreyi "Tümü"ye çekiyor, yani kullanıcı tek
+    dokunuşla kendi çevresine dönüyor.
+  */
+  const [activeArea, setActiveArea] = useState<string>("");
+
+  const areas = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; count: number }>();
+    for (const task of tasks) {
+      const district = task.districts?.name;
+      const province = task.provinces?.name;
+      if (!district || !task.district_id) continue;
+      const key = String(task.district_id);
+      const existing = map.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        // İl adı da etikette: iki ilde aynı adlı ilçe olabiliyor.
+        map.set(key, { key, label: `${district}, ${province ?? ""}`.replace(/, $/, ""), count: 1 });
+      }
+    }
+    return [...map.values()].sort((a, b) => a.label.localeCompare(b.label, "tr"));
+  }, [tasks]);
+
+  /*
     KONUM AKIŞI (D36 FAZ D1'de yeniden yazıldı).
 
     ÖLÇÜLEN DURUM: başarı yolu zaten çalışıyordu — izin verilmiş bir
@@ -148,6 +185,12 @@ export function DiscoverView({
 
   function apply(result: GeolocationPosition) {
     setPosition([result.coords.latitude, result.coords.longitude]);
+    /*
+      Bölge filtresi sıfırlanıyor: kullanıcı "Konumum" derken kendi
+      çevresini kastediyor, oysa seçili bir bölge haritayı oraya
+      çekip kendi konumunu ekran dışında bırakabilirdi.
+    */
+    setActiveArea("");
     setLocating(false);
     setError(null);
   }
@@ -220,24 +263,47 @@ export function DiscoverView({
     }, { enableHighAccuracy: true, timeout: 8_000, maximumAge: 0 });
   }
 
-  // Kategori filtresi haritayı ve tüm şeritleri birlikte süzüyor.
+  /*
+    Kategori VE konum filtresi haritayı ve tüm şeritleri BİRLİKTE
+    süzüyor (D36 FAZ KF): "Kadıköy'deki çevre görevleri" tek seçimle
+    değil iki seçimle kuruluyor ve ikisi birbirini iptal etmiyor.
+  */
   const visible = useMemo(
     () =>
-      activeCategory
-        ? tasks.filter(
-            (task) => task.task_categories?.slug === activeCategory,
-          )
-        : tasks,
-    [tasks, activeCategory],
+      tasks.filter(
+        (task) =>
+          (!activeCategory || task.task_categories?.slug === activeCategory) &&
+          (!activeArea || String(task.district_id ?? "") === activeArea),
+      ),
+    [tasks, activeCategory, activeArea],
   );
 
   const visibleMapTasks = useMemo(
     () =>
-      activeCategory
-        ? mapTasks.filter((task) => task.categorySlug === activeCategory)
-        : mapTasks,
-    [mapTasks, activeCategory],
+      mapTasks.filter(
+        (task) =>
+          (!activeCategory || task.categorySlug === activeCategory) &&
+          (!activeArea || String(task.districtId ?? "") === activeArea),
+      ),
+    [mapTasks, activeCategory, activeArea],
   );
+
+  /*
+    Seçilen bölgenin merkezi: o bölgedeki görevlerin ortalaması.
+
+    İlçe sınırı ya da merkez koordinatı veritabanında YOK (ölçüldü:
+    districts tablosunda yalnız id, province_id, name). Görevlerin
+    ortalaması, o bölgede gerçekten bakılacak yerlerin ortasını
+    gösteriyor — idari merkezden daha kullanışlı.
+  */
+  const areaCenter = useMemo<[number, number] | null>(() => {
+    if (!activeArea || visibleMapTasks.length === 0) return null;
+    const lat =
+      visibleMapTasks.reduce((sum, t) => sum + t.lat, 0) / visibleMapTasks.length;
+    const lng =
+      visibleMapTasks.reduce((sum, t) => sum + t.lng, 0) / visibleMapTasks.length;
+    return [lat, lng];
+  }, [activeArea, visibleMapTasks]);
 
   /*
     Yakındakiler yalnızca konum alındığında hesaplanıyor ve konumu olan
@@ -328,6 +394,38 @@ export function DiscoverView({
           </button>
         </div>
 
+        {/*
+          Konum filtresi — kategori çiplerinin ÜSTÜNDE.
+
+          Sıra bilinçli: "nerede" sorusu "ne" sorusundan önce geliyor.
+          Kullanıcı önce bakacağı bölgeyi seçiyor, sonra o bölgede ne
+          aradığını. Ters sıra denendi ve elendi: kategori seçip sonra
+          bölge değiştirince kategori seçimi anlamını yitirmiş gibi
+          duruyordu.
+
+          Çip yerine <select>: yedi ilçe bugün çipe sığıyor ama görev
+          havuzu büyüdükçe liste onlarca bölgeye çıkacak ve yatay şerit
+          okunmaz olacak. Seçici hem bugün hem yarın çalışıyor.
+        */}
+        {areas.length > 0 ? (
+          <div className="mb-2 flex items-center gap-2">
+            <Icon name="map-pin" className="h-4 w-4 shrink-0 text-cyan" />
+            <select
+              value={activeArea}
+              onChange={(event) => setActiveArea(event.target.value)}
+              aria-label="Bölge filtresi"
+              className="min-h-[40px] min-w-0 flex-1 rounded-xl border border-edge bg-card px-2.5 text-[13px] font-medium text-ink"
+            >
+              <option value="">Tüm bölgeler ({tasks.length} görev)</option>
+              {areas.map((area) => (
+                <option key={area.key} value={area.key}>
+                  {area.label} ({area.count})
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+
         {/* Kategori filtre çipleri */}
         <nav aria-label="Kategori filtresi" className="mb-2">
           <HScroll className="mt-2" ariaLabel="Kategoriler">
@@ -374,7 +472,11 @@ export function DiscoverView({
         ) : null}
 
         <div className="overflow-hidden rounded-2xl border border-edge">
-          <TaskMap tasks={visibleMapTasks} userPosition={position} />
+          <TaskMap
+            tasks={visibleMapTasks}
+            userPosition={position}
+            areaCenter={areaCenter}
+          />
         </div>
       </section>
 

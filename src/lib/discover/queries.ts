@@ -9,6 +9,8 @@ export type DiscoverTask = {
   coin: number;
   categorySlug: string | null;
   categoryName: string | null;
+  /** Konum filtresi (M35c); bölgesiz görevde null. */
+  districtId: number | null;
 };
 
 /**
@@ -20,7 +22,9 @@ export async function listDiscoverTasks(): Promise<DiscoverTask[]> {
 
   const { data } = await supabase
     .from("tasks")
-    .select("id,title,lat,lng,xp,coin,ends_at,task_categories(slug,name)")
+    .select(
+      "id,title,lat,lng,xp,coin,ends_at,district_id,task_categories(slug,name)",
+    )
     .eq("status", "active")
     .not("lat", "is", null)
     .not("lng", "is", null)
@@ -34,6 +38,7 @@ export async function listDiscoverTasks(): Promise<DiscoverTask[]> {
     lng: number;
     xp: number;
     coin: number;
+    district_id: number | null;
     task_categories: { slug: string; name: string } | null;
   }[];
 
@@ -46,6 +51,7 @@ export async function listDiscoverTasks(): Promise<DiscoverTask[]> {
     coin: row.coin,
     categorySlug: row.task_categories?.slug ?? null,
     categoryName: row.task_categories?.name ?? null,
+    districtId: row.district_id ?? null,
   }));
 }
 

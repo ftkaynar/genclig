@@ -61,6 +61,14 @@ export type TaskRow = {
   location_label: string | null;
   /** Belediye adı — gömülü okuma; issuer_name boşken kullanılıyor. */
   municipalities: { name: string } | null;
+  /*
+    Görevin bölgesi (M35c). Şema geride kalırsa alan listesinden
+    düşüyor ve satırda hiç bulunmuyor, bu yüzden isteğe bağlı.
+  */
+  province_id?: number | null;
+  district_id?: number | null;
+  provinces?: { name: string } | null;
+  districts?: { name: string } | null;
   task_categories: TaskCategory | null;
   /**
    * Geri sayımın sunucuda hesaplanmış ilk metni.
@@ -110,11 +118,16 @@ const TASK_FIELDS_ISSUER =
   "issuer_name,location_label,municipalities(name)";
 const ISSUER_KEY = "tasks.issuer_name";
 
+/** M35c — keşfet konum filtresi bu iki alanı kullanıyor. */
+const TASK_FIELDS_AREA = "province_id,district_id,districts(name),provinces(name)";
+const AREA_KEY = "tasks.province_id";
+
 /** Şemanın desteklediği en geniş alan listesi. */
 function taskFields(): string {
   const parts = [TASK_FIELDS_BASE];
   if (!isKnownMissing(ART_KEY)) parts.push(TASK_FIELDS_ART);
   if (!isKnownMissing(ISSUER_KEY)) parts.push(TASK_FIELDS_ISSUER);
+  if (!isKnownMissing(AREA_KEY)) parts.push(TASK_FIELDS_AREA);
   return parts.join(",");
 }
 
@@ -126,6 +139,16 @@ function taskFields(): string {
  * sürümüne bağlı ve sessizce değişebiliyor.
  */
 function degradeTaskFields(): boolean {
+  /*
+    EN YENİ KATMAN ÖNCE düşüyor. Sıra migration sırasının tersi:
+    M35c (bölge) koşmamış bir veritabanında M34a (kurum) koşmuş
+    olabilir, tersi olamaz. En yeniyi ilk düşürmek, çalışan katmanları
+    gereksiz yere feda etmiyor.
+  */
+  if (!isKnownMissing(AREA_KEY)) {
+    markMissing(AREA_KEY);
+    return true;
+  }
   if (!isKnownMissing(ISSUER_KEY)) {
     markMissing(ISSUER_KEY);
     return true;

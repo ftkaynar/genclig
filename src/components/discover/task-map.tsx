@@ -46,15 +46,37 @@ const USER_ICON = L.divIcon({
   iconAnchor: [7, 7],
 });
 
-/** Kullanıcı konumu geldiğinde haritayı oraya taşır. */
-function RecenterOnUser({ position }: { position: [number, number] | null }) {
+/*
+  Haritayı taşıyan tek yer.
+
+  İKİ KAYNAK, TEK EFEKT (D36 FAZ KF): kullanıcı konumu ve seçilen
+  bölgenin merkezi. İkisi için iki ayrı effect yazmak denendi ve
+  elendi — ikisi aynı anda değiştiğinde ("Konumum" hem konumu veriyor
+  hem bölge filtresini sıfırlıyor) iki effect ardışık iki setView
+  çağırıyor ve harita görünür biçimde zıplıyordu.
+
+  Kullanıcı konumu ÖNCELİKLİ: bölge seçiliyken konum istendiğinde
+  gidilecek yer kullanıcının kendi konumu.
+*/
+function Recenter({
+  position,
+  areaCenter,
+}: {
+  position: [number, number] | null;
+  areaCenter: [number, number] | null;
+}) {
   const map = useMap();
 
   useEffect(() => {
     if (position) {
       map.setView(position, 14);
+      return;
     }
-  }, [map, position]);
+    if (areaCenter) {
+      // 13: bir ilçenin tamamını gösteren yakınlaştırma.
+      map.setView(areaCenter, 13);
+    }
+  }, [map, position, areaCenter]);
 
   return null;
 }
@@ -62,9 +84,12 @@ function RecenterOnUser({ position }: { position: [number, number] | null }) {
 export function TaskMap({
   tasks,
   userPosition,
+  areaCenter = null,
 }: {
   tasks: DiscoverTask[];
   userPosition: [number, number] | null;
+  /** Seçili bölgedeki görevlerin ortalaması; seçim yoksa null. */
+  areaCenter?: [number, number] | null;
 }) {
   // İlk görünüm: kullanıcı konumu yoksa görevlerin ortalaması, o da yoksa
   // İstanbul. Boş haritayla açılmak kullanıcıyı kaybediyordu.
@@ -96,7 +121,7 @@ export function TaskMap({
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <RecenterOnUser position={userPosition} />
+      <Recenter position={userPosition} areaCenter={areaCenter} />
 
       {userPosition ? (
         <Marker position={userPosition} icon={USER_ICON}>

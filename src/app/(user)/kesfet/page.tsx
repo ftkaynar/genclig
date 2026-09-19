@@ -43,6 +43,8 @@ export default async function DiscoverPage() {
       coin: task.coin,
       categorySlug: task.task_categories?.slug ?? null,
       categoryName: task.task_categories?.name ?? null,
+      // M35c; şema geride kalırsa alan hiç gelmiyor, bölgesiz sayılıyor.
+      districtId: task.district_id ?? null,
     }));
 
   // Yalnızca görevi olan kategoriler filtre çipi olarak gösteriliyor.
