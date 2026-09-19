@@ -168,9 +168,21 @@ export async function UserHud({ title }: { title?: string }) {
             aria-label={`${points.coin} Token, Ödüller'e git`}
             className="token-pill press-soft inline-flex min-h-[40px] items-center gap-1 rounded-full px-2.5 text-xs font-bold"
           >
+            {/*
+              "Token" KELİMESİ YOK (D36 FAZ HD).
+
+              Üst şerit dört öğeyi 390px'e sıkıştırıyor: seviye rozeti +
+              ilerleme çubuğu, token hapı, bildirim zili, tema düğmesi.
+              Kelime ~42px yiyordu ve ilerleme çubuğunu daraltıyordu.
+              Altın jeton ikonu birimi zaten söylüyor — yanına bir de
+              adını yazmak, para simgesiyle birlikte "lira" yazmak gibi.
+
+              aria-label'da duruyor: ekran okuyucu ikonu görmüyor.
+              Ödül ve profil ekranlarında kelime KALIYOR; oralarda yer
+              var ve ilk kez karşılaşan kullanıcı birimi orada öğreniyor.
+            */}
             <TokenIcon className="h-4 w-4" id="hud" />
             <TokenAmount value={formatPoints(points.coin)} />
-            <span className="token-amount">Token</span>
           </Link>
           <BellRefresher />
           <NotificationBell />
