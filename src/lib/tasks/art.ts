@@ -24,26 +24,26 @@ export const TASK_ART_KEYS = Array.from(
  * görselin altında görünüyor. Sırası TASK_ART_KEYS ile aynı.
  */
 export const TASK_ART_HINTS: Record<string, string> = {
-  "art-01": "Çevre · ağaç dikimi",
-  "art-02": "Toplum · dayanışma",
+  "art-01": "Gönüllülük · ağaç dikimi",
+  "art-02": "Sosyal · dayanışma",
   "art-03": "Spor · koşu",
-  "art-04": "Kültür · sahne",
-  "art-05": "Eğitim · kitap",
-  "art-06": "Yurttaşlık · meydan",
-  "art-07": "Geri dönüşüm",
-  "art-08": "Bağış",
-  "art-09": "Su ve tasarruf",
-  "art-10": "Müzik",
-  "art-11": "Bisiklet",
-  "art-12": "Tarım · fide",
-  "art-13": "Sahil temizliği",
-  "art-14": "Tiyatro",
-  "art-15": "Kütüphane",
-  "art-16": "Kodlama",
-  "art-17": "Hayvan barınağı",
-  "art-18": "Yaşlı ziyareti",
-  "art-19": "Festival",
-  "art-20": "Doğa yürüyüşü",
+  "art-04": "Katılım · sahne",
+  "art-05": "Eğitim · çalışma",
+  "art-06": "Toplanma · buluşma",
+  "art-07": "Temizlik · atık toplama",
+  "art-08": "Yardım · dayanışma",
+  "art-09": "Park · yeşil alan",
+  "art-10": "Müzik · konser",
+  "art-11": "Oyun · basketbol",
+  "art-12": "Çevre · fide",
+  "art-13": "Ziyaret · şehir turu",
+  "art-14": "Kültür · müze",
+  "art-15": "Kariyer · çalışma masası",
+  "art-16": "Teknoloji · dijital",
+  "art-17": "Sanat · duvar resmi",
+  "art-18": "Tarih · miras",
+  "art-19": "Lezzet · kahvaltı",
+  "art-20": "Doğa · yürüyüş",
 };
 
 /**
@@ -56,5 +56,26 @@ export const TASK_ART_HINTS: Record<string, string> = {
 export function taskArtUrl(key: string | null | undefined): string | null {
   if (!key) return null;
   if (!TASK_ART_KEYS.includes(key)) return null;
-  return `${TASK_ART_DIR}/${key}.svg`;
+  /*
+    Uzantı KODDA sabit, manifest'ten okunmuyor: manifest çalışma anında
+    okunacaktı ve her kart listesinde bir dosya okuması demekti.
+
+    D38 FAZ GK'de SVG yer tutucular gerçek fotoğraflarla değişti;
+    uzantı .svg yerine .webp oldu ama ANAHTARLAR AYNI KALDI, yani
+    veritabanındaki hiçbir art_key satırına dokunulmadı.
+  */
+  return `${TASK_ART_DIR}/${key}.webp`;
 }
+
+/**
+ * Detay sayfasının VARSAYILAN kapağı (D38 FAZ GK).
+ *
+ * Görevin kendi `image_url`'i yoksa bu kullanılıyor. Önceden kapak
+ * alanı boşsa yalnız kategori gradyanı çiziliyordu; detay sayfasının
+ * en üstü, yani ekranın ilk gördüğü yer, düz renkli bir bloktu.
+ *
+ * `art_key` ile KARIŞTIRILMAMALI: art_key kart kapağı (3:4), bu ise
+ * detay sayfasının geniş şeridi. İkisi farklı oranlar, farklı kırpma
+ * davranışı; tek görseli iki yerde kullanmak birinde özneyi kesiyordu.
+ */
+export const DEFAULT_TASK_COVER = `${TASK_ART_DIR}/detay-kapak.webp`;

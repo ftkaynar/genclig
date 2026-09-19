@@ -13,7 +13,8 @@
     "db:start": "pnpm dlx supabase start",
     "db:reset": "pnpm dlx supabase db reset",
     "db:stop": "pnpm dlx supabase stop",
-    "brand:icons": "node scripts/generate-icons.mjs"
+    "brand:icons": "node scripts/generate-icons.mjs",
+    "art:slice": "node scripts/slice-task-art.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -1,107 +1,118 @@
 {
-  "note": "Görev kapak görselleri. Gerçek görseller aynı anahtarla değiştirilecek; 'file' alanı uzantıyı taşıdığı için kod değişmeden WEBP'ye geçilebilir.",
-  "width": 600,
-  "height": 800,
+  "note": "Görev görselleri. Kart kapakları 3:4, detay kapağı geniş. Ölçü ve format kuralları docs/GOREV-GORSEL-SPEC.md içinde. Bu dosya koda bağlı değil; üretim tarafı için belge.",
+  "kaynak": "public/brand/gorevler.png (kontakt sayfası)",
+  "uretim": "pnpm art:slice",
+  "kart": {
+    "width": 192,
+    "height": 256,
+    "oran": "3:4",
+    "format": "webp"
+  },
+  "detayKapak": {
+    "width": 781,
+    "height": 238,
+    "format": "webp"
+  },
   "items": [
     {
       "key": "art-01",
-      "file": "art-01.svg",
-      "hint": "Çevre · ağaç dikimi"
+      "file": "art-01.webp",
+      "hint": "Gönüllülük · ağaç dikimi"
     },
     {
       "key": "art-02",
-      "file": "art-02.svg",
-      "hint": "Toplum · dayanışma"
+      "file": "art-02.webp",
+      "hint": "Sosyal · dayanışma"
     },
     {
       "key": "art-03",
-      "file": "art-03.svg",
+      "file": "art-03.webp",
       "hint": "Spor · koşu"
     },
     {
       "key": "art-04",
-      "file": "art-04.svg",
-      "hint": "Kültür · sahne"
+      "file": "art-04.webp",
+      "hint": "Katılım · sahne"
     },
     {
       "key": "art-05",
-      "file": "art-05.svg",
-      "hint": "Eğitim · kitap"
+      "file": "art-05.webp",
+      "hint": "Eğitim · çalışma"
     },
     {
       "key": "art-06",
-      "file": "art-06.svg",
-      "hint": "Yurttaşlık · meydan"
+      "file": "art-06.webp",
+      "hint": "Toplanma · buluşma"
     },
     {
       "key": "art-07",
-      "file": "art-07.svg",
-      "hint": "Geri dönüşüm"
+      "file": "art-07.webp",
+      "hint": "Temizlik · atık toplama"
     },
     {
       "key": "art-08",
-      "file": "art-08.svg",
-      "hint": "Bağış"
+      "file": "art-08.webp",
+      "hint": "Yardım · dayanışma"
     },
     {
       "key": "art-09",
-      "file": "art-09.svg",
-      "hint": "Su ve tasarruf"
+      "file": "art-09.webp",
+      "hint": "Park · yeşil alan"
     },
     {
       "key": "art-10",
-      "file": "art-10.svg",
-      "hint": "Müzik"
+      "file": "art-10.webp",
+      "hint": "Müzik · konser"
     },
     {
       "key": "art-11",
-      "file": "art-11.svg",
-      "hint": "Bisiklet"
+      "file": "art-11.webp",
+      "hint": "Oyun · basketbol"
     },
     {
       "key": "art-12",
-      "file": "art-12.svg",
-      "hint": "Tarım · fide"
+      "file": "art-12.webp",
+      "hint": "Çevre · fide"
     },
     {
       "key": "art-13",
-      "file": "art-13.svg",
-      "hint": "Sahil temizliği"
+      "file": "art-13.webp",
+      "hint": "Ziyaret · şehir turu"
     },
     {
       "key": "art-14",
-      "file": "art-14.svg",
-      "hint": "Tiyatro"
+      "file": "art-14.webp",
+      "hint": "Kültür · müze"
     },
     {
       "key": "art-15",
-      "file": "art-15.svg",
-      "hint": "Kütüphane"
+      "file": "art-15.webp",
+      "hint": "Kariyer · çalışma masası"
     },
     {
       "key": "art-16",
-      "file": "art-16.svg",
-      "hint": "Kodlama"
+      "file": "art-16.webp",
+      "hint": "Teknoloji · dijital"
     },
     {
       "key": "art-17",
-      "file": "art-17.svg",
-      "hint": "Hayvan barınağı"
+      "file": "art-17.webp",
+      "hint": "Sanat · duvar resmi"
     },
     {
       "key": "art-18",
-      "file": "art-18.svg",
-      "hint": "Yaşlı ziyareti"
+      "file": "art-18.webp",
+      "hint": "Tarih · miras"
     },
     {
       "key": "art-19",
-      "file": "art-19.svg",
-      "hint": "Festival"
+      "file": "art-19.webp",
+      "hint": "Lezzet · kahvaltı"
     },
     {
       "key": "art-20",
-      "file": "art-20.svg",
-      "hint": "Doğa yürüyüşü"
+      "file": "art-20.webp",
+      "hint": "Doğa · yürüyüş"
     }
   ]
 }
