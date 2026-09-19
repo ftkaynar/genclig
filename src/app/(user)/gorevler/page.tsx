@@ -13,6 +13,10 @@ import { EmptyState } from "@/components/ui/pills";
 import { UserHud } from "@/components/user-hud";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { ChainStrip } from "@/components/chains/chain-strip";
+import {
+  CategoryRows,
+  groupByCategory,
+} from "@/components/tasks/category-rows";
 import { ReportCta } from "@/components/home/report-cta";
 import { listMyChains } from "@/lib/chains/queries";
 import { getSpotlightTaskId } from "@/lib/spotlight/queries";
@@ -26,9 +30,13 @@ export const metadata = {
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tip?: string; kapsam?: string }>;
+  searchParams: Promise<{
+    tip?: string;
+    kapsam?: string;
+    kategori?: string;
+  }>;
 }) {
-  const { tip, kapsam } = await searchParams;
+  const { tip, kapsam, kategori } = await searchParams;
   const activeTab = TASK_TYPE_TABS.some((tab) => tab.key === tip)
     ? (tip ?? "")
     : "";
@@ -52,9 +60,42 @@ export default async function TasksPage({
     instant: scopeTasks.filter((task) => task.type === "instant").length,
   };
 
-  const filtered = activeTab
+  const byType = activeTab
     ? scopeTasks.filter((task) => task.type === activeTab)
     : scopeTasks;
+
+  /*
+    Kategori süzmesi (D35 FAZ G).
+
+    Tanınmayan bir slug sessizce yok sayılıyor: eski ya da yanlış
+    yazılmış bir bağlantı kullanıcıyı boş ekrana değil normal
+    listeye düşürmeli.
+  */
+  const categorySlugs = new Set(
+    scopeTasks
+      .map((task) => task.task_categories?.slug)
+      .filter((slug): slug is string => Boolean(slug)),
+  );
+
+  const activeCategory =
+    kategori && categorySlugs.has(kategori) ? kategori : "";
+
+  const filtered = activeCategory
+    ? byType.filter((task) => task.task_categories?.slug === activeCategory)
+    : byType;
+
+  const activeCategoryName =
+    filtered.find((task) => task.task_categories?.slug === activeCategory)
+      ?.task_categories?.name ?? "";
+
+  /*
+    KATEGORİ SATIRLARI yalnız "Tümü" görünümünde.
+
+    Tip filtresi (Sürekli/Anlık) ya da kategori seçiliyken ızgara
+    kalıyor: kullanıcı zaten daraltma yapmış, ikinci bir gruplama
+    katmanı sonucu tekrar dağıtırdı.
+  */
+  const showRows = !activeTab && !activeCategory;
 
   /*
     Yaklaşan görevler ayrı bir bölümde ve başlangıç saatine göre sıralı.
@@ -139,6 +180,18 @@ export default async function TasksPage({
       <main className="flex-1 px-4 py-4 has-bottom-nav">
         <ChainStrip chains={chains} />
 
+        {/* Kategori seçiliyse geri dönüş çipi. */}
+        {activeCategory ? (
+          <Link
+            href={`/gorevler${activeScope ? `?kapsam=${activeScope}` : ""}`}
+            className="press-soft mb-4 inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 text-[13px] font-semibold text-primary"
+          >
+            <Icon name="chevron-right" className="h-4 w-4 rotate-180" />
+            {activeCategoryName || "Tüm görevler"}
+            <span className="text-ink-muted">· tümünü gör</span>
+          </Link>
+        ) : null}
+
         {upcoming.length > 0 ? (
           <section className="mb-5">
             <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-indigo">
@@ -187,18 +240,29 @@ export default async function TasksPage({
             {upcoming.length > 0 ? (
               <h2 className="mb-2 text-sm font-semibold text-ink">Şimdi açık</h2>
             ) : null}
-            <ul className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
-              {tasks.map((task, i) => (
-                <TaskTile
-                  key={task.id}
-                  task={task}
-                  submission={submissions.get(task.id)}
-                  teamCount={teamProgress.get(task.id)}
-                  index={i}
-                  spotlight={task.id === spotlightId}
-                />
-              ))}
-            </ul>
+
+            {showRows ? (
+              <CategoryRows
+                groups={groupByCategory(tasks)}
+                submissions={submissions}
+                teamProgress={teamProgress}
+                spotlightId={spotlightId}
+                scope={activeScope}
+              />
+            ) : (
+              <ul className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
+                {tasks.map((task, i) => (
+                  <TaskTile
+                    key={task.id}
+                    task={task}
+                    submission={submissions.get(task.id)}
+                    teamCount={teamProgress.get(task.id)}
+                    index={i}
+                    spotlight={task.id === spotlightId}
+                  />
+                ))}
+              </ul>
+            )}
           </>
         )}
       </main>

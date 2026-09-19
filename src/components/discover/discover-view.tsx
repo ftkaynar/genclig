@@ -343,12 +343,18 @@ export function DiscoverView({
       {byCategory.map(([slug, group]) => (
         <section key={slug}>
           {/*
-            Kategori şeridinde "tümünü gör" YOK: /gorevler'de kategori
-            filtresi bulunmuyor ve süzmeyen bir bağlantı kullanıcıya
-            yalan söylerdi. Kategori filtresi eklenirse buraya derin
-            link konabilir.
+            Derin link BAĞLANDI (D35 FAZ G).
+
+            Önceki sürümde "tümünü gör" yoktu çünkü /gorevler'de kategori
+            filtresi bulunmuyordu ve süzmeyen bir bağlantı kullanıcıya
+            yalan söylerdi. Filtre bu dilimde eklendi; şerit artık
+            gerçekten süzülmüş listeye gidiyor.
           */}
-          <StripHeader icon="list-checks" title={group.name} />
+          <StripHeader
+            icon="list-checks"
+            title={group.name}
+            href={`/gorevler?kategori=${slug}`}
+          />
           <Strip>
             {group.rows.map((task, i) => (
               <TaskTile
