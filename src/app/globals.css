@@ -1449,6 +1449,39 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Açık marka zemini — "logo anı" (D36 FAZ SP)
+
+   ÖLÇÜLEN SORUN: marka ikonları #0B1220 koyu lacivert zemine
+   basılıyordu ve logonun gradyanı sol altta koyu laciverte gidiyor.
+   Logonun opak piksellerinin en koyu %5'i (#10223b) ile o zemin
+   arasındaki kontrast **1.17:1** — figürün yarısı kayboluyordu. Aynı
+   mürekkep bu açık zeminde **14.13:1**.
+
+   Renkler scripts/generate-icons.mjs ile AYNI (taban #EEF1F8, mor ve
+   cyan yumuşak ışıltı): PWA açılış ekranı ile uygulama içindeki logo
+   anı aynı yüzü göstersin diye. Biri değişirse diğeri de değişmeli.
+
+   Koyu temada da AÇIK kalıyor. Temaya bağlamak denendi ve elendi:
+   PWA'nın açılış ekranı manifest'ten geliyor ve temayı bilmiyor, yani
+   koyu temadaki kullanıcı açık bir sistem splash'inden koyu bir
+   uygulama splash'ine düşüyordu — tam da giderilmek istenen kopukluk.
+   --------------------------------------------------------------------------- */
+@utility brand-ground {
+  background-color: #eef1f8;
+  background-image:
+    radial-gradient(
+      72% 72% at 22% 18%,
+      rgb(124 58 237 / 0.22),
+      rgb(124 58 237 / 0) 100%
+    ),
+    radial-gradient(
+      74% 74% at 82% 86%,
+      rgb(34 211 238 / 0.26),
+      rgb(34 211 238 / 0) 100%
+    );
+}
+
+/* ---------------------------------------------------------------------------
    Leaflet katman hapsi (D36 FAZ D2)
 
    ÖLÇÜLEN SORUN: Leaflet kendi z-index ölçeğini getiriyor ve bu ölçek

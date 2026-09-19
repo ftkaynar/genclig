@@ -32,14 +32,28 @@ export const metadata: Metadata = {
   },
 };
 
-// Mobile-first PWA: viewport meta'sı Next'in viewport export'u ile veriliyor.
-// maximumScale sınırlanmadı; erişilebilirlik için kullanıcı zoom'u engellenmiyor.
-// themeColor koyu marka zemini: PWA olarak açıldığında sistem çubuğu uygulamanın
-// varsayılan yüzü olan kullanıcı PWA'sı ile aynı renkte olsun diye.
+/*
+  Mobile-first PWA: viewport meta'sı Next'in viewport export'u ile veriliyor.
+  maximumScale sınırlanmadı; erişilebilirlik için kullanıcı zoom'u
+  engellenmiyor.
+
+  themeColor ARTIK TEMAYA GÖRE (D36 FAZ SP). Tek sabit koyu değer vardı ve
+  açık temada da tarayıcı çubuğunu koyu lacivert boyuyordu: panel ve admin
+  varsayılan olarak AÇIK temayla açılıyor (theme-script.ts), yani o
+  yüzlerde sayfa beyaz, üstündeki çubuk koyuydu.
+
+  Kullanıcı tercihini (localStorage) buradan okuyamıyoruz — meta etiketi
+  sunucuda üretiliyor. prefers-color-scheme en yakın yaklaşım ve
+  çoğunlukla doğru; tercih ile sistem ayrıştığında yalnız çubuk rengi
+  şaşıyor, sayfa doğru kalıyor.
+*/
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0B1220",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#EEF1F8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B1220" },
+  ],
 };
 
 // Neden LayoutProps<"/"> kullanılmıyor: o global tip .next/types altında build

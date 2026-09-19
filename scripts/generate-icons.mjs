@@ -3,7 +3,7 @@
  *
  * Üretilenler:
  *   public/brand/logo-mark.png  — zemini şeffaflaştırılmış, kırpılmış logo
- *   public/icons/icon-192.png   — koyu lacivert zemin üzerine ortalanmış mark
+ *   public/icons/icon-192.png   — açık marka zemini üzerine ortalanmış mark
  *   public/icons/icon-512.png   — aynısı, 512 px
  *   public/icons/icon-32.png    — favicon (sekme)
  *   public/icons/icon-16.png    — favicon (küçük)
@@ -14,9 +14,9 @@
  * her derlemede sharp çalıştırmak build süresine kalıcı yük bindirirdi. Çıktılar
  * repoda tutuluyor, script yalnızca logo değişince elle koşuluyor.
  *
- * Kaynak logo opak (kirli beyaz) bir zemine sahip. İkonlar koyu lacivert zemin
- * istediği için zemin şeffaflaştırılıyor; aksi halde koyu ikonun ortasında
- * beyaz bir kare kalırdı.
+ * Kaynak logo opak (kirli beyaz) bir zemine sahip. İkonlar kendi marka zeminini
+ * çizdiği için kaynak zemin şeffaflaştırılıyor; aksi halde ikonun ortasında
+ * kirli beyaz bir kare kalırdı.
  *
  * Koşma: pnpm brand:icons
  */
@@ -33,8 +33,48 @@ const MARK_OUT = path.join(ROOT, "public", "brand", "logo-mark.png");
 const ICON_DIR = path.join(ROOT, "public", "icons");
 const APPLE_OUT = path.join(ROOT, "public", "apple-touch-icon.png");
 
-/** Marka koyu zemini (globals.css --surface-bg, koyu tema). */
-const ICON_BACKGROUND = "#0B1220";
+/*
+  AÇIK MARKA ZEMİNİ (D36 FAZ SP).
+
+  ÖLÇÜLEN SORUN: ikonlar #0B1220 koyu lacivert zemin üzerine
+  basılıyordu. Logo ise sol altta koyu laciverte, sağ üstte yeşile
+  giden bir gradyan. Koyu zeminde logonun KOYU YARISI kayboluyordu —
+  opak piksellerin en koyu %5'i (#10223b) ile zemin arasındaki kontrast
+  **1.17:1**. Figürün yarısı zemine karışıyor, geriye tek başına
+  anlamsız bir yeşil parça kalıyordu. Aynı mürekkep açık zeminde
+  **14.13:1**.
+
+  Yeni zemin: açık gri-mavi taban + mor ve cyan yumuşak ışıltı
+  (v2 paletinin açık-hava okuması). Düz beyaz denendi ve elendi —
+  marka kimliği taşımıyor ve iOS'un beyaz splash'inden ayırt
+  edilemiyordu.
+
+  Yeşil uç açık zeminde 2.08:1'e düşüyor; bu bir METİN değil büyük bir
+  grafik işaret, şekli koyu yarısı taşıyor. İki uçtan birini feda etmek
+  gerekiyorsa şekli taşıyan yarıyı korumak doğru olan.
+*/
+const ICON_BASE = "#EEF1F8";
+const ICON_GLOW_VIOLET = "#7C3AED";
+const ICON_GLOW_CYAN = "#22D3EE";
+
+/** Açık marka zemini: SVG'den rasterleştiriliyor (düz renk gradyan taşımıyor). */
+function brandGroundSvg(size) {
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+  <defs>
+    <radialGradient id="mor" cx="22%" cy="18%" r="72%">
+      <stop offset="0%" stop-color="${ICON_GLOW_VIOLET}" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="${ICON_GLOW_VIOLET}" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cyan" cx="82%" cy="86%" r="74%">
+      <stop offset="0%" stop-color="${ICON_GLOW_CYAN}" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="${ICON_GLOW_CYAN}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="${size}" height="${size}" fill="${ICON_BASE}"/>
+  <rect width="${size}" height="${size}" fill="url(#mor)"/>
+  <rect width="${size}" height="${size}" fill="url(#cyan)"/>
+</svg>`);
+}
 
 /** İkon kenarından bırakılan boşluk oranı. Mark, kenarlara yapışmasın diye. */
 const ICON_PADDING_RATIO = 0.16;
@@ -103,20 +143,13 @@ async function writeIcon(markBuffer, size, padding = ICON_PADDING_RATIO, outPath
     .png()
     .toBuffer();
 
-  await sharp({
-    create: {
-      width: size,
-      height: size,
-      channels: 4,
-      background: ICON_BACKGROUND,
-    },
-  })
+  await sharp(brandGroundSvg(size))
     .composite([{ input: resizedMark, gravity: "center" }])
     .png()
     .toFile(outPath ?? path.join(ICON_DIR, `icon-${size}.png`));
 
   if (!outPath) {
-    console.log(`icon-${size}.png yazıldı (${size}x${size}, zemin ${ICON_BACKGROUND})`);
+    console.log(`icon-${size}.png yazıldı (${size}x${size}, açık marka zemini)`);
   }
 }
 
