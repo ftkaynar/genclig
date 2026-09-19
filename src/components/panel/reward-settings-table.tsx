@@ -15,14 +15,39 @@ const SCOPE_LABEL: Record<string, string> = {
 const PERIOD_LABEL: Record<string, string> = {
   week: "Haftalık",
   month: "Aylık",
+  season: "Sezon",
 };
 
 /*
-  Ödül ayarları tablosu.
+  Dönem sırası KODDA, sorguda değil.
+
+  listAllRewardSettings `order by period` yapıyor ve bu alfabetik:
+  month, season, week. Yönetici ekranında en kısa dönemden en uzuna
+  gitmesi gerekiyor, yoksa "Aylık" satırları "Haftalık"tan önce
+  görünüyor ve matris okunmuyor.
+*/
+const PERIOD_ORDER = ["week", "month", "season"];
+
+const SCOPE_ORDER = ["turkiye", "takimlar"];
+
+function sortKey(row: { scope: string; period: string; rank: number }): number {
+  const s = SCOPE_ORDER.indexOf(row.scope);
+  const p = PERIOD_ORDER.indexOf(row.period);
+  // Bilinmeyen değerler sona: yeni bir kapsam/dönem eklenirse satır
+  // kaybolmasın, yalnız listenin altına düşsün.
+  return (s < 0 ? 9 : s) * 1000 + (p < 0 ? 9 : p) * 10 + row.rank;
+}
+
+/*
+  Ödül ayarları tablosu — Hafta/Ay/Sezon x Bireysel/Takım matrisi.
 
   Satır satır kaydediliyor, tek bir "hepsini kaydet" düğmesiyle değil:
-  on iki satırı tek seferde göndermek, yalnız birini değiştiren
-  yöneticinin diğer on biri de yanlışlıkla ezmesine kapı açıyordu.
+  on sekiz satırı tek seferde göndermek, yalnız birini değiştiren
+  yöneticinin diğer on yediyi de yanlışlıkla ezmesine kapı açıyordu.
+
+  Dönem sınırları arasında gri bir çizgi var: üç sıra bir dönemin
+  bloğunu oluşturuyor ve blok sınırı görünmezse 1. sıranın hangi döneme
+  ait olduğu on sekiz satırda karışıyordu.
 */
 export function RewardSettingsTable({ rows }: { rows: RewardSetting[] }) {
   const [pending, startTransition] = useTransition();
@@ -32,6 +57,8 @@ export function RewardSettingsTable({ rows }: { rows: RewardSetting[] }) {
     ),
   );
   const [message, setMessage] = useState<string | null>(null);
+
+  const ordered = [...rows].sort((a, b) => sortKey(a) - sortKey(b));
 
   function save(id: string) {
     const values = draft[id];
@@ -68,15 +95,28 @@ export function RewardSettingsTable({ rows }: { rows: RewardSetting[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-edge">
-            {rows.map((row) => {
+            {ordered.map((row, index) => {
               const value = draft[row.id];
               const changed =
                 value.xp !== row.xp ||
                 value.token !== row.token ||
                 value.active !== row.active;
 
+              // Dönem bloğunun ilk satırı: üstüne kalın ayırıcı.
+              const blockStart =
+                index > 0 &&
+                (ordered[index - 1].period !== row.period ||
+                  ordered[index - 1].scope !== row.scope);
+
               return (
-                <tr key={row.id} className="transition-colors hover:bg-surface">
+                <tr
+                  key={row.id}
+                  className={
+                    blockStart
+                      ? "border-t-2 border-edge transition-colors hover:bg-surface"
+                      : "transition-colors hover:bg-surface"
+                  }
+                >
                   <td className="px-3.5 py-2.5 font-medium text-ink">
                     {SCOPE_LABEL[row.scope] ?? row.scope}
                   </td>

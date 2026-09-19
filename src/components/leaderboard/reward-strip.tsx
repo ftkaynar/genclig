@@ -12,18 +12,42 @@ import type { RewardSetting } from "@/lib/leaderboard/rewards";
   sıralamalarında ödül YOK (küçük ilçede üç kişilik listenin birincisine
   her hafta ödül vermek ödülü değersizleştirirdi — bkz. M29b).
 */
+/*
+  Dönem etiketleri.
+
+  Kayıtsız bir dönem gelirse şerit hiç çizilmiyor (aşağıda), bu yüzden
+  burada varsayılan bir metne düşmek gerekmiyor — "Bu hafta"ya düşmek,
+  yanlış dönemin ödülünü doğru dönem gibi göstermek olurdu.
+*/
+const PERIOD_LABEL: Record<string, string> = {
+  week: "Bu hafta",
+  month: "Bu ay",
+  season: "Bu sezon",
+};
+
 export function RewardStrip({
   settings,
   period,
+  isTeams = false,
 }: {
   settings: RewardSetting[];
   period: string;
+  /** Takım modunda metin "takımının ilk 3'e girmesi" anlamına geliyor. */
+  isTeams?: boolean;
 }) {
-  if (settings.length === 0) {
+  const label = PERIOD_LABEL[period];
+
+  /*
+    Şerit yalnızca SEÇİLİ kombinasyonun kaydı varsa görünüyor.
+
+    Kayıt yokken (yönetici sezon satırlarını kapattı, ya da şema geride
+    kaldı) şeridi çizmek "ödül var" demek olurdu; dağıtım yapılmayacağı
+    için bu boş bir vaat.
+  */
+  if (settings.length === 0 || !label) {
     return null;
   }
 
-  const label = period === "month" ? "Bu ay" : "Bu hafta";
   const top = settings.find((s) => s.rank === 1);
   if (!top) return null;
 
@@ -35,7 +59,7 @@ export function RewardStrip({
 
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-bold text-ink">
-          {label} ilk 3&apos;e ödül var
+          {label} ilk 3&apos;e {isTeams ? "takım ödülü" : "ödül"} var
         </span>
         <span className="block truncate text-[11px] text-ink-muted">
           {settings

@@ -19,10 +19,10 @@ import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import {
-  PERIODS,
   SCOPES,
   getLeaderboard,
   getMyRank,
+  normalizePeriod,
   type LeaderboardRow,
   type MyRank,
 } from "@/lib/leaderboard/queries";
@@ -68,9 +68,8 @@ export default async function LeaderboardPage({
       ? (kapsam as string)
       : "turkiye";
 
-  const period = PERIODS.some((item) => item.key === donem)
-    ? (donem as string)
-    : "week";
+  // year -> season eşlemesi normalizePeriod içinde (gerekçesi orada).
+  const period = normalizePeriod(donem);
 
   /*
     Biten dönemin ödülleri burada dağıtılıyor (tembel yol).
@@ -82,10 +81,25 @@ export default async function LeaderboardPage({
   */
   await settleLeaderboardRewards();
 
+  /*
+    Ödül şeridinin kapsamı SEÇİLİ KOMBİNASYONDAN geliyor (D35 FAZ SZ).
+
+    ÖLÇÜLEN SORUN: şerit `scope` ile besleniyordu ve `scope` D34'ten
+    beri yalnız coğrafi eksen. Takım sekmesi açıkken bile "turkiye"
+    satırları, yani BİREYSEL ödül miktarları gösteriliyordu — takım
+    kazananına başka bir miktar yazılırken kullanıcı yanlış sayıyı
+    okuyordu.
+
+    Coğrafi kapsam Türkiye değilse boş: il/ilçe/mahalle sıralamalarında
+    ödül dağıtımı yok (M29b), dolayısıyla şerit de olmamalı.
+  */
+  const rewardScope =
+    scope === "turkiye" ? (isTeams ? "takimlar" : "turkiye") : "";
+
   const [teamRows, rewardSettings, season] = await Promise.all([
     // Takım listesi artık kapsam da alıyor (M33).
     isTeams ? getTeamLeaderboard(period, scope) : Promise.resolve([]),
-    getRewardSettings(scope, period),
+    getRewardSettings(rewardScope, period),
     /*
       Sezon ibaresi başlıkta: "Bu Hafta" bir dönem, sezon ise onu
       kapsayan çerçeve. İkisini birlikte görmek, haftanın hangi sezona
@@ -109,6 +123,16 @@ export default async function LeaderboardPage({
         getLeaderboard(scope, period),
         getMyRank(scope, period),
       ]);
+
+  /*
+    Sezon dönemi seçili ama aktif sezon yok.
+
+    period_start('season') bu durumda 'infinity' dönüyor, yani liste
+    BOŞ. "İlk görevini tamamla, sıralamada yerini al" demek yanlış
+    tavsiye olurdu: kullanıcı ne yaparsa yapsan liste dolmayacak, çünkü
+    sayılacak bir pencere yok. Sebebi söylemek gerekiyor.
+  */
+  const noSeason = period === "season" && !season;
 
   // Kapsam için gereken konum bilgisi eksikse liste boş döner; kullanıcıya
   // sebebini söylemek gerekiyor.
@@ -144,7 +168,11 @@ export default async function LeaderboardPage({
         bu pay olmadan listenin son satırı kartın altında kalıyordu.
       */}
       <main className="flex-1 px-4 pb-8 pt-4 has-bottom-nav">
-        <RewardStrip settings={rewardSettings} period={period} />
+        <RewardStrip
+          settings={rewardSettings}
+          period={period}
+          isTeams={isTeams}
+        />
 
         {/*
           Konum uyarısı MOD FARK ETMEKSİZİN önce (D34 FAZ ST).
@@ -167,7 +195,24 @@ export default async function LeaderboardPage({
           />
         ) : null}
 
-        {isTeams && !missingLocation ? (
+        {noSeason && !missingLocation ? (
+          <EmptyState
+            icon="trophy"
+            title="Aktif sezon yok"
+            description="Şu anda süren bir sezon bulunmuyor. Yeni sezon başladığında bu sıralama yeniden dolacak."
+            action={
+              <ButtonLink
+                href="/siralama?donem=month"
+                variant="primary"
+                icon="calendar"
+              >
+                Bu ayın sıralaması
+              </ButtonLink>
+            }
+          />
+        ) : null}
+
+        {isTeams && !missingLocation && !noSeason ? (
           teamRows.length === 0 ? (
             <EmptyState
               icon="users"
@@ -245,7 +290,7 @@ export default async function LeaderboardPage({
           </div>
         ) : null}
 
-        {!isTeams && !missingLocation && rows.length === 0 ? (
+        {!isTeams && !missingLocation && !noSeason && rows.length === 0 ? (
           <EmptyState
             icon="trophy"
             title="Bu kategoride henüz sıralama yok"

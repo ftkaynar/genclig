@@ -1,12 +1,15 @@
 -- M29b testi: dönem sonu sıralama ödülleri.
 --
 -- Senaryolar:
---   1. Ayarlar seed edildi
+--   1. Ayarlar seed edildi (18 satır: hafta/ay/sezon x bireysel/takım)
 --   2. Dağıtım ilk çağrıda kazananlara puan + bildirim yazıyor
 --   3. İKİNCİ çağrı hiçbir şey yazmıyor (idempotent)
 --   4. Puanlar 'leaderboard_reward' gerekçesiyle yazılmış
 --   5. Normal kullanıcı ayarları OKUYOR ama DEĞİŞTİREMİYOR
 --   6. Kullanıcı yalnız kendi ödül kaydını görüyor
+--   7. 'season' dönemi aktif sezonun penceresini kullanıyor, 'year' reddediliyor
+--   8. Sezon penceresi dışındaki XP sıralamaya girmiyor
+--   9. Sezon dağıtımı idempotent; settle_season_badges biten sezonu dağıtıyor
 --
 -- Çalıştırma:
 --   docker exec -i supabase_db_genclig psql -U postgres -d postgres \
@@ -68,7 +71,7 @@ select '1-ayarlar', 'seed satiri',
 
 insert into t_result
 select '1-ayarlar',
-       case when count(*) = 12 then 'GECTI: 12 ayar (2 kapsam x 2 donem x 3 sira)'
+       case when count(*) = 18 then 'GECTI: 18 ayar (2 kapsam x 3 donem x 3 sira)'
             else 'HATA: ' || count(*) end, ''
 from public.leaderboard_reward_settings;
 
@@ -147,7 +150,7 @@ begin
   insert into t_result values
     ('5-erisim', 'normal kullanici okudugu ayar', v_read::text),
     ('5-erisim',
-     case when v_read = 12 and not v_wrote
+     case when v_read = 18 and not v_wrote
           then 'GECTI: okuyor ama degistiremiyor'
           else 'HATA: okuma ' || v_read || ' yazma ' || v_wrote end, '');
 end;
@@ -182,6 +185,164 @@ begin
      case when v_own = 1 and v_all = 1
           then 'GECTI: herkes yalniz kendi odulunu goruyor'
           else 'HATA: u1=' || v_own || ' u3=' || v_all end, '');
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- SENARYO 7 — 'season' dönemi penceresi, 'year' reddi
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_season_start timestamptz;
+  v_active_start timestamptz;
+  v_season_rows integer;
+  v_year_rejected boolean := false;
+begin
+  v_season_start := public.period_start('season');
+  select s.starts_at into v_active_start from public.active_season() s;
+
+  select count(*) into v_season_rows
+  from public.leaderboard_reward_settings where period = 'season';
+
+  /*
+    'year' artik beyaz listede degil: leaderboard_top raise etmeli.
+    Sessizce '-infinity'ye dusmesi, "Bu Yil" sekmesinin bombos
+    gorunmesiyle ayni siniftan bir hataydi (D32'de olculdu).
+  */
+  begin
+    perform * from public.leaderboard_top('turkiye', 'year', 10);
+  exception when others then
+    v_year_rejected := true;
+  end;
+
+  insert into t_result values
+    ('7-sezon-donem', 'period_start(season)', coalesce(v_season_start::text, 'NULL')),
+    ('7-sezon-donem', 'aktif sezon starts_at', coalesce(v_active_start::text, 'NULL')),
+    ('7-sezon-donem', 'sezon ayar satiri', v_season_rows::text),
+    ('7-sezon-donem', 'year reddedildi', v_year_rejected::text);
+
+  insert into t_result values
+    ('7-sezon-donem',
+     case when v_season_start = v_active_start and v_season_rows = 6 and v_year_rejected
+          then 'GECTI: pencere aktif sezondan, 6 sezon ayari, year reddedildi'
+          else 'HATA: baslangic ' || coalesce(v_season_start::text, 'NULL')
+               || ' vs ' || coalesce(v_active_start::text, 'NULL')
+               || ', ayar ' || v_season_rows || ', year reddi ' || v_year_rejected end, '');
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- SENARYO 8 — sezon penceresi sınırı
+-- ---------------------------------------------------------------------------
+
+/*
+  Iki islem: biri sezon baslangicindan BIR SANIYE once, biri bir saniye
+  sonra. Sezon donemi yalnizca ikincisini saymali.
+
+  Sinir kontrolu tek satirla yapilamaz: pencere disindaki satir hic
+  yazilmazsa "toplam dogru" iddiasi yanlis sebeple de gecebilirdi. Iki
+  satir birlikte hem dahil etmeyi hem dislamayi kanitliyor.
+*/
+do $$
+declare
+  v_u uuid := gen_random_uuid();
+  v_start timestamptz;
+  v_season_xp integer;
+  v_all_xp integer;
+begin
+  select s.starts_at into v_start from public.active_season() s;
+
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                          email_confirmed_at, created_at, updated_at)
+  values (v_u, '00000000-0000-0000-0000-000000000000', 'authenticated',
+          'authenticated', 'lbsezon@example.com', '', now(), now(), now());
+  insert into public.profiles (id, username) values (v_u, 'lbsezon')
+  on conflict (id) do update set username = excluded.username;
+
+  insert into public.xp_transactions (user_id, amount, reason, created_at)
+  values (v_u, 4000, 'task', v_start - interval '1 second'),
+         (v_u, 7, 'task', v_start + interval '1 second');
+
+  perform set_config('role', 'authenticated', true);
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_u::text, 'role', 'authenticated')::text, true);
+
+  select r.total_xp into v_season_xp
+  from public.leaderboard_top('turkiye', 'season', 200) r where r.user_id = v_u;
+
+  select r.total_xp into v_all_xp
+  from public.leaderboard_top('turkiye', 'all', 200) r where r.user_id = v_u;
+
+  perform set_config('role', 'postgres', true);
+
+  insert into t_result values
+    ('8-sinir', 'sezon XP / tum zamanlar XP',
+     coalesce(v_season_xp::text, 'NULL') || ' / ' || coalesce(v_all_xp::text, 'NULL'));
+
+  insert into t_result values
+    ('8-sinir',
+     case when v_season_xp = 7 and v_all_xp = 4007
+          then 'GECTI: pencere disindaki 4000 XP sezona girmedi'
+          else 'HATA: sezon ' || coalesce(v_season_xp::text, 'NULL')
+               || ' (7 beklendi), tum ' || coalesce(v_all_xp::text, 'NULL')
+               || ' (4007 beklendi)' end, '');
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- SENARYO 9 — sezon dağıtımı + settle_season_badges tek kapı
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_season_id smallint;
+  v_key text;
+  v_first integer;
+  v_second integer;
+  v_awards integer;
+  v_after_settle integer;
+  v_flag boolean;
+begin
+  select s.id into v_season_id from public.seasons s
+  where s.starts_at <= now() and s.ends_at > now() limit 1;
+
+  v_key := 'sezon-' || v_season_id;
+
+  v_first := public.award_leaderboard_rewards('turkiye', 'season', v_key);
+  v_second := public.award_leaderboard_rewards('turkiye', 'season', v_key);
+
+  select count(*) into v_awards from public.leaderboard_reward_awards
+  where scope = 'turkiye' and period = 'season' and period_key = v_key;
+
+  /*
+    Sezonu bitmis gosterip settle_season_badges cagiriyoruz: ayni donem
+    UCUNCU kez dagitilmaya calisiliyor. Kapi tablosu tutmali.
+  */
+  update public.seasons set ends_at = now() - interval '1 minute'
+  where id = v_season_id;
+
+  perform public.settle_season_badges();
+
+  select count(*) into v_after_settle from public.leaderboard_reward_awards
+  where scope = 'turkiye' and period = 'season' and period_key = v_key;
+
+  select badge_awarded into v_flag from public.seasons where id = v_season_id;
+
+  insert into t_result values
+    ('9-sezon-dagitim', 'donem anahtari', v_key),
+    ('9-sezon-dagitim', '1. cagri / 2. cagri', v_first || ' / ' || v_second),
+    ('9-sezon-dagitim', 'kayit: award x2 / +settle', v_awards || ' / ' || v_after_settle),
+    ('9-sezon-dagitim', 'badge_awarded', v_flag::text);
+
+  insert into t_result values
+    ('9-sezon-dagitim',
+     case when v_first > 0 and v_second = 0 and v_awards = v_first
+               and v_after_settle = v_awards and v_flag
+          then 'GECTI: uc tetikleme, ' || v_awards || ' kayit; rozet bayragi kalkti'
+          else 'HATA: 1.=' || v_first || ' 2.=' || v_second
+               || ' kayit=' || v_awards || ' settle sonrasi=' || v_after_settle
+               || ' bayrak=' || v_flag end, '');
 end;
 $$;
 

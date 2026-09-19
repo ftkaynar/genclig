@@ -38,20 +38,38 @@ export const SCOPES = [
 
   'Tümü' ARAYÜZDEN KALKTI (D32): tüm zamanların sıralaması ilk
   kullanıcıları kalıcı olarak öne koyuyor ve sonradan katılanın
-  yakalaması imkânsız — liste donuyor. Yıl penceresi her ocakta
-  sıfırlanıyor, yarış canlı kalıyor.
+  yakalaması imkânsız — liste donuyor.
+
+  'Bu Yıl' YERİNE 'Bu Sezon' (D35 FAZ SZ / M34c). Takvim yılı
+  uygulamada hiçbir şeye karşılık gelmiyordu: ekranın üstünde sezon
+  etiketi duruyor, altındaki hapta "Bu Yıl" seçiliyordu ve hangisinin
+  listeyi belirlediği anlaşılmıyordu. Sezon penceresi yöneticinin
+  tanımladığı gerçek yarış aralığı; dönem de o.
 
   'all' DB'de duruyor; leaderboard_top ve leaderboard_teams hâlâ kabul
   ediyor ve yönetim tarafında toplam bakmak gerekebilir.
 
-  Yıl sınırı Europe/Istanbul: sunucu UTC ve 1 Ocak'ta üç saat boyunca
-  önceki yılın sıralaması görünürdü.
+  Pencere sınırları Europe/Istanbul: sunucu UTC ve ay/hafta başında üç
+  saat boyunca önceki dönemin sıralaması görünürdü.
 */
 export const PERIODS = [
   { key: "week", label: "Bu Hafta" },
   { key: "month", label: "Bu Ay" },
-  { key: "year", label: "Bu Yıl" },
+  { key: "season", label: "Bu Sezon" },
 ] as const;
+
+/*
+  ?donem=year eski bağlantılarda kalmış olabilir (D32-D34 arası
+  paylaşılan ya da yer imine eklenen her sıralama URL'i).
+
+  DB artık 'year'ı REDDEDİYOR ('Geçersiz dönem.'), yani eşlemesiz
+  bırakmak eski bir bağlantıyı boş listeye düşürürdü. Kavramsal olarak
+  en yakın karşılık sezon: ikisi de "uzun dönem".
+*/
+export function normalizePeriod(donem: string | undefined): string {
+  if (donem === "year") return "season";
+  return PERIODS.some((item) => item.key === donem) ? (donem as string) : "week";
+}
 
 /*
   Sıralama security definer fonksiyonlardan geliyor: RLS kullanıcıya yalnızca
@@ -59,22 +77,25 @@ export const PERIODS = [
   Fonksiyonlar yalnızca kullanıcı adı, seviye ve dönem XP'si döndürüyor.
 */
 /*
-  'year' dönemi M30 ile geldi.
+  'season' dönemi M34c ile geldi (öncesinde aynı mekanizma 'year' için
+  vardı; dönem değişti, sorun aynı kaldı).
 
   ÖLÇÜLEN SORUN: migration koşmamış bir veritabanında leaderboard_top
-  'year' için P0001 / 'Geçersiz dönem.' raise ediyor. Hata
-  YUTULUYORDU (`const { data }`), yani "Bu Yıl" sekmesi hatasız ama
-  BOMBOŞ bir liste gösteriyordu — kullanıcı için "kimse yok" ile
-  "sorgu kırık" ayırt edilemiyordu.
+  yeni dönem için P0001 / 'Geçersiz dönem.' raise ediyor. Hata
+  YUTULUYORDU (`const { data }`), yani sekme hatasız ama BOMBOŞ bir
+  liste gösteriyordu — kullanıcı için "kimse yok" ile "sorgu kırık"
+  ayırt edilemiyordu.
 
   Bu hata eksik-şema koduyla (42703/PGRST202) gelmiyor, uygulama
   seviyesinde raise ediliyor; bu yüzden ayrı bir kontrol var.
 
-  Geri düşerken 'all' seçiliyor: yıl penceresi yokken tüm zamanlar,
-  boş listeden çok daha yakın bir yaklaşım.
+  Geri düşerken 'month' seçiliyor. 'all' denendi ve elendi: sezon hapı
+  seçiliyken tüm zamanların listesini göstermek, ilk kullanıcıları
+  kalıcı olarak zirvede tutan donmuş bir liste demekti. Ay, sezonun
+  içindeki gerçek ve canlı bir pencere.
 */
-const YEAR = "year";
-const YEAR_FALLBACK = "all";
+const SEASON = "season";
+const SEASON_FALLBACK = "month";
 
 /** Dönem, veritabanınca reddedildi mi? */
 function isInvalidPeriod(error: { message?: string | null } | null) {
@@ -96,9 +117,9 @@ export async function getLeaderboard(
 
   let { data, error } = await read(period);
 
-  if (error && period === YEAR && isInvalidPeriod(error)) {
-    markMissing("period_start('year')");
-    ({ data, error } = await read(YEAR_FALLBACK));
+  if (error && period === SEASON && isInvalidPeriod(error)) {
+    markMissing("period_start('season')");
+    ({ data, error } = await read(SEASON_FALLBACK));
   }
 
   return (data ?? []) as LeaderboardRow[];
@@ -116,8 +137,8 @@ export async function getMyRank(scope: string, period: string): Promise<MyRank> 
   let { data, error } = await read(period);
 
   // getLeaderboard ile aynı geri düşme: sıra ve liste ayrışmamalı.
-  if (error && period === YEAR && isInvalidPeriod(error)) {
-    ({ data, error } = await read(YEAR_FALLBACK));
+  if (error && period === SEASON && isInvalidPeriod(error)) {
+    ({ data, error } = await read(SEASON_FALLBACK));
   }
 
   const rows = (data ?? []) as NonNullable<MyRank>[];

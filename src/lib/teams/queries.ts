@@ -62,14 +62,14 @@ export async function getTeamLeaderboard(
   let { data, error } = await read(period);
 
   /*
-    'year' dönemi M30 ile geldi; migration koşmamış bir veritabanında
-    leaderboard_teams onu reddediyor ve hata YUTULUYORDU — takım
-    sıralaması "Bu Yıl"da hatasız ama bomboş görünüyordu. Bireysel
-    sıralamayla aynı geri düşme (bkz. lib/leaderboard/queries.ts):
-    yıl penceresi yoksa tüm zamanlar gösteriliyor.
+    'season' dönemi M34c ile geldi (öncesi 'year'dı); migration
+    koşmamış bir veritabanında leaderboard_teams onu reddediyor ve hata
+    YUTULUYORDU — takım sıralaması o sekmede hatasız ama bomboş
+    görünüyordu. Bireysel sıralamayla AYNI geri düşme (bkz.
+    lib/leaderboard/queries.ts): sezon penceresi yoksa ay.
   */
-  if (error && period === "year" && error.message?.includes("Geçersiz dönem")) {
-    ({ data, error } = await read("all"));
+  if (error && period === "season" && error.message?.includes("Geçersiz dönem")) {
+    ({ data, error } = await read("month"));
   }
 
   return (data ?? []) as TeamLeaderboardRow[];
