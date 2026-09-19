@@ -113,7 +113,65 @@ export function DiscoverView({
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("");
 
-  function locate() {
+  /*
+    KONUM AKIŞI (D36 FAZ D1'de yeniden yazıldı).
+
+    ÖLÇÜLEN DURUM: başarı yolu zaten çalışıyordu — izin verilmiş bir
+    tarayıcıda "Konumum" kullanıcı noktasını koyuyor, haritayı 14
+    yakınlaştırmaya taşıyor ve "Yakınındaki görevler" şeridini gerçek
+    mesafelerle (529 m, 2.7 km) açıyor. Yani hata tek bir kırık satır
+    değildi; düğme ÜÇ ayrı sebeple "çalışmıyor" gibi görünüyordu:
+
+    1. TEK DENEME, YÜKSEK HASSASİYET. `enableHighAccuracy: true` +
+       `maximumAge: 0` + 15sn: telefonda kapalı mekânda GPS kilidi çoğu
+       zaman bu süreye sığmıyor ve TIMEOUT dönüyor. Kullanıcı "Konumun
+       alınamadı" görüp bir daha denemiyordu. Artık iki aşama var:
+       önce hassas (8sn), olmazsa ağ tabanlı (20sn, 1 dakikalık önbellek
+       kabul). Şehir ölçeğinde görev listelemek için baz istasyonu
+       hassasiyeti fazlasıyla yeterli.
+
+    2. İZİN REDDİNDE YÖNLENDİRME YOK. Eski metin "Konum izni verilmedi.
+       Görevleri haritadan gezebilirsin." diyordu — doğru ama çıkışsız.
+       Kullanıcı izni nereden geri açacağını bilmiyor.
+
+    3. ZATEN REDDEDİLMİŞSE 8 SANİYE BEKLEME. Permissions API varsa
+       önceden sorulup anında yönlendirme veriliyor; tarayıcı sessizce
+       reddedip zaman aşımına düşmüyor.
+
+    Güvenli bağlam kontrolü de eklendi: geolocation yalnız https (ve
+    localhost) altında çalışıyor, aksi halde çağrı sessizce başarısız
+    oluyordu.
+  */
+  const DENIED_HELP =
+    "Konum izni kapalı. Tarayıcı adres çubuğundaki kilit simgesinden " +
+    "(telefonda Ayarlar › Site ayarları › Konum) izni açıp tekrar dene.";
+
+  function apply(result: GeolocationPosition) {
+    setPosition([result.coords.latitude, result.coords.longitude]);
+    setLocating(false);
+    setError(null);
+  }
+
+  function fail(positionError: GeolocationPositionError) {
+    setLocating(false);
+
+    if (positionError.code === positionError.PERMISSION_DENIED) {
+      setError(DENIED_HELP);
+      return;
+    }
+    if (positionError.code === positionError.TIMEOUT) {
+      setError(
+        "Konum zamanında gelmedi. Açık alana çıkıp ya da Wi-Fi açıkken " +
+          "tekrar dene.",
+      );
+      return;
+    }
+    setError(
+      "Konum şu an alınamıyor. Cihazın konum servisi kapalı olabilir.",
+    );
+  }
+
+  async function locate() {
     setError(null);
 
     if (!("geolocation" in navigator)) {
@@ -121,22 +179,45 @@ export function DiscoverView({
       return;
     }
 
+    /*
+      Güvenli bağlam şart. localhost istisna olduğu için geliştirmede
+      sorun çıkmıyor; canlıda site https, yani bu dal yalnız beklenmeyen
+      bir kurulumda tetikleniyor.
+    */
+    if (!window.isSecureContext) {
+      setError("Konum yalnızca güvenli bağlantıda (https) alınabiliyor.");
+      return;
+    }
+
+    // Zaten reddedilmişse beklemeden yönlendir.
+    try {
+      const status = await navigator.permissions.query({
+        name: "geolocation" as PermissionName,
+      });
+      if (status.state === "denied") {
+        setError(DENIED_HELP);
+        return;
+      }
+    } catch {
+      // Permissions API yok (eski Safari): normal akışa devam.
+    }
+
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (result) => {
-        setPosition([result.coords.latitude, result.coords.longitude]);
-        setLocating(false);
-      },
-      (positionError) => {
-        setLocating(false);
-        setError(
-          positionError.code === positionError.PERMISSION_DENIED
-            ? "Konum izni verilmedi. Görevleri haritadan gezebilirsin."
-            : "Konumun alınamadı.",
-        );
-      },
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 },
-    );
+
+    navigator.geolocation.getCurrentPosition(apply, (firstError) => {
+      // İzin reddi tekrar denemeye değmez; ikinci deneme de reddedilir.
+      if (firstError.code === firstError.PERMISSION_DENIED) {
+        fail(firstError);
+        return;
+      }
+
+      // İkinci aşama: ağ tabanlı, önbellekli, uzun süreli.
+      navigator.geolocation.getCurrentPosition(apply, fail, {
+        enableHighAccuracy: false,
+        timeout: 20_000,
+        maximumAge: 60_000,
+      });
+    }, { enableHighAccuracy: true, timeout: 8_000, maximumAge: 0 });
   }
 
   // Kategori filtresi haritayı ve tüm şeritleri birlikte süzüyor.
@@ -162,7 +243,19 @@ export function DiscoverView({
     Yakındakiler yalnızca konum alındığında hesaplanıyor ve konumu olan
     görevlerle sınırlı. Konum yokken mesafe rozeti uydurmak yerine şerit
     hiç gösterilmiyor.
+
+    MESAFE SINIRI 40 km (D36 FAZ D1). Önceden sınır YOKTU: en yakın on
+    görev ne kadar uzakta olursa olsun "Yakınındaki görevler" başlığı
+    altına giriyordu. Ankara'daki kullanıcı İstanbul görevlerini
+    "412.3 km" etiketiyle yakın diye görüyordu — başlık yalan
+    söylüyordu ve düğmenin çalıştığına dair güveni de bu bozuyordu.
+
+    40 km: bir büyükşehrin ucundan ucuna makul üst sınır. 10 km denendi
+    ve elendi — görev havuzu henüz seyrek olduğu için şerit çoğu
+    kullanıcıda hiç açılmıyordu.
   */
+  const NEARBY_LIMIT_M = 40_000;
+
   const nearby = useMemo(() => {
     if (!position) return [];
     return visible
@@ -176,9 +269,17 @@ export function DiscoverView({
           task.lng as number,
         ),
       }))
+      .filter((row) => row.distance <= NEARBY_LIMIT_M)
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 10);
   }, [visible, position]);
+
+  /*
+    Konum alındı ama 40 km içinde konumlu görev yok: sebebi söylemek
+    gerekiyor. Şeridi hiç göstermemek, kullanıcıya "Konumum çalışmadı"
+    dedirtiyordu — oysa konum geldi, yakında görev yok.
+  */
+  const locatedButEmpty = position !== null && nearby.length === 0;
 
   const upcoming = useMemo(
     () =>
@@ -299,6 +400,14 @@ export function DiscoverView({
       ) : null}
 
       {/* --------------------------------------------------- yakındakiler */}
+      {locatedButEmpty ? (
+        <p className="flex items-center gap-2.5 rounded-2xl border border-cyan/40 bg-cyan/10 px-3.5 py-2.5 text-xs text-ink">
+          <Icon name="compass" className="h-4 w-4 shrink-0 text-cyan" />
+          Konumun bulundu ama 40 km içinde konumlu görev yok. Haritayı
+          gezerek başka bölgelere bakabilirsin.
+        </p>
+      ) : null}
+
       {nearby.length > 0 ? (
         <section>
           <StripHeader icon="compass" title="Yakınındaki görevler" />

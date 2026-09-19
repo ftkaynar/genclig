@@ -352,7 +352,16 @@ export function RewardFabButton({
           if (drag.kind === "settle") setDrag({ kind: "idle" });
         }}
         style={style}
-        className={`reward-fab fixed z-40 ${anchorClass} ${
+        /*
+          z-[45] — katman ölçeği (D36 FAZ D2):
+            HUD 20 < alt gezinme 30 < FAB 45 < kip/örtü 50
+
+          50 DEĞİL: FAB bir kipin (modal) üstünde yüzmemeli, yoksa
+          diyalog açıkken tıklanabilir bir düğme örtünün üstünde
+          kalıyor. Harita artık kendi yığın bağlamına kapatıldığı için
+          (globals.css .leaflet-container) 45 her ekranda yeterli.
+        */
+        className={`reward-fab fixed z-[45] ${anchorClass} ${
           dragging ? "reward-fab-dragging" : ""
         } ${settling ? "reward-fab-settle" : ""}`}
       >

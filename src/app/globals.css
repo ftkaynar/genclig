@@ -1449,6 +1449,36 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Leaflet katman hapsi (D36 FAZ D2)
+
+   ÖLÇÜLEN SORUN: Leaflet kendi z-index ölçeğini getiriyor ve bu ölçek
+   uygulamanın kromundan yüksek:
+
+     .leaflet-map-pane   400   (üstelik transform taşıyor)
+     .leaflet-popup-pane 700
+     .leaflet-control    800
+     .leaflet-top/bottom 1000
+
+   Uygulama tarafı ise HUD 20, alt gezinme 30, FAB 40. Yani haritanın
+   HER katmanı sayısal olarak kazanıyor. Ölçümde harita gövdesi FAB'ı
+   örtmüyordu (ata zinciri sayesinde) ama bir pin'e dokununca açılan
+   POPUP FAB'ın tam üstüne biniyordu: `elementFromPoint(FAB merkezi)`
+   `div.leaflet-popup-content-wrapper` döndürdü.
+
+   ÇÖZÜM: haritayı kendi yığın bağlamına kapatmak. `isolation: isolate`
+   ile Leaflet'in 200–1000 aralığı haritanın İÇİNDE anlamlı kalıyor,
+   dışarıda ise harita tek bir `z-index: auto` öğe gibi davranıyor.
+
+   Tek tek z-index ezmek (.leaflet-popup-pane { z-index: 10 } gibi)
+   denendi ve elendi: Leaflet'in katman sayısı sürüm sürüm değişiyor,
+   listeyi elle takip etmek gerekiyordu ve bir sonraki sürümde yeni bir
+   pane sessizce yukarıda kalırdı. Hapis tek satır ve geleceğe dayanıklı.
+   --------------------------------------------------------------------------- */
+.leaflet-container {
+  isolation: isolate;
+}
+
+/* ---------------------------------------------------------------------------
    Ödül FAB v2 (D35 FAZ F)
    --------------------------------------------------------------------------- */
 
