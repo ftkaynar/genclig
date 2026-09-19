@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { markMissing } from "@/lib/supabase/schema-guard";
+import {
+  isKnownMissing,
+  isMissingSchema,
+  markMissing,
+} from "@/lib/supabase/schema-guard";
 
 export type LeaderboardRow = {
   rank: number;
@@ -143,4 +147,60 @@ export async function getMyRank(scope: string, period: string): Promise<MyRank> 
 
   const rows = (data ?? []) as NonNullable<MyRank>[];
   return Array.isArray(rows) ? (rows[0] ?? null) : null;
+}
+
+/* ---------------------------------------------------------------------------
+   Sıra trendi (D36 FAZ HR / M35b)
+   --------------------------------------------------------------------------- */
+
+export type RankTrend = {
+  scope: string;
+  rank: number | null;
+  prev: number | null;
+  /** 'up' | 'down' | 'same' | 'none' */
+  dir: string;
+};
+
+const TRENDS_RPC = "rank_trends";
+
+/*
+  Üç kapsamın trendi tek çağrıda.
+
+  Fonksiyon okuma anında bugünün anlık görüntüsünü de yazıyor (gerekçe
+  migration'da). Yani bu çağrı yan etkili — ama idempotent: günde bir
+  satır, birincil anahtar kapısı.
+
+  ŞEMA KORUMASI: M35b koşmamış bir veritabanında RPC yok (PGRST202) ve
+  hata YUTULURSA kart oksuz ama sessizce çalışmaya devam ediyor. Bu
+  bilinçli: trend bir SÜS, sıralama kartının kendisi değil. Ana sayfayı
+  eksik bir migration yüzünden düşürmek, D32'de ölçtüğümüz kesintinin
+  aynısı olurdu.
+*/
+export async function getRankTrends(): Promise<Map<string, RankTrend>> {
+  const result = new Map<string, RankTrend>();
+  if (isKnownMissing(TRENDS_RPC)) return result;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc(TRENDS_RPC);
+
+  if (error) {
+    if (isMissingSchema(error)) markMissing(TRENDS_RPC);
+    return result;
+  }
+
+  for (const row of (data ?? []) as {
+    t_scope: string;
+    t_rank: number | null;
+    t_prev: number | null;
+    t_dir: string;
+  }[]) {
+    result.set(row.t_scope, {
+      scope: row.t_scope,
+      rank: row.t_rank,
+      prev: row.t_prev,
+      dir: row.t_dir,
+    });
+  }
+
+  return result;
 }

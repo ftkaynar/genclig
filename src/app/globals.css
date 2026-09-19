@@ -1450,6 +1450,21 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Ana sayfa sıra sayısı (D36 FAZ HR)
+
+   Koyu kart zemininde soluk altın hâlâ "yazı" gibi okunuyordu. Bir
+   kademe açık ton + kendi renginde hafif ışıma: sayı kartın taşıdığı
+   tek bilgi ve ekrandaki en parlak şey olmalı.
+
+   Gradyan metin (background-clip) denendi ve elendi: sayı her karede
+   değişen bir sayaç, gradyanın kırpılması sayı genişledikçe kayıyor ve
+   rakamlar titriyordu.
+   --------------------------------------------------------------------------- */
+.rank-number {
+  color: #fff4d6;
+  text-shadow: 0 0 10px rgb(245 179 1 / 0.45);
+}
+/* ---------------------------------------------------------------------------
    Rozet madalyası (D36 FAZ RZ)
 
    Katmanların gerekçesi components/profile/badge-medal.tsx içinde.

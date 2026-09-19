@@ -21,7 +21,7 @@ import { EmptyState } from "@/components/ui/pills";
 import { UserBottomNav } from "@/components/user-bottom-nav";
 import { UserHud } from "@/components/user-hud";
 import { getLatestAnnouncement } from "@/lib/announcements/queries";
-import { getMyRank } from "@/lib/leaderboard/queries";
+import { getMyRank, getRankTrends } from "@/lib/leaderboard/queries";
 import { listNotifications, relativeTime } from "@/lib/notifications/queries";
 import { getTodayEarnings, getUserPoints } from "@/lib/points/queries";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -94,6 +94,7 @@ export default async function UserHomePage() {
     turkiyeRank,
     ilRank,
     ilceRank,
+    trends,
     announcement,
   ] = await Promise.all([
     getUserPoints(viewer.user.id),
@@ -112,6 +113,12 @@ export default async function UserHomePage() {
     getMyRank("turkiye", "week"),
     getMyRank("il", "week"),
     getMyRank("ilce", "week"),
+    /*
+      Trend okları (M35b). Aynı çağrı bugünün anlık görüntüsünü de
+      yazıyor — günde bir satır, birincil anahtar kapısı. Şema geride
+      kalırsa boş harita dönüyor ve kart oksuz çiziliyor.
+    */
+    getRankTrends(),
     getLatestAnnouncement(),
   ]);
 
@@ -255,18 +262,21 @@ export default async function UserHomePage() {
               label: "Türkiye",
               rank: turkiyeRank?.rank ?? null,
               size: turkiyeRank?.scope_size ?? 0,
+              dir: trends.get("turkiye")?.dir ?? "none",
             },
             {
               key: "il",
               label: "İl",
               rank: ilRank?.rank ?? null,
               size: ilRank?.scope_size ?? 0,
+              dir: trends.get("il")?.dir ?? "none",
             },
             {
               key: "ilce",
               label: "İlçe",
               rank: ilceRank?.rank ?? null,
               size: ilceRank?.scope_size ?? 0,
+              dir: trends.get("ilce")?.dir ?? "none",
             },
           ]}
         />

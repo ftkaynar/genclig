@@ -28,7 +28,44 @@ type Scope = {
   label: string;
   rank: number | null;
   size: number;
+  /** 'up' | 'down' | 'same' | 'none' — M35b rank_trends()'ten. */
+  dir: string;
 };
+
+/*
+  Trend oku (D36 FAZ HR).
+
+  YÖN TERSİ SEZGİSEL: sıralamada KÜÇÜK sayı iyidir. 12'den 5'e geçmek
+  "yükseldi"dir ama sayı DÜŞMÜŞTÜR. Ok bu yüzden sayının değişimini
+  değil KULLANICININ durumunun değişimini gösteriyor; çeviri SQL
+  tarafında yapılıyor ve buraya hazır yön geliyor.
+
+  Renk + ikon BİRLİKTE: yeşil/kırmızı tek başına ayırt edici değil
+  (kırmızı-yeşil renk körlüğü en yaygın tür). Ok yönü kesin söylüyor.
+
+  'none' (ilk gün, henüz karşılaştıracak dün yok) ok göstermiyor —
+  nötr bir çizgi koymak "değişmedi" demek olurdu, oysa bilinmiyor.
+*/
+const TREND = {
+  up: { icon: "trending-up", className: "text-status-success", label: "yükseldi" },
+  down: { icon: "trending-down", className: "text-status-danger", label: "düştü" },
+  same: { icon: "minus", className: "text-coin", label: "değişmedi" },
+} as const;
+
+function TrendArrow({ dir }: { dir: string }) {
+  const t = TREND[dir as keyof typeof TREND];
+  if (!t) return null;
+
+  return (
+    <span
+      title={`Düne göre ${t.label}`}
+      className={`inline-flex items-center ${t.className}`}
+    >
+      <Icon name={t.icon} className="h-4 w-4" strokeWidth={3} />
+      <span className="sr-only">Düne göre {t.label}</span>
+    </span>
+  );
+}
 
 /** Sıra sayısını hedefe doğru sayarak getiren küçük bileşen. */
 function RankCounter({ to }: { to: number }) {
@@ -87,18 +124,28 @@ export function RankCard({ scopes }: { scopes: Scope[] }) {
               Sayı AÇIK renkte ve büyük: kartın taşıdığı tek bilgi bu.
               Önceki sürümde 14px koyu gri idi ve kartın içinde
               kayboluyordu.
+
+              D36 FAZ HR: ton bir kademe daha açıldı (#ffe9a8 -> #fff4d6)
+              ve altına kendi renginde bir ışıma eklendi. Kart zemini
+              koyu; soluk altın orada hâlâ "yazı" gibi okunuyordu, oysa
+              bu sayı ekrandaki en parlak şey olmalı.
+
+              Ok sayının YANINDA: altına koymak denendi ve elendi, üç
+              sütunlu ızgarada kart yüksekliğini büyütüyor ve kaydırma
+              gerektiriyordu.
             */}
-            <span className="text-[30px] font-black leading-none text-[#ffe9a8]">
-              {scope.rank === null ? (
-                <span className="text-ink-muted">—</span>
-              ) : (
-                <>
-                  <span className="text-[20px] align-top text-[#ffe9a8]/70">
-                    #
-                  </span>
-                  <RankCounter to={scope.rank} />
-                </>
-              )}
+            <span className="flex items-center gap-1">
+              <span className="rank-number text-[30px] font-black leading-none">
+                {scope.rank === null ? (
+                  <span className="text-ink-muted">—</span>
+                ) : (
+                  <>
+                    <span className="align-top text-[20px] opacity-70">#</span>
+                    <RankCounter to={scope.rank} />
+                  </>
+                )}
+              </span>
+              {scope.rank === null ? null : <TrendArrow dir={scope.dir} />}
             </span>
 
             <span className="mt-1.5 text-[11px] font-semibold text-ink">
