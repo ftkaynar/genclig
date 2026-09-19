@@ -169,7 +169,7 @@ declare
   v_me uuid := (select v from t_ids where k = 'me');
   v_ta uuid := (select v from t_ids where k = 'ta');
   v_hafta integer;
-  v_yil integer;
+  v_tum integer;
 begin
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_me::text, 'role', 'authenticated')::text, true);
@@ -177,18 +177,33 @@ begin
   select r.total_xp into v_hafta
   from public.leaderboard_teams('week', 'turkiye') r where r.team_id = v_ta;
 
-  select r.total_xp into v_yil
-  from public.leaderboard_teams('year', 'turkiye') r where r.team_id = v_ta;
+  /*
+    'year' DÖNEMİ M34c İLE KALDIRILDI (D35 FAZ SZ).
+
+    Bu satır 'year' çağırmaya devam ediyordu ve leaderboard_teams
+    'Geçersiz dönem.' raise edince işlem abort oluyor, dosyanın 15
+    iddiasının HİÇBİRİ koşmuyordu. Üç dilim boyunca fark edilmedi:
+    abort eden bir test ne GECTI ne HATA satırı üretiyor, yani ne
+    sayaca ne sıralı listeye giriyor.
+
+    Yerine 'all': senaryonun iddiası "dönem parametresi sonucu
+    değiştiriyor" ve 'all' bunu veriden bağımsız kanıtlıyor. 'season'
+    denendi ve elendi — aktif sezon penceresine bağlı kalırdı ve o
+    pencere zaten leaderboard_rewards.sql senaryo 7 ve 8'de sınanıyor.
+  */
+  select r.total_xp into v_tum
+  from public.leaderboard_teams('all', 'turkiye') r where r.team_id = v_ta;
 
   /*
-    Haftalıkta 500 (yalnız bugünkü), yıllıkta 9500 (20 gün öncekiyle
-    birlikte). Aynı sayı çıksaydı dönem filtresi çalışmıyor demekti.
+    Haftalıkta 500 (yalnız bugünkü), tüm zamanlarda 9500 (20 gün
+    öncekiyle birlikte). Aynı sayı çıksaydı dönem filtresi çalışmıyor
+    demekti.
   */
   insert into t_result values (
     '5-donem filtresi sonucu degistiriyor',
-    case when v_hafta = 500 and v_yil = 9500 then 'GECTI'
+    case when v_hafta = 500 and v_tum = 9500 then 'GECTI'
          else 'HATA: hafta=' || coalesce(v_hafta, -1)
-              || ' yil=' || coalesce(v_yil, -1) || ' (500/9500 olmali)' end
+              || ' tum=' || coalesce(v_tum, -1) || ' (500/9500 olmali)' end
   );
 end;
 $$;
