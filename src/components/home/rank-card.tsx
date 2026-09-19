@@ -43,8 +43,18 @@ type Scope = {
   Renk + ikon BİRLİKTE: yeşil/kırmızı tek başına ayırt edici değil
   (kırmızı-yeşil renk körlüğü en yaygın tür). Ok yönü kesin söylüyor.
 
-  'none' (ilk gün, henüz karşılaştıracak dün yok) ok göstermiyor —
-  nötr bir çizgi koymak "değişmedi" demek olurdu, oysa bilinmiyor.
+  'none' = İLK GÜN: henüz karşılaştırılacak bir dün yok.
+
+  ÖNCEKİ DURUM: bu durumda hiçbir şey basılmıyordu. Gerekçesi "nötr bir
+  çizgi 'değişmedi' demek olur, oysa bilinmiyor" idi — mantık doğruydu
+  ama sonucu yanlış: üç kartın da yanı bomboş kalıyordu ve proje sahibi
+  özelliği "yapılmamış" sandı (D37 teşhisi: bulutta yalnız bugünün 3
+  snapshot satırı vardı, önceki günden 0).
+
+  Sessizlik, "bilinmiyor"u anlatmıyor. Artık nötr bir tire + "Yarın
+  karşılaştırılacak" ipucu var: dikkat çekmeden "veri birikiyor" diyor.
+  Renk ink-muted, yani üç yönün hiçbiriyle karışmıyor — sarı eşittir
+  "dün de aynıydı", gri tire "dün yok" demek.
 */
 const TREND = {
   up: { icon: "trending-up", className: "text-status-success", label: "yükseldi" },
@@ -52,17 +62,32 @@ const TREND = {
   same: { icon: "minus", className: "text-coin", label: "değişmedi" },
 } as const;
 
+/** İlk gün: karşılaştırma yok, ama boşluk da bırakılmıyor. */
+function TrendPending() {
+  return (
+    <span
+      title="Yarın karşılaştırılacak"
+      className="trend-pending inline-flex items-center text-ink-muted"
+    >
+      <Icon name="minus" className="h-4 w-4" strokeWidth={3} />
+      <span className="sr-only">
+        Karşılaştırma için henüz veri yok, yarın karşılaştırılacak
+      </span>
+    </span>
+  );
+}
+
 function TrendArrow({ dir }: { dir: string }) {
   const t = TREND[dir as keyof typeof TREND];
-  if (!t) return null;
+  if (!t) return <TrendPending />;
 
   return (
     <span
-      title={`Düne göre ${t.label}`}
+      title={`Önceki kayda göre ${t.label}`}
       className={`inline-flex items-center ${t.className}`}
     >
       <Icon name={t.icon} className="h-4 w-4" strokeWidth={3} />
-      <span className="sr-only">Düne göre {t.label}</span>
+      <span className="sr-only">Önceki kayda göre {t.label}</span>
     </span>
   );
 }
@@ -103,6 +128,26 @@ function RankCounter({ to }: { to: number }) {
 }
 
 export function RankCard({ scopes }: { scopes: Scope[] }) {
+  /*
+    İLK GÜN AÇIKLAMASI (D37 FAZ T).
+
+    Tire ikonunun `title` ipucu masaüstünde çalışıyor ama bu bir mobil
+    uygulama; dokunmatik ekranda hover yok, yani ipucu hiç okunmuyor.
+    Bu yüzden açıklama bloğun ALTINDA tek satır.
+
+    Kart BAŞINA değil blok başına: üç kartın altına üç ayrı "yarın
+    karşılaştırılacak" yazmak, 390px'te üç sütunlu ritmi bozuyor ve
+    aynı cümleyi üç kez okutuyordu.
+
+    Yalnızca sırası OLAN ve hepsi 'none' olan durumda çıkıyor. Bir
+    kapsamda bile ok varsa mekanizma görünür biçimde çalışıyor demektir
+    ve cümle gereksiz gürültü olurdu.
+  */
+  const siralananlar = scopes.filter((scope) => scope.rank !== null);
+  const ilkGun =
+    siralananlar.length > 0 &&
+    siralananlar.every((scope) => !TREND[scope.dir as keyof typeof TREND]);
+
   return (
     <section
       className="anim-stagger mt-5"
@@ -157,6 +202,13 @@ export function RankCard({ scopes }: { scopes: Scope[] }) {
           </Link>
         ))}
       </div>
+
+      {ilkGun ? (
+        <p className="mt-1.5 flex items-center gap-1 text-[10px] text-ink-muted">
+          <Icon name="minus" className="h-3 w-3 shrink-0" strokeWidth={3} />
+          Bugünkü sıran kaydedildi. Trend okları yarın başlıyor.
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -1496,6 +1496,17 @@
   transform: scale(0.92);
 }
 
+/*
+  İlk gün tiresi (D37 FAZ T).
+
+  Üç yön okundan daha SİLİK: bu bir durum değil, durumun henüz
+  bilinmediğinin işareti. Aynı opaklıkta çizmek denendi ve elendi —
+  gri tire sarı eşittir işaretiyle aynı ağırlıkta durunca ikisi
+  karışıyor ve "dün de aynıydı" gibi okunuyordu.
+*/
+.trend-pending {
+  opacity: 0.55;
+}
 /* ---------------------------------------------------------------------------
    Ana sayfa sıra sayısı (D36 FAZ HR)
 
