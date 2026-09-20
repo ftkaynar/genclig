@@ -8,7 +8,7 @@ import { RewardBadges } from "@/components/tasks/task-card";
 import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Icon } from "@/components/ui/icon";
-import { DEFAULT_TASK_COVER } from "@/lib/tasks/art";
+import { DEFAULT_TASK_COVER, taskCoverUrl } from "@/lib/tasks/art";
 import { getSpotlightTaskId } from "@/lib/spotlight/queries";
 import { getTaskQuiz } from "@/lib/quiz/queries";
 import { getTeamTaskProgress } from "@/lib/teams/queries";
@@ -122,21 +122,22 @@ export default async function TaskDetailPage({
 
       <main className="flex-1 px-4 py-4 has-bottom-nav">
         {/*
-          Kapak (D38 FAZ GK).
+          Kapak (D38 FAZ GK, D40'ta görevin kendi kapağına bağlandı).
 
-          Sıra: görevin kendi görseli > varsayılan marka kapağı.
-          Kategori gradyanı ARKADA duruyor — görsel yüklenene kadar
-          (ve ağ hatasında) blok boş kalmıyor.
+          Sıra: görevin kendi görseli > art_key'in DETAY kapağı > son
+          çare marka kapağı. Kategori gradyanı ARKADA duruyor — görsel
+          yüklenene kadar (ve ağ hatasında) blok boş kalmıyor.
 
-          Önceden image_url boşken yalnız gradyan vardı: detay
-          sayfasının en üstü, ekranın ilk gördüğü yer, düz renkli bir
-          bloktu.
+          D40'a kadar ortadaki basamak yoktu: image_url'i olmayan her
+          görev, konusu ne olursa olsun aynı Galata manzarasını
+          gösteriyordu. Artık kartta hangi sahne varsa detayda onun
+          geniş şeridi çıkıyor (art-07 -> cover-07).
         */}
         <div
           aria-hidden
           className={`h-36 w-full rounded-2xl bg-gradient-to-br ${tone}`}
           style={{
-            backgroundImage: `url(${task.image_url ?? DEFAULT_TASK_COVER})`,
+            backgroundImage: `url(${task.image_url ?? taskCoverUrl(task.art_key) ?? DEFAULT_TASK_COVER})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
