@@ -141,12 +141,14 @@ export function TaskTile({
                 style={{ backgroundImage: `url(${artUrl})` }}
               />
               {/*
-                Okunurluk perdesi. Kapaksız kartta ikonun arkasında düz
-                kategori gradyanı var; kapaklı kartta fotoğraf var ve
-                fotoğrafın parlaklığı kareden kareye değişiyor. Perde
-                olmadan aynı ikon bir kartta okunuyor, diğerinde
-                kayboluyordu — ikon iki kartta AYNI görünsün diye
-                fotoğrafın üstü ortada koyulaştırılıyor.
+                Okunurluk perdesi — D41'de İŞLEVSEL ÖĞELERE indirildi.
+
+                D39-D40'ta perdenin ağırlığı ORTADA toplanıyordu, çünkü
+                orada ikon vardı. İkon gidince o karartmanın karşılığı
+                kalmadı; fotoğrafın en can alıcı yerini boşuna
+                söndürüyordu. Geriye yalnız üst ve alt kenardaki ince
+                gradyan kaldı: üstte zorluk rozeti, altta vitrin
+                kurdelesi oturuyor.
               */}
               <span aria-hidden className="tile-art-scrim absolute inset-0" />
             </>
@@ -155,29 +157,35 @@ export function TaskTile({
           )}
 
           {/*
-            Kategori ikonu — kapak görseli OLSA DA OLMASA DA aynı yerde ve
-            aynı boyutta. Kapak alanı `items-center justify-center`
-            olduğu için chip `relative` kaldıkça iki durumda da tam
-            ortada duruyor; boyut `artUrl`'den bağımsız.
+            Kategori ikonu YALNIZCA kapak görseli yokken çiziliyor (D41).
 
-            İki tur denendi ve elendi (D38, D39): (1) kapaklı kartta
-            ikonu 32px'e küçültüp sağ alta çekmek — cam chip fotoğrafın
-            üstünde soluk bir leke gibi durdu; (2) kapaklı kartta ikonu
-            hiç çizmemek — kart kimliğini kaybetti, kategori yalnız
-            fotoğraftan okunur oldu. Karar: ikon sabit, fotoğraf arkaya,
-            araya okunurluk perdesi.
+            Karar üç turda oturdu ve son sözü gerçek fotoğraflar söyledi:
+              D38 — kapaklı kartta ikon 32px'e küçültülüp sağ alta
+                    çekildi; cam chip fotoğrafın üstünde soluk bir leke
+                    gibi durdu.
+              D39 — ikon kapaklı kartta da ortaya, tam boyuta alındı;
+                    o an kapaklar hâlâ eski düşük çözünürlüklü setti.
+              D40 — gerçek sahneler geldi.
+              D41 — proje sahibi kararı: fotoğraf konuyu zaten
+                    anlatıyor, ikon üstünde fazlalık. Kapaklı kartta
+                    çizilmiyor.
+
+            Kapaksız kartta (yönetici "Görsel yok" seçmişse) ikon AYNEN
+            duruyor: orada kategoriyi başka hiçbir şey anlatmıyor.
           */}
-          <span
-            className={`tile-chip relative flex items-center justify-center rounded-2xl ${
-              small ? "h-12 w-12" : "h-[58px] w-[58px]"
-            }`}
-          >
-            <Icon
-              name={taskIconName(task)}
-              className={small ? "h-6 w-6 text-white" : "h-8 w-8 text-white"}
-              strokeWidth={2.1}
-            />
-          </span>
+          {artUrl ? null : (
+            <span
+              className={`tile-chip relative flex items-center justify-center rounded-2xl ${
+                small ? "h-12 w-12" : "h-[58px] w-[58px]"
+              }`}
+            >
+              <Icon
+                name={taskIconName(task)}
+                className={small ? "h-6 w-6 text-white" : "h-8 w-8 text-white"}
+                strokeWidth={2.1}
+              />
+            </span>
+          )}
 
           {/*
             Vitrin kurdelesi (D33 FAZ GG).
