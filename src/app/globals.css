@@ -478,20 +478,26 @@
 
   İki katman: ortadaki radyal ikonun oturduğu daireyi koyulaştırıyor,
   dikey gradyan üst köşedeki zorluk rozeti ile alttaki vitrin
-  kurdelesinin zeminini topluyor. Ortada %42, kenarlarda %10-26 —
+  kurdelesinin zeminini topluyor. Ortada %52, kenarlarda %12-26 —
   fotoğraf net kalsın diye kasten hafif.
 
   DENENEN VE ELENEN: tek düze `bg-black/35`. Elendi — fotoğrafın
   tamamını eşit söndürüyordu, kapak koymanın anlamı kalmıyordu.
   Perdenin ağırlığı ikonun olduğu yerde toplanıyor.
+
+  D40: merkez %42'den %52'ye çıktı. Yeni görsel setinde üç kapak
+  (art-02 park, art-07 sahil, art-25 broşür) ikonun tam arkasında açık
+  gökyüzü/deniz taşıyor ve beyaz ikonun kontrastı 4.01-4.32:1'e
+  düşüyordu. +%10, en kötü kareyi 4.5 eşiğinin üstüne çıkaran en küçük
+  artış — daha fazlası bütün kapakları gereksiz yere söndürürdü.
 */
 .tile-art-scrim {
   background:
     radial-gradient(
       circle at 50% 50%,
-      rgb(0 0 0 / 0.42) 0%,
-      rgb(0 0 0 / 0.34) 26%,
-      rgb(0 0 0 / 0.1) 58%,
+      rgb(0 0 0 / 0.52) 0%,
+      rgb(0 0 0 / 0.44) 26%,
+      rgb(0 0 0 / 0.12) 58%,
       rgb(0 0 0 / 0) 76%
     ),
     linear-gradient(
